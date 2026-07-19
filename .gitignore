@@ -1,0 +1,44 @@
+# Dependencies and package-manager logs
+node_modules/
+npm-debug.log*
+*.log
+
+# Local Acta data and environment files
+acta-library.json
+.env
+.env.*
+!.env.example
+
+# Local toolchains and caches
+.android-sdk/
+.gradle-home/
+.gradle-dist/
+android-sdk-tools.zip
+gradle-*.zip
+android/.gradle/
+android/**/build/
+android/local.properties
+
+# Generated application artifacts
+dist/
+release/
+build/windows-app/
+/*.apk
+
+# Signing credentials and service configuration
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+android/app/google-services.json
+
+# Editors, operating systems, and local agent metadata
+.idea/
+.vscode/
+.agents/
+.codex/
+.DS_Store
+Thumbs.db
+Desktop.ini
