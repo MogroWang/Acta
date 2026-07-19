@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#e7e7e3" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http: https:" />
+    <title>Acta · 行记</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="icon" type="image/png" href="./icons/Acta_weblogo.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="interface.css" />
+  </head>
+  <body class="acta-steady">
+    <svg class="svg-sprite" aria-hidden="true">
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M4 14h4l2 3h4l2-3h4"/></symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></symbol>
+      <symbol id="i-note" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M14 3v4h4M9 11h6M9 15h6"/></symbol>
+      <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM8 3v6M16 3v6M4 10h16"/></symbol>
+      <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3z"/></symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></symbol>
+      <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h11a4 4 0 0 0 .5-8A7 7 0 0 0 5 9a4.5 4.5 0 0 0 2 9Z"/><path d="m9 14 3-3 3 3M12 11v8"/></symbol>
+      <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-tag" viewBox="0 0 24 24"><path d="M4 4h7l9 9-7 7-9-9z"/><circle cx="8.5" cy="8.5" r="1"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M8 10v8M12 10v8M16 10v8M6 7l1 14h10l1-14"/></symbol>
+      <symbol id="i-bold" viewBox="0 0 24 24"><path d="M8 4h6a4 4 0 0 1 0 8H8zM8 12h7a4 4 0 0 1 0 8H8z"/></symbol>
+      <symbol id="i-italic" viewBox="0 0 24 24"><path d="M10 4h8M6 20h8M14 4 10 20"/></symbol>
+      <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24"><path d="M4 17v3h16v-3M12 16V4M7 9l5-5 5 5"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M4 17v3h16v-3M12 4v12M7 11l5 5 5-5"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+      <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"/></symbol>
+      <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.55v-.1A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 4.1 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2.3V9.55h.1A1.7 1.7 0 0 0 4.1 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06L6.56 3.7l.06.06A1.7 1.7 0 0 0 8.5 4.1a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2.3h4.05v.1A1.7 1.7 0 0 0 15 4.1a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06A1.7 1.7 0 0 0 19.4 8.5a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v4.05h-.1A1.7 1.7 0 0 0 19.4 15Z"/></symbol>
+      <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h5a4 4 0 0 0 4-4c0-3.3-4-6-9-6Z"/><circle cx="7.5" cy="10" r="1"/><circle cx="10" cy="6.5" r="1"/><circle cx="15" cy="7" r="1"/></symbol>
+      <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></symbol>
+      <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></symbol>
+      <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h3M11 12h9M4 18h8M16 18h4"/><circle cx="16" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="14" cy="18" r="2"/></symbol>
+    </svg>
+
+    <div class="app-shell">
+      <header class="titlebar">
+        <div class="brand" role="button" tabindex="0" aria-label="Acta 行记">
+          <svg class="brand-logo" aria-hidden="true" viewBox="0 0 659 190" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+              <g transform="matrix(1,0,0,1,-2224.716424,-1882.139442)">
+                  <g transform="matrix(15.85749,0,0,15.85749,74.816397,-4042.287587)">
+                      <path d="M139.372,385.527L138.241,381.973C138.202,381.852 138.224,381.72 138.299,381.617C138.373,381.515 138.493,381.454 138.62,381.454L140.1,381.454C140.227,381.454 140.346,381.514 140.421,381.616C140.496,381.718 140.518,381.849 140.48,381.97L139.471,385.212L177.072,385.212L177.072,385.528L139.372,385.528L139.372,385.527ZM141.962,384.895L140.51,384.895L140.51,384.873C140.51,384.651 140.672,384.463 140.891,384.43L141.275,384.372C141.421,384.35 141.542,384.249 141.589,384.109L144.338,375.895L144.634,375.895C145.203,375.895 145.709,376.257 145.893,376.796L148.417,384.191C148.458,384.31 148.564,384.395 148.69,384.408L148.912,384.431C149.149,384.456 149.33,384.656 149.33,384.895L148.658,384.895L145.238,384.895L145.238,384.876C145.238,384.648 145.409,384.456 145.636,384.431L146.002,384.391C146.101,384.38 146.191,384.325 146.245,384.241C146.3,384.157 146.314,384.053 146.283,383.958L145.883,382.702C145.76,382.314 145.4,382.051 144.993,382.051L143.535,382.051C143.126,382.051 142.764,382.317 142.642,382.708L142.245,383.985C142.218,384.072 142.23,384.167 142.279,384.243C142.328,384.32 142.408,384.372 142.499,384.384L142.842,384.431C143.073,384.463 143.246,384.661 143.246,384.895L141.962,384.895ZM144.999,381.631C145.125,381.631 145.245,381.571 145.32,381.468C145.394,381.366 145.416,381.234 145.377,381.113L144.245,377.557L143.138,381.115C143.1,381.236 143.122,381.367 143.197,381.469C143.272,381.571 143.391,381.631 143.518,381.631L144.999,381.631ZM152.545,379.208C152.496,379.055 152.374,378.936 152.22,378.889C151.996,378.821 151.768,378.787 151.536,378.787C151.112,378.787 150.73,378.903 150.39,379.135C150.05,379.367 149.782,379.693 149.586,380.113C149.39,380.533 149.292,381.035 149.292,381.619C149.292,382.475 149.508,383.139 149.94,383.611C150.372,384.083 150.928,384.319 151.608,384.319C151.968,384.319 152.308,384.251 152.628,384.115C152.894,384.002 153.145,383.834 153.383,383.612C153.468,383.532 153.599,383.529 153.686,383.605C153.7,383.615 153.708,383.623 153.708,383.623C153.452,383.999 153.14,384.297 152.772,384.517C152.404,384.737 151.948,384.847 151.404,384.847C150.828,384.847 150.324,384.721 149.892,384.469C149.46,384.217 149.124,383.855 148.884,383.383C148.644,382.911 148.524,382.351 148.524,381.703C148.524,381.007 148.666,380.413 148.95,379.921C149.234,379.429 149.604,379.055 150.06,378.799C150.516,378.543 151.004,378.415 151.524,378.415C151.86,378.415 152.174,378.475 152.466,378.595C152.758,378.715 153.01,378.885 153.222,379.105C153.405,379.294 153.544,379.518 153.641,379.775C153.684,379.893 153.663,380.025 153.584,380.123C153.508,380.216 153.397,380.263 153.252,380.263C153.108,380.263 152.998,380.229 152.922,380.161C152.846,380.093 152.788,379.983 152.748,379.831L152.545,379.208ZM156.197,379.063C155.923,379.063 155.7,379.285 155.7,379.559L155.7,383.347C155.7,383.731 155.77,384.009 155.91,384.181C156.05,384.353 156.256,384.439 156.528,384.439C156.712,384.439 156.874,384.415 157.014,384.367C157.085,384.343 157.157,384.314 157.233,384.28C157.373,384.217 157.538,384.258 157.632,384.379L157.632,384.379C157.472,384.547 157.284,384.675 157.068,384.763C156.852,384.851 156.604,384.895 156.324,384.895C155.852,384.895 155.506,384.769 155.286,384.517C155.066,384.265 154.956,383.887 154.956,383.383L154.956,379.497C154.956,379.258 154.762,379.063 154.522,379.063L153.708,379.063L153.708,379.049C153.708,378.854 153.859,378.692 154.054,378.678L154.858,378.62C154.936,378.615 154.999,378.556 155.009,378.479L155.244,376.771L155.76,376.771L155.712,378.422C155.71,378.477 155.731,378.53 155.769,378.57C155.807,378.609 155.86,378.631 155.914,378.631L157.056,378.631C157.295,378.631 157.488,378.824 157.488,379.063L156.197,379.063ZM161.643,383.973C161.634,383.924 161.598,383.885 161.551,383.87C161.504,383.855 161.452,383.868 161.417,383.903C161.247,384.07 161.086,384.217 160.932,384.343C160.708,384.527 160.48,384.665 160.248,384.757C160.016,384.849 159.756,384.895 159.468,384.895C159.004,384.895 158.616,384.763 158.304,384.499C157.992,384.235 157.836,383.855 157.836,383.359C157.836,383.063 157.902,382.797 158.034,382.561C158.166,382.325 158.382,382.111 158.682,381.919C158.982,381.727 159.38,381.559 159.876,381.415C160.22,381.311 160.57,381.213 160.926,381.121C161.017,381.098 161.106,381.075 161.194,381.053C161.435,380.992 161.604,380.776 161.604,380.527C161.604,380.071 161.552,379.721 161.448,379.477C161.343,379.233 161.187,379.063 160.978,378.967C160.769,378.871 160.504,378.823 160.182,378.823C159.941,378.823 159.7,378.859 159.459,378.931C159.424,378.942 159.389,378.953 159.353,378.966C159.208,379.015 159.099,379.136 159.063,379.285C159.004,379.535 158.916,379.903 158.916,379.903C158.884,380.063 158.828,380.175 158.748,380.239C158.668,380.303 158.564,380.335 158.436,380.335L158.436,380.335C158.301,380.335 158.174,380.268 158.098,380.157C158.021,380.045 158.005,379.903 158.054,379.776C158.205,379.393 158.456,379.087 158.808,378.859C159.216,378.595 159.724,378.463 160.332,378.463C160.988,378.463 161.48,378.621 161.808,378.937C162.136,379.253 162.3,379.767 162.3,380.479L162.3,383.371C162.3,383.787 162.348,384.067 162.444,384.211C162.54,384.355 162.676,384.427 162.852,384.427C162.956,384.427 163.048,384.407 163.128,384.367C163.154,384.354 163.181,384.338 163.209,384.32C163.326,384.248 163.478,384.267 163.572,384.367C163.451,384.543 163.309,384.673 163.144,384.757C162.979,384.841 162.8,384.883 162.606,384.883C162.268,384.883 162.017,384.761 161.852,384.517C161.752,384.37 161.683,384.189 161.643,383.973ZM161.604,381.91C161.604,381.752 161.53,381.603 161.404,381.508C161.278,381.413 161.114,381.383 160.962,381.427L160.962,381.427C160.63,381.523 160.316,381.627 160.02,381.739C159.484,381.931 159.11,382.151 158.898,382.399C158.686,382.647 158.58,382.923 158.58,383.227C158.58,383.603 158.688,383.887 158.904,384.079C159.12,384.271 159.404,384.367 159.756,384.367C159.956,384.367 160.15,384.329 160.338,384.253C160.526,384.177 160.738,384.047 160.974,383.863C161.068,383.79 161.168,383.707 161.274,383.615C161.483,383.434 161.604,383.171 161.604,382.894C161.604,382.611 161.604,382.232 161.604,381.91ZM165.749,382.007C165.749,382.001 165.746,381.996 165.74,381.993C165.735,381.99 165.728,381.991 165.723,381.994L165.717,381.999C165.439,382.201 165.147,382.383 164.839,382.544C164.807,382.561 164.767,382.553 164.743,382.526L164.732,382.514C164.896,382.333 165.059,382.132 165.221,381.912C165.383,381.692 165.535,381.466 165.678,381.235C165.82,381.004 165.95,380.781 166.066,380.565C166.087,380.527 166.107,380.489 166.127,380.451C166.189,380.332 166.298,380.243 166.428,380.206C166.558,380.168 166.698,380.186 166.814,380.254L167.432,380.617C167.415,380.647 167.388,380.671 167.351,380.688C167.328,380.699 167.296,380.705 167.255,380.705C167.2,380.709 167.148,380.733 167.11,380.774C167.029,380.856 166.945,380.942 166.855,381.031C166.748,381.136 166.688,381.28 166.688,381.429C166.688,382.16 166.688,384.339 166.688,384.577C166.688,384.596 166.682,384.614 166.67,384.63C166.647,384.644 166.614,384.663 166.568,384.686C166.492,384.723 166.396,384.756 166.28,384.786C166.163,384.817 166.045,384.832 165.924,384.832L165.749,384.832L165.749,382.007ZM166.267,378.694L167.283,379.335C167.266,379.365 167.238,379.389 167.199,379.406C167.174,379.417 167.142,379.422 167.104,379.421C167.054,379.421 167.006,379.438 166.967,379.47C166.816,379.589 166.646,379.715 166.455,379.847C166.234,379.998 165.997,380.14 165.742,380.274C165.507,380.397 165.267,380.508 165.02,380.606C164.984,380.62 164.943,380.609 164.918,380.579L164.907,380.565C165.089,380.388 165.268,380.188 165.445,379.963C165.622,379.739 165.782,379.514 165.927,379.29C166.072,379.065 166.185,378.867 166.267,378.694ZM171.743,381.091C171.743,381.037 171.699,380.993 171.645,380.993L171.176,380.993C171.063,380.993 170.962,380.92 170.927,380.812L171.542,380.812C171.679,380.812 171.811,380.758 171.909,380.661L172.042,380.53C172.111,380.462 172.221,380.458 172.296,380.52L172.896,381.019C172.874,381.045 172.839,381.07 172.792,381.093C172.775,381.102 172.754,381.109 172.73,381.116C172.675,381.133 172.637,381.184 172.637,381.242C172.637,381.617 172.637,382.869 172.637,383.309C172.637,383.342 172.654,383.372 172.682,383.389C172.71,383.406 172.744,383.408 172.774,383.393C172.958,383.298 173.143,383.202 173.329,383.104L173.34,383.133C173.346,383.147 173.344,383.163 173.336,383.175C173.268,383.28 173.177,383.415 173.064,383.579C172.943,383.754 172.801,383.948 172.637,384.162C172.539,384.29 172.434,384.42 172.322,384.555C172.295,384.588 172.272,384.624 172.255,384.663C172.246,384.684 172.236,384.703 172.225,384.722C172.213,384.744 172.2,384.765 172.187,384.784C172.16,384.824 172.115,384.847 172.068,384.847C172.02,384.847 171.975,384.824 171.948,384.785C171.8,384.573 171.531,384.185 171.428,384.037C171.418,384.022 171.414,384.003 171.417,383.984C171.421,383.966 171.432,383.949 171.447,383.939C171.564,383.862 171.641,383.802 171.678,383.757C171.722,383.706 171.743,383.641 171.743,383.563L171.743,381.091ZM171.424,378.972C171.438,378.96 171.456,378.954 171.474,378.955C171.836,378.978 172.128,379.036 172.348,379.128C172.575,379.223 172.741,379.337 172.847,379.468C172.953,379.6 173.007,379.729 173.009,379.857C173.011,379.984 172.976,380.095 172.905,380.19C172.834,380.285 172.737,380.344 172.614,380.368C172.535,380.383 172.45,380.376 172.359,380.346C172.267,380.315 172.194,380.245 172.159,380.154C172.114,380.039 172.058,379.925 171.992,379.811C171.904,379.658 171.808,379.51 171.704,379.368C171.601,379.225 171.499,379.1 171.4,378.992L171.424,378.972ZM169.289,381.737C169.289,381.63 169.247,381.528 169.171,381.452C169.096,381.377 168.993,381.334 168.887,381.334L167.337,381.334C167.251,381.334 167.175,381.277 167.152,381.193L167.142,381.156L169.873,381.156C170.002,381.156 170.124,381.098 170.206,380.999L170.329,380.848L170.375,380.885C170.406,380.91 170.446,380.942 170.495,380.981C170.544,381.02 170.595,381.062 170.649,381.107C170.702,381.152 170.749,381.197 170.79,381.242C170.778,381.304 170.727,381.334 170.636,381.334L169.675,381.334C169.644,381.334 169.615,381.347 169.593,381.368C169.572,381.39 169.56,381.419 169.56,381.45L169.56,384.245C169.56,384.331 169.546,384.41 169.52,384.482C169.493,384.553 169.436,384.613 169.348,384.66C169.259,384.707 169.121,384.741 168.932,384.761C168.928,384.716 168.912,384.674 168.883,384.635C168.854,384.596 168.817,384.567 168.772,384.546C168.719,384.517 168.636,384.492 168.523,384.469C168.427,384.45 168.308,384.433 168.166,384.418C168.123,384.414 168.089,384.377 168.089,384.333L168.089,384.312L168.175,384.318C168.233,384.323 168.307,384.328 168.397,384.334C168.487,384.34 168.58,384.346 168.677,384.352C168.773,384.358 168.86,384.364 168.938,384.368C169.016,384.372 169.072,384.374 169.104,384.374C169.174,384.374 169.222,384.364 169.249,384.343C169.276,384.323 169.289,384.286 169.289,384.232L169.289,381.737ZM167.474,379.741L169.549,379.741C169.696,379.741 169.835,379.674 169.926,379.56L170.027,379.433L170.077,379.47C170.109,379.495 170.149,379.527 170.197,379.566C170.244,379.605 170.295,379.647 170.35,379.692C170.406,379.737 170.454,379.782 170.495,379.827C170.483,379.893 170.431,379.926 170.341,379.926L167.667,379.926C167.579,379.926 167.503,379.865 167.483,379.78L167.474,379.741ZM176.177,380.06C176.177,379.937 176.077,379.837 175.954,379.837L173.412,379.837C173.32,379.837 173.239,379.777 173.213,379.69L173.198,379.64L176.076,379.64C176.101,379.64 176.124,379.63 176.141,379.612L176.243,379.503C176.281,379.464 176.342,379.458 176.386,379.491L176.76,379.772C176.738,379.798 176.701,379.821 176.648,379.843C176.61,379.858 176.57,379.871 176.526,379.882C176.492,379.891 176.469,379.921 176.469,379.955C176.469,380.317 176.469,382.184 176.469,382.184C176.469,382.197 176.454,382.213 176.425,382.232C176.397,382.251 176.363,382.268 176.326,382.283C176.288,382.298 176.252,382.306 176.216,382.306L176.177,382.306L176.177,381.975C176.177,381.892 176.11,381.825 176.027,381.825L174.2,381.825C174.126,381.825 174.055,381.854 174.003,381.907C173.95,381.959 173.921,382.03 173.921,382.104L173.921,384.313C173.921,384.381 173.945,384.429 173.994,384.457C174.043,384.485 174.169,384.499 174.372,384.499L175.42,384.499C175.681,384.499 175.9,384.496 176.077,384.492C176.248,384.488 176.369,384.484 176.441,384.48C176.448,384.479 176.454,384.479 176.46,384.477C176.503,384.469 176.532,384.459 176.548,384.447C176.566,384.435 176.581,384.414 176.594,384.384L176.595,384.383C176.621,384.319 176.652,384.199 176.687,384.024C176.719,383.866 176.749,383.688 176.778,383.488C176.783,383.45 176.816,383.421 176.855,383.421L176.88,383.421L176.891,384.242C176.892,384.331 176.939,384.413 177.015,384.46C177.022,384.463 177.028,384.466 177.032,384.47C177.059,384.489 177.072,384.516 177.072,384.55C177.072,384.593 177.052,384.628 177.013,384.656C176.973,384.683 176.896,384.705 176.784,384.72C176.671,384.735 176.506,384.745 176.289,384.752C176.073,384.758 175.787,384.761 175.434,384.761L174.359,384.761C174.16,384.761 174.008,384.75 173.904,384.726C173.8,384.703 173.729,384.661 173.689,384.601C173.649,384.541 173.629,384.458 173.629,384.351L173.629,381.567C173.629,381.543 173.641,381.522 173.661,381.509C173.68,381.497 173.705,381.495 173.726,381.505L173.929,381.599C173.969,381.618 174.013,381.628 174.057,381.628L175.951,381.628C176.011,381.628 176.068,381.604 176.11,381.562C176.153,381.519 176.177,381.462 176.177,381.402L176.177,380.06ZM135.576,373.604L143.084,373.604L140.976,380.377C140.854,380.768 140.493,381.034 140.083,381.034L138.625,381.034C138.218,381.034 137.858,380.771 137.735,380.383L135.576,373.604Z"/>
+                  </g>
+              </g>
+          </svg>
+          <span class="logo-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <img class="brand-mini-logo" src="./icons/Acta_weblogo.png" alt="" aria-hidden="true" />
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="true" aria-controls="primarySidebar" title="收起左侧功能栏"><svg><use href="#i-chevron"/></svg></button>
+        <div class="titlebar-center"><span id="saveState" data-i18n="saved">已保存</span></div>
+        <div class="window-spacer"></div>
+        <button class="icon-button mobile-list-settings" id="mobileListSettings" type="button" aria-label="设置"><svg><use href="#i-settings"/></svg></button>
+      </header>
+
+      <main class="workspace">
+        <aside class="sidebar" id="primarySidebar">
+          <button class="new-button" id="newButton">
+            <svg><use href="#i-plus"/></svg><span data-i18n="new">新建</span>
+            <kbd>⌘ N</kbd>
+          </button>
+          <div class="create-menu" id="createMenu">
+            <button data-create="note"><span class="menu-icon note"><svg><use href="#i-note"/></svg></span><span><b data-i18n="newNote">新建笔记</b><small data-i18n="newNoteHint">记录想法与灵感</small></span></button>
+            <button data-create="todo"><span class="menu-icon todo"><svg><use href="#i-check"/></svg></span><span><b data-i18n="newTodo">新建待办</b><small data-i18n="newTodoHint">拆解目标与行动</small></span></button>
+            <button id="importNoteButton"><span class="menu-icon import"><svg><use href="#i-download"/></svg></span><span><b data-i18n="importNote">导入笔记</b><small data-i18n="importNoteHint">支持 Markdown 与纯文本</small></span></button>
+          </div>
+
+          <nav class="nav-section smart-nav" id="smartNav">
+            <button data-view="inbox" class="active"><span><svg><use href="#i-inbox"/></svg><span data-i18n="inbox">收集箱</span></span><em id="inboxCount">0</em></button>
+            <button data-view="today"><span><svg><use href="#i-spark"/></svg><span data-i18n="today">今天</span></span><em id="todayCount">0</em></button>
+            <button data-view="todos"><span><svg><use href="#i-check"/></svg><span data-i18n="todos">待办</span></span><em id="todoCount">0</em></button>
+            <button data-view="notes"><span><svg><use href="#i-note"/></svg><span data-i18n="notes">笔记</span></span><em id="noteCount">0</em></button>
+            <button data-view="completed"><span><svg><use href="#i-check"/></svg><span data-i18n="completed">已完成</span></span><em id="completedCount">0</em></button>
+          </nav>
+
+          <section class="folder-section">
+            <div class="section-label">
+              <span data-i18n="folders">归类</span>
+              <span class="section-label-actions">
+                <button id="addFolder" type="button" title="添加归类" aria-label="添加归类"><svg><use href="#i-plus"/></svg></button>
+                <button id="manageFolders" type="button" title="管理归类" aria-label="管理归类"><svg><use href="#i-edit"/></svg></button>
+                <button id="folderActionsMenu" type="button" title="归类操作" aria-label="归类操作" aria-haspopup="menu" aria-expanded="false"><svg><use href="#i-folder"/></svg></button>
+              </span>
+            </div>
+            <nav class="nav-section" id="folderNav"></nav>
+          </section>
+
+          <div class="folder-action-menu" id="folderActionMenu" role="menu" aria-hidden="true">
+            <button type="button" role="menuitem" data-folder-menu-action="add"><span><svg><use href="#i-plus"/></svg></span><span><b id="folderMenuAddTitle">新建归类</b><small id="folderMenuAddHint">创建一个新的归类</small></span></button>
+            <button type="button" role="menuitem" data-folder-menu-action="manage"><span><svg><use href="#i-edit"/></svg></span><span><b id="folderMenuManageTitle">管理归类</b><small id="folderMenuManageHint">编辑名称、简称与颜色</small></span></button>
+          </div>
+
+          <div class="sidebar-bottom">
+            <div class="sidebar-control-dock">
+              <button class="sync-card" id="workspaceButton">
+                <span class="sync-icon"><svg><use href="#i-folder"/></svg><i></i></span>
+                <span><b>演示行记数据</b><small class="workspace-card-status demo" id="workspaceCardStatus">不会保存更改</small></span>
+                <svg class="chevron"><use href="#i-chevron"/></svg>
+              </button>
+              <button id="settingsButton" title="设置" aria-label="设置"><svg><use href="#i-settings"/></svg></button>
+            </div>
+          </div>
+        </aside>
+
+        <section class="item-pane">
+          <div class="item-header">
+            <div><p id="viewEyebrow" data-i18n="actaData">行记数据</p><h1 id="viewTitle">收集箱</h1></div>
+            <button class="todo-status-switch" id="todoStatusSwitch" type="button" hidden><svg><use href="#i-check"/></svg><span>已完成</span></button>
+          </div>
+          <label class="search-box">
+            <svg><use href="#i-search"/></svg>
+            <input id="searchInput" type="search" data-i18n-placeholder="search" placeholder="搜索笔记和待办…" />
+            <kbd>⌘ K</kbd>
+          </label>
+          <div class="filter-row">
+            <button class="active" data-filter="all" data-i18n="all">全部</button>
+            <button data-filter="todo" data-i18n="todos">待办</button>
+            <button data-filter="note" data-i18n="notes">笔记</button>
+          </div>
+          <div class="item-list" id="itemList"></div>
+          <div class="list-footer"><span id="itemCountLabel">0 个项目</span><span data-i18n="localFirst">本地优先</span></div>
+          <div class="list-resizer" id="listResizer" role="separator" aria-orientation="vertical" aria-label="调整列表宽度"></div>
+        </section>
+
+        <section class="editor-pane" id="editorPane"></section>
+      </main>
+    </div>
+
+    <div class="settings-backdrop" id="settingsModal" aria-hidden="true">
+      <section class="settings-window" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <header class="settings-header">
+          <span><svg><use href="#i-settings"/></svg></span>
+          <div><h2 id="settingsTitle">设置</h2><p>按你的方式使用 Acta</p></div>
+          <button class="settings-close" id="settingsClose" type="button" aria-label="关闭设置"><svg><use href="#i-close"/></svg></button>
+        </header>
+        <div class="settings-layout">
+          <nav class="settings-nav" aria-label="设置页面">
+            <button class="active" type="button" data-settings-page="language"><svg><use href="#i-globe"/></svg><span>语言</span><i></i></button>
+            <button type="button" data-settings-page="workspace"><svg><use href="#i-folder"/></svg><span>行记数据</span><i></i></button>
+            <button type="button" data-settings-page="general"><svg><use href="#i-sliders"/></svg><span>常规设置</span><i></i></button>
+            <button type="button" data-settings-page="appearance"><svg><use href="#i-palette"/></svg><span>外观设置</span><i></i></button>
+            <button type="button" data-settings-page="cloud"><svg><use href="#i-cloud"/></svg><span>网盘同步</span><i></i></button>
+            <button type="button" data-settings-page="developer"><svg><use href="#i-code"/></svg><span>开发者测试</span><i></i></button>
+            <button type="button" data-settings-page="about"><svg><use href="#i-info"/></svg><span>关于</span><i></i></button>
+          </nav>
+          <div class="settings-content">
+            <section class="settings-panel active" data-settings-panel="language">
+              <header><h3>语言</h3><p>切换 Acta 的界面语言，笔记内容不会被翻译或修改。</p></header>
+              <div class="language-options">
+                <label class="language-option"><input type="radio" name="actaLanguage" value="zh"/><span><span class="language-flag" role="img" aria-label="中华人民共和国国旗"><img src="./icons/flag-cn.svg" alt="" aria-hidden="true"/></span><span><strong>简体中文</strong><small>Chinese, Simplified</small></span></span></label>
+                <label class="language-option"><input type="radio" name="actaLanguage" value="zh-Hant"/><span><span class="language-flag" role="img" aria-label="中华人民共和国国旗"><img src="./icons/flag-cn.svg" alt="" aria-hidden="true"/></span><span><strong>繁體中文</strong><small>Chinese, Traditional</small></span></span></label>
+                <label class="language-option"><input type="radio" name="actaLanguage" value="en"/><span><span class="language-flag" role="img" aria-label="美国国旗"><img src="./icons/flag-us.svg" alt="" aria-hidden="true"/></span><span><strong>English</strong><small>英语</small></span></span></label>
+              </div>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="workspace">
+              <header class="data-profile-header"><div><h3>行记数据</h3><p>每个数据档案都包含完整的归类、笔记和待办；可以保存在软件本地，也可以连接到你选择的文件夹。</p></div><button class="settings-button" id="newDataProfile" type="button"><svg><use href="#i-plus"/></svg><span>新建空白档案</span></button></header>
+              <aside class="browser-storage-notice" id="browserStorageNotice" hidden><svg><use href="#i-info"/></svg><p><b>浏览器本地空间有限</b><span>浏览器可能在空间不足或清理缓存时移除本地数据，请定期导出完整档案备份。</span></p></aside>
+              <div class="data-profile-create" id="dataProfileCreate" aria-hidden="true">
+                <div class="data-profile-create-inner">
+                  <div class="data-profile-create-title"><span><svg><use href="#i-database"/></svg></span><div><b id="newDataProfileTitle">新建空白档案</b><small id="newDataProfileSubtitle">从一份没有笔记和待办的数据开始</small></div></div>
+                  <label class="data-profile-name-field"><span id="newDataProfileNameLabel">档案名称</span><input id="newDataProfileName" type="text" maxlength="60" autocomplete="off" value="新的行记数据"/></label>
+                  <fieldset class="data-profile-storage"><legend id="newDataProfileStorageLabel">保存位置</legend><label><input type="radio" name="newDataProfileStorage" value="local" checked/><span><svg><use href="#i-database"/></svg><b id="newDataProfileLocalLabel">软件本地</b><small id="newDataProfileLocalHint">默认位置，无需选择文件夹</small></span></label><label><input type="radio" name="newDataProfileStorage" value="folder"/><span><svg><use href="#i-folder"/></svg><b id="newDataProfileFolderLabel">自选文件夹</b><small id="newDataProfileFolderHint">创建时选择保存位置</small></span></label></fieldset>
+                  <div class="data-profile-create-actions"><button class="settings-button secondary" id="cancelDataProfile" type="button">取消</button><button class="settings-button" id="confirmDataProfile" type="button"><svg><use href="#i-plus"/></svg><span>创建并打开</span></button></div>
+                </div>
+              </div>
+              <div class="data-profile-list-heading"><div><b id="dataProfileListTitle">数据档案</b><small id="dataProfileCount">0 个档案</small></div><span id="activeDataProfileSummary"></span></div>
+              <div class="data-profile-list" id="dataProfileList" role="list"></div>
+              <p class="settings-status" id="workspaceStatus" role="status" aria-live="polite">正在读取行记数据档案…</p>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="general">
+              <header><h3>常规设置</h3><p>调整启动位置、内容密度和动效偏好。</p></header>
+              <div class="settings-group">
+                <label class="settings-row"><span><b>默认启动页面</b><small>打开应用时优先进入的智能视图</small></span><select id="defaultViewSetting"><option value="inbox">收集箱</option><option value="today">今天</option><option value="todos">所有待办</option><option value="notes">所有笔记</option><option value="completed">已完成</option></select></label>
+                <label class="settings-row"><span><b>紧凑列表</b><small>在中栏显示更多笔记和待办</small></span><input id="compactModeSetting" type="checkbox"/></label>
+                <label class="settings-row"><span><b>减少动态效果</b><small>降低转场和弹性动画，减少视觉干扰</small></span><input id="reduceMotionSetting" type="checkbox"/></label>
+              </div>
+              <p class="settings-status" id="generalStatus">设置会自动保存在当前设备。</p>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="appearance">
+              <header><h3>外观设置</h3><p>主题只改变显示效果，不会影响任何笔记或待办数据。</p></header>
+              <div class="theme-grid">
+                <label class="theme-option"><input type="radio" name="actaTheme" value="mono-light"/><span><span class="theme-swatch"><i style="background:#fff"></i><i style="background:#e7e7e3"></i><i style="background:#161716"></i></span><b>黑白浅色</b></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="mono-dark"/><span><span class="theme-swatch"><i style="background:#111310"></i><i style="background:#292c28"></i><i style="background:#f1f1ed"></i></span><b>黑白深色</b></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="blue-yellow"/><span><span class="theme-swatch"><i style="background:#f5d96d"></i><i style="background:#edf3f8"></i><i style="background:#326b8b"></i></span><b>蓝黄</b></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="eye-yellow"/><span><span class="theme-swatch"><i style="background:#e9d99f"></i><i style="background:#fbf2cf"></i><i style="background:#66734e"></i></span><b>黄色护眼</b></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="custom"/><span><span class="theme-swatch"><i id="customSwatchPaper" style="background:#fbfaf6"></i><i id="customSwatchSidebar" style="background:#ebe7dc"></i><i id="customSwatchAccent" style="background:#526b55"></i></span><b>自定义</b></span></label>
+              </div>
+              <div class="custom-colors" id="customColorSettings">
+                <label class="color-field">纸张颜色<input id="customPaperColor" type="color" value="#fbfaf6"/></label>
+                <label class="color-field">侧栏颜色<input id="customSidebarColor" type="color" value="#ebe7dc"/></label>
+                <label class="color-field">强调颜色<input id="customAccentColor" type="color" value="#526b55"/></label>
+              </div>
+              <div class="settings-group" style="margin-top:18px">
+                <label class="settings-row"><span><b>界面字体</b><small>同时应用到列表、编辑器和设置页面</small></span><select id="appFontSetting"><option value="system">系统默认</option><option value="serif">衬线字体</option><option value="rounded">圆体</option><option value="mono">等宽字体</option><option value="custom">自定义字体</option></select></label>
+                <label class="settings-row conditional-font" id="customFontRow"><span><b>字体家族</b><small>输入设备上已安装的字体，例如 Inter 或 Microsoft YaHei</small></span><input id="customFontFamily" type="text" value="Inter" placeholder="Inter, Microsoft YaHei" maxlength="120"/></label>
+                <label class="settings-row"><span><b>字体大小</b><small>在紧凑与易读之间调整</small></span><span class="font-size-control"><input id="appFontSizeSetting" type="range" min="12" max="22" step="1"/><output id="appFontSizeValue">14 px</output></span></label>
+              </div>
+              <div class="font-preview"><p>记录，然后行动。Acta 让笔记与待办自然连接。</p></div>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="cloud">
+              <header><h3>网盘同步</h3><p>在本地文件夹与 WebDAV 服务器之间选择一种同步方式。</p></header>
+              <div class="settings-group">
+                <label class="settings-row"><span><b>同步模式</b><small>切换后使用对应位置进行上传、下载与自动同步</small></span><select id="cloudSyncMode"><option value="onedrive">本地文件夹</option><option value="webdav">WebDAV</option></select></label>
+                <div class="cloud-mode-fields" id="oneDriveModeFields">
+                  <div class="settings-row"><span><b>本地文件夹</b><small id="oneDriveFolderPath">尚未选择本地文件夹</small></span><span class="sync-icon"><svg><use href="#i-folder"/></svg><i></i></span></div>
+                  <div class="settings-row"><span><b>文件夹同步</b><small class="cloud-mode-note">全平台可用；支持设备本地、局域网及系统已挂载的网络位置</small></span><button class="settings-button" id="chooseOneDriveFolder" type="button"><svg><use href="#i-folder"/></svg><span>选择本地文件夹</span></button></div>
+                </div>
+                <div class="cloud-mode-fields" id="webDavModeFields" hidden>
+                  <label class="settings-row"><span><b>服务器地址</b><small>填写用于保存 Acta 完整数据文件夹的 WebDAV 目录地址</small></span><input id="webDavServer" type="url" inputmode="url" autocomplete="url" placeholder="https://dav.example.com/Acta/"/></label>
+                  <label class="settings-row"><span><b>账号</b><small>WebDAV 用户名</small></span><input id="webDavUsername" type="text" autocomplete="username" maxlength="180"/></label>
+                  <label class="settings-row"><span><b>密码</b><small>建议使用服务商提供的应用专用密码</small></span><input id="webDavPassword" type="password" autocomplete="current-password" maxlength="300"/></label>
+                  <div class="settings-row"><span><b>WebDAV 连接</b><small id="webDavConnectionPath">尚未连接 WebDAV</small></span><button class="settings-button" id="connectWebDav" type="button"><svg><use href="#i-cloud"/></svg><span>保存并测试连接</span></button></div>
+                </div>
+                <label class="settings-row"><span><b>自动同步</b><small>内容变化后自动上传，并定时检查同步位置中的更新</small></span><input id="autoSyncSetting" type="checkbox"/></label>
+                <label class="settings-row" id="autoSyncIntervalRow"><span><b>检查频率</b><small>仅在 Acta 保持运行时执行</small></span><select id="autoSyncInterval"><option value="1">每 1 分钟</option><option value="5">每 5 分钟</option><option value="15">每 15 分钟</option></select></label>
+              </div>
+              <div class="settings-actions">
+                <button class="settings-button secondary" id="downloadOneDrive" type="button" disabled><svg><use href="#i-download"/></svg>下载完整数据文件夹</button>
+                <button class="settings-button" id="uploadOneDrive" type="button" disabled><svg><use href="#i-upload"/></svg>上传完整数据文件夹</button>
+                <button class="settings-button secondary" id="disconnectOneDrive" type="button" disabled><svg><use href="#i-close"/></svg>断开同步位置</button>
+              </div>
+              <p class="settings-status" id="oneDriveStatus">请先选择同步模式并完成连接。</p>
+              <p class="settings-status" id="cloudSyncHint">本地文件夹模式通过系统文件选择器访问路径，可配合局域网或其他同步工具使用；WebDAV 密码仅保存在当前设备。</p>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="developer">
+              <header><h3>开发者测试</h3><p>测试当前平台的系统通知。Android 会交给系统定时；Windows 与网页端请在触发前保持 Acta 运行。</p></header>
+              <div class="settings-group" style="padding:16px">
+                <div class="settings-field"><label for="notificationTitle">通知标题</label><input id="notificationTitle" value="Acta 通知测试" maxlength="80"/></div>
+                <div class="settings-field"><label for="notificationBody">通知内容</label><textarea id="notificationBody" maxlength="280">这是一条来自 Acta 开发者测试页面的通知。</textarea></div>
+                <div class="settings-field"><label for="notificationTime">提醒时间</label><input id="notificationTime" type="datetime-local"/></div>
+                <div class="settings-actions">
+                  <button class="settings-button secondary" id="requestNotificationPermission" type="button"><svg><use href="#i-bell"/></svg>请求通知权限</button>
+                  <button class="settings-button secondary" id="sendNotificationNow" type="button"><svg><use href="#i-spark"/></svg>立即测试</button>
+                  <button class="settings-button" id="scheduleNotification" type="button"><svg><use href="#i-clock"/></svg>按时间提醒</button>
+                </div>
+                <p class="settings-status" id="notificationStatus">尚未运行通知测试。</p>
+              </div>
+            </section>
+
+            <section class="settings-panel" data-settings-panel="about">
+              <header><h3>关于 Acta</h3><p>让笔记与行动在一个安静、可掌控的本地空间中自然连接。</p></header>
+              <div class="about-mark"><img src="./icons/icon-192.png" alt="Acta 行记" /></div>
+              <div class="about-meta">
+                <div><small>产品</small><b>Acta · 行记</b></div>
+                <div><small>版本</small><b>1.0.004 DEV</b></div>
+                <div><small>本版更新日期</small><b>2026-07-19</b></div>
+                <div><small>桌面框架</small><b>Electron + Capacitor</b></div>
+              </div>
+              <p class="settings-status about-copy">作者：<a href="https://www.mogrowangstudio.top/" target="_blank" rel="noopener">MogroWang Studio</a>。由 Codex 驱动创作；项目开源、免费，欢迎学习、使用与共同改进。</p>
+              <p class="settings-status">笔记、待办和设置默认保存在当前设备；只有在你主动操作时才会导入、导出或同步。</p>
+            </section>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <dialog class="relation-dialog classification-manager-dialog" id="classificationManagerDialog">
+      <header class="relation-dialog-head"><span><svg><use href="#i-folder"/></svg></span><h3 id="classificationManagerTitle">编辑归类</h3><button class="relation-dialog-close" id="closeClassificationManager" type="button" aria-label="关闭"><svg><use href="#i-close"/></svg></button></header>
+      <div class="classification-manager-layout">
+        <aside class="classification-manager-sidebar">
+          <div class="classification-manager-list-head"><strong id="classificationManagerListTitle">归类列表</strong><span id="classificationManagerListCount">0</span></div>
+          <nav class="classification-manager-list" id="classificationManagerList" aria-label="归类列表"></nav>
+        </aside>
+        <section class="classification-manager-detail">
+          <div class="classification-manager-editor">
+            <div class="classification-manager-name-fields"><div class="classification-manager-field"><label id="classificationManagerLabel" for="classificationManagerName">归类名称</label><input id="classificationManagerName" maxlength="60" autocomplete="off" /></div><div class="classification-manager-field classification-manager-short-field"><label id="classificationManagerShortLabel" for="classificationManagerShortName">折叠简称</label><input id="classificationManagerShortName" maxlength="3" autocomplete="off" placeholder="自动生成"/><small id="classificationManagerShortHint">留空时根据名称自动生成</small></div></div>
+            <div class="classification-manager-color-field"><label id="classificationManagerColorLabel" for="classificationManagerColor">归类颜色</label><div class="classification-manager-color-control"><input id="classificationManagerColor" type="color" value="#526b55"/><output id="classificationManagerColorValue" for="classificationManagerColor">#526B55</output></div><div class="classification-color-presets" id="classificationColorPresets" aria-label="预设颜色"><button type="button" data-classification-color="#526B55" style="--classification-color:#526B55"></button><button type="button" data-classification-color="#4F759B" style="--classification-color:#4F759B"></button><button type="button" data-classification-color="#8A6FA8" style="--classification-color:#8A6FA8"></button><button type="button" data-classification-color="#B26B5E" style="--classification-color:#B26B5E"></button><button type="button" data-classification-color="#B58A3B" style="--classification-color:#B58A3B"></button><button type="button" data-classification-color="#4F8A7B" style="--classification-color:#4F8A7B"></button></div><small id="classificationManagerColorHint">选择颜色后，侧栏和项目卡片会同步更新。</small></div>
+          </div>
+          <div class="classification-manager-content-head">
+            <div><strong id="classificationManagerContentTitle">归类内容</strong><p class="classification-manager-summary" id="classificationManagerSummary"></p></div>
+          </div>
+          <div class="classification-manager-content">
+            <section class="classification-manager-items-section">
+              <header><span class="classification-content-icon note"><svg><use href="#i-note"/></svg></span><strong id="classificationManagerNotesTitle">笔记</strong><em id="classificationManagerNotesCount">0</em></header>
+              <div class="classification-manager-items" id="classificationManagerNotes"></div>
+            </section>
+            <section class="classification-manager-items-section">
+              <header><span class="classification-content-icon todo"><svg><use href="#i-check"/></svg></span><strong id="classificationManagerTodosTitle">待办</strong><em id="classificationManagerTodosCount">0</em></header>
+              <div class="classification-manager-items" id="classificationManagerTodos"></div>
+            </section>
+          </div>
+          <div class="settings-actions classification-manager-actions">
+            <button class="settings-button danger" id="deleteClassification" type="button"><svg><use href="#i-trash"/></svg><span>删除归类</span></button>
+            <button class="settings-button secondary" id="cancelClassificationManager" type="button">关闭</button>
+            <button class="settings-button" id="saveClassificationManager" type="button"><svg><use href="#i-check"/></svg><span>保存修改</span></button>
+          </div>
+        </section>
+      </div>
+    </dialog>
+
+    <div class="sync-notice" id="syncNotice" role="status" aria-live="polite"><i></i><span></span></div>
+    <div class="toast" id="toast"><span><svg><use href="#i-check"/></svg></span><p></p></div>
+    <script src="renderer.js"></script>
+    <script src="interface.js"></script>
+  </body>
+</html>
