@@ -1,0 +1,32 @@
+{
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Acta · 行记",
+        "width": 1480,
+        "height": 920,
+        "minWidth": 1100,
+        "minHeight": 700,
+        "backgroundColor": "#f4f1e9",
+        "decorations": false,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ]
+  },
+  "bundle": {
+    "targets": ["nsis"],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "displayLanguageSelector": true,
+        "installerIcon": "icons/icon.ico",
+        "languages": ["SimpChinese", "English"]
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Acta · 行记",
+        "width": 1480,
+        "height": 920,
+        "minWidth": 1100,
+        "minHeight": 700,
+        "backgroundColor": "#f4f1e9",
+        "decorations": true,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay",
+        "trafficLightPosition": {
+          "x": 18,
+          "y": 18
+        },
+        "resizable": true,
+        "fullscreen": false
+      }
+    ]
+  },
+  "bundle": {
+    "targets": ["app", "dmg"],
+    "macOS": {
+      "minimumSystemVersion": "10.13"
+    }
+  }
+}

@@ -1,6 +1,8 @@
-const CACHE_NAME = 'acta-1.0.002-dev';
+const CACHE_NAME = 'acta-1.1.000-native-assets-and-icons';
 const APP_SHELL = [
-  './', './index.html', './styles.css', './renderer.js', './manifest.webmanifest',
+  './', './index.html', './styles.css', './interface.css', './renderer.js', './note-export.js', './interface.js', './manifest.webmanifest',
+  './icons/Acta_weblogo.png', './icons/flag-cn.svg', './icons/flag-us.svg',
+  './icons/app-icon-positive-page.png', './icons/app-icon-outlined-page.png', './icons/app-icon-original-simple.png',
   './icons/icon-96.png', './icons/icon-192.png', './icons/icon-512.png'
 ];
 

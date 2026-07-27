@@ -10,6 +10,7 @@ acta-library.json
 !.env.example
 
 # Local toolchains and caches
+.tooling/
 .android-sdk/
 .gradle-home/
 .gradle-dist/
@@ -22,7 +23,8 @@ android/local.properties
 # Generated application artifacts
 dist/
 release/
-build/windows-app/
+src-tauri/target/
+src-tauri/gen/
 /*.apk
 
 # Signing credentials and service configuration

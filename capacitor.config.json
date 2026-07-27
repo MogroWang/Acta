@@ -1,9 +1,9 @@
 {
-  "appId": "com.acta.xingji",
+  "appId": "com.mws.acta",
   "appName": "Acta 行记",
   "webDir": "src",
   "android": {
-    "backgroundColor": "#fbfaf6",
+    "backgroundColor": "#e7e7e3",
     "allowMixedContent": false,
     "captureInput": false,
     "webContentsDebuggingEnabled": false
@@ -15,7 +15,7 @@
     },
     "StatusBar": {
       "overlaysWebView": false,
-      "backgroundColor": "#fbfaf6",
+      "backgroundColor": "#e7e7e3",
       "style": "DARK"
     }
   }
