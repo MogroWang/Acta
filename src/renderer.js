@@ -2252,7 +2252,8 @@ function getSyncBridge() {
       return result?.uri ? { folder: result.uri, label: result.name || result.uri } : null;
     },
     uploadLibrary: (folder, library) => nativeSync.uploadLibrary({ folder, library }),
-    downloadLibrary: (folder) => nativeSync.downloadLibrary({ folder })
+    downloadLibrary: (folder) => nativeSync.downloadLibrary({ folder }),
+    inspectFolder: (folder) => nativeSync.inspectFolder({ folder })
   };
 }
 

@@ -38,6 +38,9 @@
     downloadLibrary(folder) {
       return invoke('download_library', { folder });
     },
+    inspectFolder(folder) {
+      return invoke('inspect_folder', { folder });
+    },
     webDavRequest(requestUrl, requestOptions = {}) {
       return invoke('web_dav_request', { requestUrl, requestOptions });
     },

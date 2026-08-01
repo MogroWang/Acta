@@ -347,6 +347,42 @@ async fn download_library(folder: String) -> Result<DownloadResult, String> {
     .map_err(|error| error.to_string())?
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct FolderInspection {
+    empty: bool,
+    has_acta_data: bool,
+    sample: Vec<String>,
+}
+
+#[tauri::command]
+async fn inspect_folder(folder: String) -> Result<FolderInspection, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let folder = require_folder(folder)?;
+        let mut sample = Vec::new();
+        let mut has_acta_data = false;
+        let mut empty = true;
+        for entry in fs::read_dir(&folder).map_err(|error| error.to_string())? {
+            let entry = entry.map_err(|error| error.to_string())?;
+            empty = false;
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if name == DATA_MANIFEST_FILE || name == SYNC_FILE {
+                has_acta_data = true;
+            }
+            if sample.len() < 20 {
+                sample.push(name);
+            }
+        }
+        Ok(FolderInspection {
+            empty,
+            has_acta_data,
+            sample,
+        })
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
 #[derive(Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct WebDavOptions {
@@ -776,6 +812,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             upload_library,
             download_library,
+            inspect_folder,
             web_dav_request,
             import_note,
             export_note,

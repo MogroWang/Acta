@@ -354,6 +354,34 @@ public class ActaSyncPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void inspectFolder(PluginCall call) {
+        String folder = call.getString("folder");
+        if (folder == null) {
+            call.reject("No sync folder was selected");
+            return;
+        }
+        try {
+            DocumentFile directory = requireDirectory(folder);
+            JSONArray sample = new JSONArray();
+            boolean hasActaData = false;
+            boolean empty = true;
+            for (DocumentFile child : directory.listFiles()) {
+                empty = false;
+                String name = child.getName();
+                if (DATA_MANIFEST_FILE.equals(name) || SYNC_FILE.equals(name)) hasActaData = true;
+                if (name != null && sample.length() < 20) sample.put(name);
+            }
+            JSObject response = new JSObject();
+            response.put("empty", empty);
+            response.put("hasActaData", hasActaData);
+            response.put("sample", sample);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject(error.getMessage(), error);
+        }
+    }
+
+    @PluginMethod
     public void importNote(PluginCall call) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);

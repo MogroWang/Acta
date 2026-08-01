@@ -1,0 +1,3 @@
+@pdf-lib/fontkit 1.1.1 — Copyright (c) Andrew Dillon
+Licensed under the MIT License.
+Source: https://www.npmjs.com/package/@pdf-lib/fontkit

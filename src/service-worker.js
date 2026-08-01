@@ -1,6 +1,6 @@
-const CACHE_NAME = 'acta-1.1.000-native-assets-and-icons';
+const CACHE_NAME = 'acta-1.2.0-export-text-pdf-assets-and-icons';
 const APP_SHELL = [
-  './', './index.html', './styles.css', './interface.css', './renderer.js', './note-export.js', './interface.js', './manifest.webmanifest',
+  './', './index.html', './styles.css', './interface.css', './renderer.js', './note-export.js', './interface.js', './lib/pdf-lib.min.js', './lib/fontkit.umd.min.js', './manifest.webmanifest',
   './icons/Acta_weblogo.png', './icons/flag-cn.svg', './icons/flag-us.svg',
   './icons/app-icon-positive-page.png', './icons/app-icon-outlined-page.png', './icons/app-icon-original-simple.png',
   './icons/icon-96.png', './icons/icon-192.png', './icons/icon-512.png'
@@ -16,6 +16,8 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
   event.respondWith(fetch(event.request).then(response => {
     const copy = response.clone();
     caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));

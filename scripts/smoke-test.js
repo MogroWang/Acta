@@ -490,6 +490,24 @@ async function main() {
       const pdfTestCanvases = await window.__actaNoteExportTest.renderCanvases(exportTargetNote, pdfTestConfig);
       const pdfTestBytes = window.__actaNoteExportTest.buildPdf(pdfTestCanvases, pdfTestConfig.pagePoints);
       const pdfGenerationWorks = String.fromCharCode(...pdfTestBytes.slice(0, 5)) === '%PDF-' && pdfTestBytes.length > 1000;
+      const pdfKindSelectorExists = ['image', 'text'].every(kind => noteExportDialog.querySelector('input[name="noteExportPdfKind"][value="' + kind + '"]'));
+      const textKindInput = noteExportDialog.querySelector('input[name="noteExportPdfKind"][value="text"]');
+      textKindInput.checked = true;
+      textKindInput.dispatchEvent(new Event('change', { bubbles: true }));
+      const pdfTextKindShowsFontManager = !noteExportDialog.querySelector('#noteExportPdfFontMgr').hidden
+        && Boolean(noteExportDialog.querySelector('#noteExportPdfFontStatus'))
+        && Boolean(noteExportDialog.querySelector('#noteExportPdfFontDownload'))
+        && Boolean(noteExportDialog.querySelector('#noteExportPdfFontDelete'));
+      const exportPreviewHasNoActaLabel = !/ACTA · NOTE EXPORT/.test(noteExportDialog.textContent || '');
+      const textPdfFontReady = window.__actaNoteExportTest.fontState() === 'ready';
+      let textPdfGenerationWorks = false;
+      if (textPdfFontReady) {
+        try {
+          const textPdfConfig = window.__actaNoteExportTest.textPdfConfig();
+          const textPdfBytes = await window.__actaNoteExportTest.buildTextPdf(exportTargetNote, textPdfConfig);
+          textPdfGenerationWorks = String.fromCharCode(...textPdfBytes.slice(0, 5)) === '%PDF-' && textPdfBytes.length > 1000;
+        } catch (e) { textPdfGenerationWorks = false; }
+      }
       const imageFormatInput = noteExportDialog.querySelector('input[name="noteExportFormat"][value="image"]');
       imageFormatInput.checked = true;
       imageFormatInput.dispatchEvent(new Event('change', { bubbles:true }));
@@ -1029,7 +1047,7 @@ async function main() {
       await waitFor(() => innerWidth > 1200 && innerHeight > 700);
       window.__actaSmokeStep = 'classification-item-opened';
       const brandVersion = document.querySelector('.brand-version');
-      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '1.1.000'
+      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '1.2.0'
         && parseFloat(getComputedStyle(brandVersion).opacity) > .9
         && brandVersion.getBoundingClientRect().width > 0;
       const miniLogoBeforeCollapseRect = document.querySelector('.brand-mini-logo').getBoundingClientRect();
@@ -1321,6 +1339,11 @@ async function main() {
         exportFormatsComplete,
         pdfOptionsComplete,
         pdfGenerationWorks,
+        pdfKindSelectorExists,
+        pdfTextKindShowsFontManager,
+        exportPreviewHasNoActaLabel,
+        textPdfFontReady,
+        textPdfGenerationWorks,
         imageOptionsComplete,
         exportDialogCloseAnimation,
         markdownToolbarActions,
@@ -1601,6 +1624,10 @@ async function main() {
     assert.equal(result.exportFormatsComplete, true);
     assert.equal(result.pdfOptionsComplete, true);
     assert.equal(result.pdfGenerationWorks, true);
+    assert.equal(result.pdfKindSelectorExists, true);
+    assert.equal(result.pdfTextKindShowsFontManager, true);
+    assert.equal(result.exportPreviewHasNoActaLabel, true);
+    if (result.textPdfFontReady) assert.equal(result.textPdfGenerationWorks, true);
     assert.equal(result.imageOptionsComplete, true);
     assert.equal(result.exportDialogCloseAnimation, true);
     assert.ok(result.markdownToolbarActions >= 16);

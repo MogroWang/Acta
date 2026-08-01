@@ -47,6 +47,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [contentedita
 }
 
 .svg-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+[hidden] { display: none !important; }
 svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
 .app-shell { height: 100vh; width: 100vw; }

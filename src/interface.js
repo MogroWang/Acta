@@ -101,7 +101,7 @@
       '先支持 OneDrive 本地同步文件夹；上传与下载均使用完整资料库数据文件。':'OneDrive local sync folders are supported first. Upload and download both use the complete library file.', '尚未选择 OneDrive 同步文件夹':'No OneDrive sync folder selected', 'OneDrive 文件操作':'OneDrive file access', '由 OneDrive 客户端把 acta-library.json 同步到云端':'The OneDrive client syncs acta-library.json to the cloud', '选择文件夹':'Choose folder',
       '自动同步':'Automatic sync', '本地内容变化后自动上传，并定时检查 OneDrive 文件中的更新':'Upload local changes automatically and periodically check the OneDrive file for updates', '检查频率':'Check frequency', '仅在 Acta 保持运行时执行':'Runs only while Acta remains open', '每 1 分钟':'Every minute', '每 5 分钟':'Every 5 minutes', '每 15 分钟':'Every 15 minutes',
       '从 OneDrive 下载':'Download from OneDrive', '上传到 OneDrive':'Upload to OneDrive', '请选择电脑或网页文件选择器中的 OneDrive 同步文件夹。':'Choose your OneDrive sync folder using the desktop or web folder picker.', 'Acta 不会获取你的 OneDrive 账号或密码；文件传输由系统文件夹与 OneDrive 客户端完成。':'Acta never accesses your OneDrive account or password. The system folder and OneDrive client transfer the file.',
-      '关于 Acta':'About Acta', '让笔记与行动在一个安静、可掌控的本地空间中自然连接。':'Connect notes and actions naturally in a calm, controllable local space.', '产品':'Product', '版本':'Version', '本版更新日期':'Version date', '桌面框架':'Desktop framework', '笔记、待办和设置默认保存在当前设备；只有在你主动操作时才会导入、导出或同步。':'Notes, tasks, and settings stay on this device by default. Import, export, and sync occur only when you choose them.', '作者：':'Author: ', '。由 Codex 驱动创作；项目开源、免费，欢迎学习、使用与共同改进。':'. Created with Codex; open source and free for learning, use, and collaboration.',
+      '关于 Acta':'About Acta', '检查更新':'Check for updates', '让笔记与行动在一个安静、可掌控的本地空间中自然连接。':'Connect notes and actions naturally in a calm, controllable local space.', '产品':'Product', '版本':'Version', '本版更新日期':'Version date', '桌面框架':'Desktop framework', '笔记、待办和设置默认保存在当前设备；只有在你主动操作时才会导入、导出或同步。':'Notes, tasks, and settings stay on this device by default. Import, export, and sync occur only when you choose them.', '作者：':'Author: ', '。由 Codex 驱动创作；项目开源、免费，欢迎学习、使用与共同改进。':'. Created with Codex; open source and free for learning, use, and collaboration.',
       '完整数据文件夹由 acta-manifest.json、classifications.json、notes/ 和 todos/ 组成；每则笔记与待办分别保存。':'A complete data folder contains acta-manifest.json, classifications.json, notes/, and todos/; every note and task is stored separately.', '保存完整数据文件夹':'Save complete data folder', '从数据文件夹重载':'Reload data folder', '导出数据文件夹':'Export data folder',
       'OneDrive 上传、下载和自动同步均处理完整数据文件夹，笔记与待办不会合并成单个资料库文件。':'OneDrive upload, download, and automatic sync all process the complete data folder; notes and tasks are never merged into one library file.', 'OneDrive 文件夹操作':'OneDrive folder access', '由 OneDrive 客户端同步清单、归类、notes 和 todos 整套文件夹':'The OneDrive client syncs the manifest, classifications, notes, and todos as one complete folder.', '下载完整数据文件夹':'Download complete data folder', '上传完整数据文件夹':'Upload complete data folder', '本地内容变化后自动上传，并定时检查 OneDrive 数据文件夹中的更新':'Upload local changes automatically and periodically check the OneDrive data folder for updates',
       '选择 OneDrive 本地文件夹，由系统 OneDrive 客户端负责上传和下载。':'Choose a local OneDrive folder. The system OneDrive client handles cloud transfers.', 'OneDrive 本地文件夹':'Local OneDrive folder', '尚未选择 OneDrive 本地文件夹':'No local OneDrive folder selected', '文件夹同步':'Folder sync', 'Acta 读写完整数据文件夹，云端传输由 OneDrive 客户端完成':'Acta reads and writes the complete data folder; the OneDrive client handles cloud transfers.', '选择 OneDrive 文件夹':'Choose OneDrive folder', '断开文件夹':'Disconnect folder', '请先选择电脑中的 OneDrive 本地文件夹。':'Choose a local OneDrive folder on this device first.', 'Acta 不连接 Microsoft Graph，也不获取微软账号信息；请确保系统 OneDrive 客户端正在运行。':'Acta does not connect to Microsoft Graph or read Microsoft account information. Keep the system OneDrive client running.',
@@ -114,7 +114,7 @@
       '当前是演示工作区。关闭或刷新页面后，演示内容会恢复，不会写入浏览器本地资料库。':'目前是示範工作區。關閉或重新整理頁面後，示範內容會還原，不會寫入瀏覽器本機資料庫。', '调整启动位置、内容密度和动效偏好。':'調整啟動位置、內容密度和動效偏好。', '默认启动页面':'預設啟動頁面', '打开应用时优先进入的智能视图':'開啟應用程式時優先進入的智慧檢視', '收集箱':'收集箱', '今天':'今天', '所有待办':'所有待辦', '所有笔记':'所有筆記', '日历':'日曆', '紧凑列表':'緊湊清單', '在中栏显示更多笔记和待办':'在中欄顯示更多筆記和待辦', '减少动态效果':'減少動態效果', '降低转场和弹性动画，减少视觉干扰':'降低轉場和彈性動畫，減少視覺干擾', '设置会自动保存在当前设备。':'設定會自動儲存在目前裝置。',
       '主题只改变显示效果，不会影响任何笔记或待办数据。':'主題只改變顯示效果，不會影響任何筆記或待辦資料。', '黑白浅色':'黑白淺色', '黑白深色':'黑白深色', '蓝黄':'藍黃', '黄色护眼':'黃色護眼', '自定义':'自訂', '纸张颜色':'紙張顏色', '侧栏颜色':'側欄顏色', '强调颜色':'強調顏色', '界面字体':'介面字型', '同时应用到列表、编辑器和设置页面':'同時套用到清單、編輯器和設定頁面', '系统默认':'系統預設', '衬线字体':'襯線字型', '圆体':'圓體', '等宽字体':'等寬字型', '自定义字体':'自訂字型', '字体家族':'字型家族', '输入设备上已安装的字体，例如 Inter 或 Microsoft YaHei':'輸入裝置上已安裝的字型，例如 Inter 或 Microsoft YaHei', '字体大小':'字型大小', '统一调整界面、列表、编辑器与设置页':'統一調整介面、清單、編輯器與設定頁', '记录，然后行动。Acta 让笔记与待办自然连接。':'記錄，然後行動。Acta 讓筆記與待辦自然連接。',
       '先支持 OneDrive 本地同步文件夹；上传与下载均使用完整资料库数据文件。':'目前支援 OneDrive 本機同步資料夾；上傳與下載均使用完整資料庫檔案。', '尚未选择 OneDrive 同步文件夹':'尚未選擇 OneDrive 同步資料夾', 'OneDrive 文件操作':'OneDrive 檔案操作', '由 OneDrive 客户端把 acta-library.json 同步到云端':'由 OneDrive 用戶端把 acta-library.json 同步到雲端', '选择文件夹':'選擇資料夾', '自动同步':'自動同步', '本地内容变化后自动上传，并定时检查 OneDrive 文件中的更新':'本機內容變更後自動上傳，並定時檢查 OneDrive 檔案中的更新', '检查频率':'檢查頻率', '仅在 Acta 保持运行时执行':'僅在 Acta 保持執行時運作', '每 1 分钟':'每 1 分鐘', '每 5 分钟':'每 5 分鐘', '每 15 分钟':'每 15 分鐘', '从 OneDrive 下载':'從 OneDrive 下載', '上传到 OneDrive':'上傳到 OneDrive', '请选择电脑或网页文件选择器中的 OneDrive 同步文件夹。':'請從電腦或網頁資料夾選擇器選擇 OneDrive 同步資料夾。', 'Acta 不会获取你的 OneDrive 账号或密码；文件传输由系统文件夹与 OneDrive 客户端完成。':'Acta 不會取得你的 OneDrive 帳號或密碼；檔案傳輸由系統資料夾與 OneDrive 用戶端完成。',
-      '关于 Acta':'關於 Acta', '让笔记与行动在一个安静、可掌控的本地空间中自然连接。':'讓筆記與行動在一個安靜、可掌控的本機空間中自然連接。', '产品':'產品', '版本':'版本', '本版更新日期':'本版更新日期', '桌面框架':'桌面框架', '笔记、待办和设置默认保存在当前设备；只有在你主动操作时才会导入、导出或同步。':'筆記、待辦和設定預設儲存在目前裝置；只有在你主動操作時才會匯入、匯出或同步。',
+      '关于 Acta':'關於 Acta', '检查更新':'檢查更新', '让笔记与行动在一个安静、可掌控的本地空间中自然连接。':'讓筆記與行動在一個安靜、可掌控的本機空間中自然連接。', '产品':'產品', '版本':'版本', '本版更新日期':'本版更新日期', '桌面框架':'桌面框架', '笔记、待办和设置默认保存在当前设备；只有在你主动操作时才会导入、导出或同步。':'筆記、待辦和設定預設儲存在目前裝置；只有在你主動操作時才會匯入、匯出或同步。',
       '完整数据文件夹由 acta-manifest.json、classifications.json、notes/ 和 todos/ 组成；每则笔记与待办分别保存。':'完整資料資料夾由 acta-manifest.json、classifications.json、notes/ 和 todos/ 組成；每則筆記與待辦分別儲存。', '保存完整数据文件夹':'儲存完整資料資料夾', '从数据文件夹重载':'從資料資料夾重新載入', '导出数据文件夹':'匯出資料資料夾',
       'OneDrive 上传、下载和自动同步均处理完整数据文件夹，笔记与待办不会合并成单个资料库文件。':'OneDrive 上傳、下載和自動同步都會處理完整資料資料夾，筆記與待辦不會合併成單一資料庫檔案。', 'OneDrive 文件夹操作':'OneDrive 資料夾操作', '由 OneDrive 客户端同步清单、归类、notes 和 todos 整套文件夹':'由 OneDrive 用戶端同步清單、歸類、notes 和 todos 整套資料夾。', '下载完整数据文件夹':'下載完整資料資料夾', '上传完整数据文件夹':'上傳完整資料資料夾', '本地内容变化后自动上传，并定时检查 OneDrive 数据文件夹中的更新':'本機內容變更後自動上傳，並定時檢查 OneDrive 資料資料夾中的更新',
       '选择 OneDrive 本地文件夹，由系统 OneDrive 客户端负责上传和下载。':'選擇 OneDrive 本機資料夾，由系統 OneDrive 用戶端負責上傳和下載。', 'OneDrive 本地文件夹':'OneDrive 本機資料夾', '尚未选择 OneDrive 本地文件夹':'尚未選擇 OneDrive 本機資料夾', '文件夹同步':'資料夾同步', 'Acta 读写完整数据文件夹，云端传输由 OneDrive 客户端完成':'Acta 讀寫完整資料資料夾，雲端傳輸由 OneDrive 用戶端完成。', '选择 OneDrive 文件夹':'選擇 OneDrive 資料夾', '断开文件夹':'中斷資料夾', '请先选择电脑中的 OneDrive 本地文件夹。':'請先選擇電腦中的 OneDrive 本機資料夾。', 'Acta 不连接 Microsoft Graph，也不获取微软账号信息；请确保系统 OneDrive 客户端正在运行。':'Acta 不連接 Microsoft Graph，也不取得 Microsoft 帳號資訊；請確保系統 OneDrive 用戶端正在執行。',
@@ -282,26 +282,26 @@
       panelDescription:'每個資料檔案都包含完整的歸類、筆記和待辦；可以儲存在軟體本機，也可以連接到你選擇的資料夾。', newProfile:'新增空白檔案', newSubtitle:'從一份沒有筆記和待辦的資料開始', name:'檔案名稱', newName:'新的行記資料', location:'儲存位置', localDesktop:'軟體本機', localNative:'軟體本機', localBrowser:'瀏覽器本機快取', localHint:'預設位置，無需選擇資料夾', folder:'自選資料夾', folderHint:'建立時選擇儲存位置', cancel:'取消', createOpen:'建立並開啟', profiles:'資料檔案', count:'{0} 個檔案', activeSummary:'目前：{0}', browserTitle:'瀏覽器本機空間有限', browserHint:'瀏覽器可能在空間不足或清理快取時移除本機資料，請定期匯出完整檔案備份。', active:'目前', open:'開啟', edit:'編輯', current:'正在使用', stats:'{0} 則筆記 · {1} 個待辦', saveName:'儲存名稱', changeLocation:'變更位置', copy:'複製', export:'匯出完整檔案', locationLabel:'檔案位置', folderFiles:'完整檔案資料夾', emptyName:'請輸入檔案名稱。', duplicateName:'已經存在同名資料檔案。', localQuota:'本機空間不足，無法儲存。請先匯出完整檔案，再變更儲存位置。', unavailable:'目前位置無法使用，請編輯檔案並重新選擇儲存位置。', created:'已建立並開啟空白資料檔案「{0}」。', switched:'已切換到「{0}」。', renamed:'資料檔案已重新命名為「{0}」。', moved:'「{0}」已複製到新的儲存位置。', copied:'已建立「{0}」的本機副本。', exported:'已將「{0}」的完整檔案匯出到 {1}。', saved:'「{0}」已儲存。', loaded:'已開啟「{0}」。', initializing:'正在讀取行記資料檔案…', ready:'所有變更會自動儲存到目前資料檔案。', editHint:'修改名稱或把完整檔案複製到新的資料夾。', copySuffix:'副本', defaultName:'我的行記', chooseLocation:'選擇資料夾後，Acta 會寫入完整檔案；原位置不會被刪除。'
     }
   };
-  Object.assign(profileMessages.zh, { deleteProfile:'删除档案', lastProfile:'至少需要保留一个数据档案。', confirmDeleteLocal:'删除“{0}”将永久移除保存在软件或浏览器本地的全部档案数据，确定继续？', confirmDeleteFolder:'从列表删除“{0}”？外部文件夹中的完整档案不会被删除。', profileDeleted:'已删除数据档案“{0}”。' });
-  Object.assign(profileMessages.en, { deleteProfile:'Delete profile', lastProfile:'At least one data profile must remain.', confirmDeleteLocal:'Deleting “{0}” permanently removes all profile data stored inside Acta or the browser. Continue?', confirmDeleteFolder:'Remove “{0}” from the list? The complete profile in its external folder will not be deleted.', profileDeleted:'Deleted the data profile “{0}”.' });
-  Object.assign(profileMessages['zh-Hant'], { deleteProfile:'刪除檔案', lastProfile:'至少需要保留一個資料檔案。', confirmDeleteLocal:'刪除「{0}」將永久移除儲存在軟體或瀏覽器本機的全部檔案資料，確定繼續？', confirmDeleteFolder:'從清單刪除「{0}」？外部資料夾中的完整檔案不會被刪除。', profileDeleted:'已刪除資料檔案「{0}」。' });
+  Object.assign(profileMessages.zh, { deleteProfile:'删除档案', lastProfile:'至少需要保留一个数据档案。', confirmDeleteLocal:'删除“{0}”将永久移除保存在软件或浏览器本地的全部档案数据，确定继续？', confirmDeleteFolder:'从列表删除“{0}”？外部文件夹中的完整档案不会被删除。', profileDeleted:'已删除数据档案“{0}”。', readExisting:'读取现有档案', readingExisting:'正在读取现有档案…', noExistingData:'此文件夹中没有找到行记数据，请选择包含 acta-manifest.json 的文件夹。', imported:'已读取并打开“{0}”。', overwriteActaWarn:'此文件夹已包含行记数据。创建空白档案将覆盖并清除其中的现有数据，是否继续？', overwriteFolderWarn:'此文件夹不是空文件夹。创建空白档案将在此文件夹中写入新的行记数据，是否继续？' });
+  Object.assign(profileMessages.en, { deleteProfile:'Delete profile', lastProfile:'At least one data profile must remain.', confirmDeleteLocal:'Deleting “{0}” permanently removes all profile data stored inside Acta or the browser. Continue?', confirmDeleteFolder:'Remove “{0}” from the list? The complete profile in its external folder will not be deleted.', profileDeleted:'Deleted the data profile “{0}”.', readExisting:'Read existing profile', readingExisting:'Reading existing profile…', noExistingData:'No Acta data was found in this folder. Choose a folder that contains acta-manifest.json.', imported:'Read and opened “{0}”.', overwriteActaWarn:'This folder already contains Acta data. Creating a blank profile will overwrite and clear its existing data. Continue?', overwriteFolderWarn:'This folder is not empty. Creating a blank profile will write new Acta data into it. Continue?' });
+  Object.assign(profileMessages['zh-Hant'], { deleteProfile:'刪除檔案', lastProfile:'至少需要保留一個資料檔案。', confirmDeleteLocal:'刪除「{0}」將永久移除儲存在軟體或瀏覽器本機的全部檔案資料，確定繼續？', confirmDeleteFolder:'從清單刪除「{0}」？外部資料夾中的完整檔案不會被刪除。', profileDeleted:'已刪除資料檔案「{0}」。', readExisting:'讀取現有檔案', readingExisting:'正在讀取現有檔案…', noExistingData:'此資料夾中沒有找到行記資料，請選擇包含 acta-manifest.json 的資料夾。', imported:'已讀取並開啟「{0}」。', overwriteActaWarn:'此資料夾已包含行記資料。建立空白檔案將覆蓋並清除其中的現有資料，是否繼續？', overwriteFolderWarn:'此資料夾不是空資料夾。建立空白檔案將在此資料夾中寫入新的行記資料，是否繼續？' });
   const profileText = (key, ...values) => values.reduce((message, value, index) => message.replace(`{${index}}`, value), (profileMessages[uiSettings.language] || profileMessages.zh)[key]);
 
   const quickCaptureMessages = {
     zh: {
-      title:'速记', subtitle:'快速创建并立即打开', intro:'选好类型，写下重点，Acta 会立即创建并打开它。', chooseType:'创建什么？', writeContent:'写下内容',
+      title:'速记', subtitle:'快速创建后自动保存', intro:'选好类型，写下重点，Acta 会创建并自动保存。', chooseType:'创建什么？', writeContent:'写下内容',
       todo:'待办', todoHint:'记录一个需要行动的事项', note:'笔记', noteHint:'捕捉想法、灵感或片段', itemTitle:'标题', todoTitlePlaceholder:'要完成什么？', noteTitlePlaceholder:'这则笔记讲什么？',
       folder:'归类', start:'开始日期时间', due:'截止日期时间', clearStart:'取消开始时间', clearDue:'取消截止时间', calendarHidden:'开始或截止时间未设置，此待办将不在日历中显示。', invalidSchedule:'请输入有效日期时间，且截止时间必须晚于开始时间。', priority:'优先级', childEvents:'子事件', childEventsPlaceholder:'每行输入一个子事件…', childEventsHint:'每个非空行都会创建为一个独立子事件。', todoBody:'补充说明', todoBodyPlaceholder:'补充背景或需要记住的细节…', todoBodyHint:'创建后仍可继续添加子事件和关联内容。',
       noteBody:'笔记正文', noteBodyPlaceholder:'写下想法；支持 Markdown…', noteBodyHint:'支持标题、列表、引用、任务列表和代码块。', cancel:'取消', clear:'取消', close:'关闭', shortcut:'Ctrl/⌘ + Enter 快速创建', createTodo:'创建待办', createNote:'创建笔记', titleRequired:'请先填写标题。'
     },
     en: {
-      title:'Quick capture', subtitle:'Create and open instantly', intro:'Choose a type, capture the essentials, and Acta will create and open it right away.', chooseType:'What are you creating?', writeContent:'Capture the details',
+      title:'Quick capture', subtitle:'Create and auto-save', intro:'Choose a type, capture the essentials, and Acta will create and auto-save it.', chooseType:'What are you creating?', writeContent:'Capture the details',
       todo:'Task', todoHint:'Record something that needs action', note:'Note', noteHint:'Capture an idea, spark, or fragment', itemTitle:'Title', todoTitlePlaceholder:'What needs to be done?', noteTitlePlaceholder:'What is this note about?',
       folder:'Classification', start:'Start date and time', due:'Due date and time', clearStart:'Clear start time', clearDue:'Clear due time', calendarHidden:'Without both a start and due time, this task will not appear in the calendar.', invalidSchedule:'Enter valid dates and times, with the due time after the start time.', priority:'Priority', childEvents:'Sub-events', childEventsPlaceholder:'Enter one sub-event per line…', childEventsHint:'Each non-empty line becomes a separate sub-event.', todoBody:'Details', todoBodyPlaceholder:'Add context or anything worth remembering…', todoBodyHint:'You can add more sub-events and linked items after creation.',
       noteBody:'Note body', noteBodyPlaceholder:'Write your idea; Markdown is supported…', noteBodyHint:'Headings, lists, quotes, task lists, and code blocks are supported.', cancel:'Cancel', clear:'Clear', close:'Close', shortcut:'Ctrl/⌘ + Enter to create', createTodo:'Create task', createNote:'Create note', titleRequired:'Enter a title first.'
     },
     'zh-Hant': {
-      title:'速記', subtitle:'快速建立並立即開啟', intro:'選好類型，寫下重點，Acta 會立即建立並開啟它。', chooseType:'建立什麼？', writeContent:'寫下內容',
+      title:'速記', subtitle:'快速建立後自動儲存', intro:'選好類型，寫下重點，Acta 會建立並自動儲存。', chooseType:'建立什麼？', writeContent:'寫下內容',
       todo:'待辦', todoHint:'記錄一個需要行動的事項', note:'筆記', noteHint:'捕捉想法、靈感或片段', itemTitle:'標題', todoTitlePlaceholder:'要完成什麼？', noteTitlePlaceholder:'這則筆記在說什麼？',
       folder:'歸類', start:'開始日期時間', due:'截止日期時間', clearStart:'取消開始時間', clearDue:'取消截止時間', calendarHidden:'開始或截止時間未設定，此待辦將不在日曆中顯示。', invalidSchedule:'請輸入有效日期時間，且截止時間必須晚於開始時間。', priority:'優先順序', childEvents:'子事件', childEventsPlaceholder:'每行輸入一個子事件…', childEventsHint:'每個非空行都會建立為一個獨立子事件。', todoBody:'補充說明', todoBodyPlaceholder:'補充背景或需要記住的細節…', todoBodyHint:'建立後仍可繼續新增子事件和關聯內容。',
       noteBody:'筆記正文', noteBodyPlaceholder:'寫下想法；支援 Markdown…', noteBodyHint:'支援標題、清單、引用、任務清單和程式碼區塊。', cancel:'取消', clear:'取消', close:'關閉', shortcut:'Ctrl/⌘ + Enter 快速建立', createTodo:'建立待辦', createNote:'建立筆記', titleRequired:'請先填寫標題。'
@@ -1974,12 +1974,67 @@
     throw new Error(profileText('unavailable'));
   }
 
+  async function inspectFolderAdapter(adapter) {
+    if (adapter.kind === 'web') {
+      const handle = adapter.handle;
+      const sample = [];
+      let hasActaData = false;
+      let empty = true;
+      for await (const [name] of handle.entries()) {
+        empty = false;
+        if (name === dataManifestFile || name === legacyLibraryFile) hasActaData = true;
+        if (sample.length < 20) sample.push(name);
+      }
+      return { empty, hasActaData, sample };
+    }
+    if (adapter.kind === 'native') {
+      const bridge = getSyncBridge();
+      if (bridge?.inspectFolder) {
+        try {
+          const result = await bridge.inspectFolder(adapter.folder);
+          if (result && typeof result.empty === 'boolean') return { empty: result.empty, hasActaData: Boolean(result.hasActaData), sample: Array.isArray(result.sample) ? result.sample : [] };
+        } catch { /* fall back to downloadLibrary detection below */ }
+      }
+      try { await bridge.downloadLibrary(adapter.folder); return { empty:false, hasActaData:true, sample:[] }; }
+      catch { return { empty:true, hasActaData:false, sample:[] }; }
+    }
+    return { empty:true, hasActaData:false, sample:[] };
+  }
+
+  async function readExistingProfile() {
+    const status = byId('workspaceStatus');
+    try {
+      setStatus(status, profileText('readingExisting'), '');
+      const profileId = uid();
+      const handleKey = `profile:${profileId}`;
+      const adapter = await chooseFolderAdapter('profile', handleKey);
+      if (!adapter) { setStatus(status, profileText('ready'), 'success'); return; }
+      const inspect = await inspectFolderAdapter(adapter);
+      if (!inspect.hasActaData) {
+        if (handleKey) await removeDirectoryHandle(handleKey).catch(() => {});
+        setStatus(status, profileText('noExistingData', adapter.label || profileText('folder')), 'error');
+        return;
+      }
+      const snapshot = await adapter.load();
+      const profile = { id:profileId, name:uniqueProfileName(adapter.label || profileText('newName')), storage:'folder', label:adapter.label, noteCount:0, todoCount:0, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
+      applyAdapterToProfile(profile, adapter, handleKey);
+      profileStats(profile, snapshot);
+      dataProfiles.push(profile);
+      saveDataProfileRegistry();
+      await activateDataProfile(profile.id, { adapter, notify:false });
+      setStatus(status, profileText('imported', profile.name), 'success');
+    } catch (error) {
+      setStatus(status, error.message, 'error');
+    }
+  }
+
   function renderDataProfiles() {
     const copy = profileMessages[uiSettings.language] || profileMessages.zh;
     const active = activeDataProfile();
     const panelHeader = document.querySelector('[data-settings-panel="workspace"] .data-profile-header');
     panelHeader.querySelector('p').textContent = copy.panelDescription;
     byId('newDataProfile').querySelector('span').textContent = copy.newProfile;
+    byId('readDataProfile').querySelector('span').textContent = copy.readExisting;
     byId('newDataProfileTitle').textContent = copy.newProfile;
     byId('newDataProfileSubtitle').textContent = copy.newSubtitle;
     byId('newDataProfileNameLabel').textContent = copy.name;
@@ -2150,6 +2205,7 @@
   byId('workspaceButton').addEventListener('click', () => openSettings('workspace'));
   byId('newDataProfile').addEventListener('click', () => setDataProfileCreateOpen(!byId('dataProfileCreate').classList.contains('open')));
   byId('cancelDataProfile').addEventListener('click', () => setDataProfileCreateOpen(false));
+  byId('readDataProfile').addEventListener('click', readExistingProfile);
   byId('confirmDataProfile').addEventListener('click', async () => {
     const name = byId('newDataProfileName').value.trim();
     const storage = document.querySelector('input[name="newDataProfileStorage"]:checked')?.value || 'local';
@@ -2160,6 +2216,16 @@
       const handleKey = `profile:${profile.id}`;
       const adapter = storage === 'local' ? createLocalProfileAdapter(profile) : await chooseFolderAdapter('profile', handleKey);
       if (!adapter) return;
+      if (storage !== 'local') {
+        const inspect = await inspectFolderAdapter(adapter);
+        if (!inspect.empty) {
+          const warning = profileText(inspect.hasActaData ? 'overwriteActaWarn' : 'overwriteFolderWarn', adapter.label || profileText('folder'));
+          if (!window.confirm(warning)) {
+            if (handleKey) await removeDirectoryHandle(handleKey).catch(() => {});
+            return;
+          }
+        }
+      }
       applyAdapterToProfile(profile, adapter, handleKey);
       await adapter.save(createBlankLibrary());
       dataProfiles.push(profile);
@@ -2316,6 +2382,92 @@
   settingsModal.addEventListener('click', event => { if (event.target === settingsModal) closeSettings(); });
   document.querySelectorAll('[data-settings-page]').forEach(button => button.addEventListener('click', () => switchSettingsPage(button.dataset.settingsPage)));
   document.addEventListener('keydown', event => { if (!isImeComposing(event) && event.key === 'Escape') closeSettings(); });
+
+  const ACTA_RELEASES_URL = 'https://github.com/MogroWang/Acta/releases';
+  const ACTA_LATEST_RELEASE_API = 'https://api.github.com/repos/MogroWang/Acta/releases/latest';
+  const ACTA_TAGS_API = 'https://api.github.com/repos/MogroWang/Acta/tags';
+  const updateMessages = {
+    zh: { checking:'正在检查更新…', latest:'当前已是最新版本（{version}）。', available:'发现新版本 {remote}，{link}。', noRelease:'尚未在 GitHub 上发布版本，{link}。', error:'检查更新失败：{detail}', downloadLink:'前往下载', releasesLink:'查看发布页' },
+    en: { checking:'Checking for updates…', latest:'Acta is up to date ({version}).', available:'A new version {remote} is available. {link}.', noRelease:'No releases have been published on GitHub yet. {link}.', error:'Update check failed: {detail}', downloadLink:'Get the update', releasesLink:'View releases' },
+    'zh-Hant': { checking:'正在檢查更新…', latest:'目前已是最新版本（{version}）。', available:'發現新版本 {remote}，{link}。', noRelease:'尚未在 GitHub 上發佈版本，{link}。', error:'檢查更新失敗：{detail}', downloadLink:'前往下載', releasesLink:'查看發佈頁' }
+  };
+  let aboutUpdateState = 'idle';
+  let aboutUpdateVars = {};
+  const updateText = (key, vars = {}) => {
+    let message = (updateMessages[uiSettings.language] || updateMessages.zh)[key] || key;
+    for (const [name, value] of Object.entries(vars)) message = message.replace(`{${name}}`, value);
+    return message;
+  };
+  const currentActaVersion = () => (byId('aboutVersion')?.textContent || '').trim();
+  const extractActaVersion = value => {
+    const match = String(value || '').match(/\d+\.\d+\.\d+/);
+    return match ? match[0] : '';
+  };
+  const parseActaVersion = value => {
+    const match = extractActaVersion(value).match(/(\d+)\.(\d+)\.(\d+)/);
+    return match ? [Number(match[1]), Number(match[2]), Number(match[3])] : [0, 0, 0];
+  };
+  const compareActaVersion = (a, b) => {
+    const pa = parseActaVersion(a), pb = parseActaVersion(b);
+    for (let i = 0; i < 3; i++) { if (pa[i] !== pb[i]) return pa[i] - pb[i]; }
+    return 0;
+  };
+  function renderUpdateStatus() {
+    const el = byId('aboutUpdateStatus');
+    if (!el) return;
+    if (aboutUpdateState === 'idle') { el.hidden = true; el.textContent = ''; return; }
+    el.hidden = false;
+    el.classList.remove('ok', 'error');
+    if (aboutUpdateState === 'error') el.classList.add('error');
+    else if (aboutUpdateState === 'available' || aboutUpdateState === 'latest') el.classList.add('ok');
+    const linkHtml = (url, key) => `<a href="${url}" target="_blank" rel="noopener">${updateText(key)}</a>`;
+    if (aboutUpdateState === 'available') {
+      const remote = extractActaVersion(aboutUpdateVars.remote) || aboutUpdateVars.remote || '';
+      el.innerHTML = updateText('available', { remote, link: linkHtml(aboutUpdateVars.url || ACTA_RELEASES_URL, 'downloadLink') });
+    } else if (aboutUpdateState === 'noRelease') {
+      el.innerHTML = updateText('noRelease', { link: linkHtml(ACTA_RELEASES_URL, 'releasesLink') });
+    } else if (aboutUpdateState === 'error') {
+      el.textContent = updateText('error', { detail: aboutUpdateVars.detail || '' });
+    } else {
+      el.textContent = updateText(aboutUpdateState, aboutUpdateVars);
+    }
+  }
+  function setUpdateStatus(state, vars = {}) {
+    aboutUpdateState = state;
+    aboutUpdateVars = vars;
+    renderUpdateStatus();
+  }
+  async function checkForUpdates() {
+    const btn = byId('aboutCheckUpdate');
+    if (btn) { btn.classList.add('checking'); btn.disabled = true; }
+    setUpdateStatus('checking');
+    try {
+      const response = await fetch(ACTA_LATEST_RELEASE_API, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
+      if (response.status === 404) {
+        const tagsResponse = await fetch(ACTA_TAGS_API, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
+        const tags = tagsResponse.ok ? await tagsResponse.json() : [];
+        if (Array.isArray(tags) && tags.length) {
+          const remote = extractActaVersion(tags[0].name) || tags[0].name;
+          if (compareActaVersion(remote, currentActaVersion()) > 0) setUpdateStatus('available', { remote, url: ACTA_RELEASES_URL });
+          else setUpdateStatus('latest', { version: currentActaVersion() });
+        } else {
+          setUpdateStatus('noRelease');
+        }
+      } else {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const remote = extractActaVersion(data.tag_name) || extractActaVersion(data.name) || data.tag_name || data.name || '';
+        const url = data.html_url || ACTA_RELEASES_URL;
+        if (compareActaVersion(remote, currentActaVersion()) > 0) setUpdateStatus('available', { remote, url });
+        else setUpdateStatus('latest', { version: currentActaVersion() });
+      }
+    } catch (err) {
+      setUpdateStatus('error', { detail: (err && err.message) ? err.message : String(err) });
+    } finally {
+      if (btn) { btn.classList.remove('checking'); btn.disabled = false; }
+    }
+  }
+  byId('aboutCheckUpdate')?.addEventListener('click', checkForUpdates);
 
   const brandButton = document.querySelector('.brand');
   let logoMotionFrame = 0;
@@ -2591,6 +2743,7 @@
     applySettingsTranslation();
     updateSidebarToggleLabel();
     updateDataRefreshLabel();
+    renderUpdateStatus();
   };
 
   const rendererFormatDate = formatDate;

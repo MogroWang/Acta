@@ -1,6 +1,6 @@
 {
   "name": "acta",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Acta 行记 — notes and tasks, in one calm workspace.",
   "scripts": {
     "start": "tauri dev",
@@ -35,8 +35,10 @@
     "@capacitor/app": "^8.1.1",
     "@capacitor/local-notifications": "^8.2.1",
     "@capacitor/status-bar": "^8.0.3",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-dialog": "^2.7.2",
-    "@tauri-apps/plugin-opener": "^2.5.4"
+    "@tauri-apps/plugin-opener": "^2.5.4",
+    "pdf-lib": "^1.17.1"
   }
 }
