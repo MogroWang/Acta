@@ -783,8 +783,34 @@ fn clear_app_cache(window: WebviewWindow) -> Result<bool, String> {
     Ok(true)
 }
 
+/// Remove any service worker before the webview loads so this build always runs its own
+/// embedded assets.
+///
+/// The WebView2 user-data folder (`%LOCALAPPDATA%\<identifier>\EBWebView`) is shared
+/// across versions and across launches, so a SW registered by an older version (e.g.
+/// 1.1.000) persists and keeps serving stale cached assets - after an upgrade AND if the
+/// user runs an old version again in between launches. Desktop embeds every asset, so a
+/// SW is never wanted here; delete the whole `Service Worker` subtree (registrations +
+/// caches + script cache) on EVERY launch. localStorage and IndexedDB (user notes) live
+/// in sibling folders and are untouched. Must run before `tauri::Builder::run()` creates
+/// the webview. Removing a missing dir is a harmless no-op.
+#[cfg(target_os = "windows")]
+fn purge_legacy_service_worker() {
+    const APP_IDENTIFIER: &str = "com.mogrowangstudio.acta"; // matches tauri.conf.json
+    let Some(local_app_data) = std::env::var_os("LOCALAPPDATA") else {
+        return;
+    };
+    let app_dir = PathBuf::from(local_app_data).join(APP_IDENTIFIER);
+    let _ = fs::remove_dir_all(app_dir.join("EBWebView").join("Default").join("Service Worker"));
+    let _ = fs::remove_file(app_dir.join("sw-policy.dat")); // leftover from an earlier build
+}
+
+#[cfg(not(target_os = "windows"))]
+fn purge_legacy_service_worker() {}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    purge_legacy_service_worker();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())

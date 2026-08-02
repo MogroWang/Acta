@@ -2,6 +2,32 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Desktop (Tauri) embeds every asset in the exe, so a service worker is never
+      // wanted - it only risks serving stale cached assets from an older version (e.g.
+      // if 1.1.000 was run again between launches). The Rust side wipes any SW data
+      // before the webview loads; this script is a defense-in-depth fallback that purges
+      // a SW at runtime if one is somehow still present. User note data is untouched.
+      // Only reloads when it actually removed something, so it is a no-op on a clean
+      // profile and cannot loop.
+      (function () {
+        if (location.hostname !== 'tauri.localhost') return;
+        (async function () {
+          var didPurge = false;
+          try {
+            if ('serviceWorker' in navigator) {
+              var regs = await navigator.serviceWorker.getRegistrations();
+              if (regs.length) { didPurge = true; await Promise.all(regs.map(function (r) { return r.unregister(); })); }
+            }
+            if ('caches' in window) {
+              var keys = await caches.keys();
+              if (keys.length) { didPurge = true; await Promise.all(keys.map(function (k) { return caches.delete(k); })); }
+            }
+          } catch (e) {}
+          if (didPurge) location.reload();
+        })();
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#e7e7e3" />

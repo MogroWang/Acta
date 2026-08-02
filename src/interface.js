@@ -3707,7 +3707,7 @@
     });
   }
 
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http') && location.hostname !== 'tauri.localhost') {
     addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}), { once:true });
   }
 
