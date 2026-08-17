@@ -12,7 +12,7 @@
     "android:build": "npm run android:sync && cd android && gradlew.bat assembleDebug",
     "windows:build": "tauri build --bundles nsis --target x86_64-pc-windows-msvc",
     "windows:portable": "tauri build --no-bundle --target x86_64-pc-windows-msvc",
-    "macos:build": "tauri build --bundles app,dmg --target universal-apple-darwin"
+    "macos:build": "tauri build --bundles app,dmg --target aarch64-apple-darwin"
   },
   "keywords": [
     "tauri",

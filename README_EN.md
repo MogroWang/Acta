@@ -4,6 +4,8 @@
 
 # Acta · 行记
 
+**Current version v1.2.0**
+
 Acta is a local-first notes and tasks app that brings writing, action, and organization into one calm workspace. The project shares a single web interface across Tauri desktop apps for Windows/macOS, a Capacitor Android app, and a modern-browser PWA.
 
 ![Acta desktop interface](./acta-preview.png)
@@ -37,7 +39,7 @@ Common commands:
 | `npm test` | Run the headless smoke test with local Edge/Chrome |
 | `npm run desktop:build` | Build the desktop app for the current platform |
 | `npm run windows:build` | Build the Windows x64 NSIS installer |
-| `npm run macos:build` | Build a universal macOS App and DMG on macOS |
+| `npm run macos:build` | Build an Apple Silicon (aarch64) macOS App and DMG on macOS |
 | `npm run android:sync` | Sync shared web assets into the Android project |
 | `npm run android:build` | Sync assets and build an Android debug APK |
 
@@ -73,6 +75,18 @@ flowchart TB
 | `src-tauri/` | Tauri 2 configuration, Rust commands, desktop permissions, and Windows/macOS icons |
 | `android/` | Capacitor Android project and the native `ActaSyncPlugin` file bridge |
 | `scripts/` | Headless-browser smoke tests and Android icon generation |
+
+### Platform build configuration
+
+The desktop build merges a platform-specific config over the shared base. Platform-dedicated files are marked separately below:
+
+| File | Platform | Notes |
+| --- | --- | --- |
+| `src-tauri/tauri.conf.json` | Shared base | Product name, identifier, icons, and other shared settings |
+| `src-tauri/tauri.macos.conf.json` | **macOS only** | Overlay title bar with traffic-light position, macOS 10.13 minimum, `.app` and `.dmg` bundles |
+| `src-tauri/tauri.windows.conf.json` | **Windows only** | NSIS installer, WebView2 bootstrapper, and installer language selector |
+
+The macOS build targets Apple Silicon (`aarch64-apple-darwin`), set by the `macos:build` script in `package.json`. For Intel or universal binaries, switch the target to `x86_64-apple-darwin` or `universal-apple-darwin`.
 
 ### Data and synchronization
 

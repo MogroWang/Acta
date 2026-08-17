@@ -4,6 +4,8 @@
 
 # Acta · 行记
 
+**当前版本 v1.2.0**
+
 Acta 是一个本地优先的笔记与待办应用，把记录、行动和资料整理放在一个安静的工作空间中。项目共用一套 Web 界面，并通过 Tauri 提供 Windows/macOS 桌面版、通过 Capacitor 提供 Android 版，也可以作为 PWA 在现代浏览器中运行。
 
 ![Acta 桌面界面](./acta-preview.png)
@@ -37,7 +39,7 @@ npm start
 | `npm test` | 使用本机 Edge/Chrome 运行无头冒烟测试 |
 | `npm run desktop:build` | 构建当前平台桌面应用 |
 | `npm run windows:build` | 生成 Windows x64 NSIS 安装程序 |
-| `npm run macos:build` | 在 macOS 上生成通用架构 App 与 DMG |
+| `npm run macos:build` | 在 macOS 上生成 Apple 芯片（aarch64）App 与 DMG |
 | `npm run android:sync` | 将共享 Web 资源同步到 Android 工程 |
 | `npm run android:build` | 同步资源并构建 Android debug APK |
 
@@ -73,6 +75,18 @@ flowchart TB
 | `src-tauri/` | Tauri 2 配置、Rust 原生命令、桌面权限与 Windows/macOS 图标 |
 | `android/` | Capacitor Android 工程和 `ActaSyncPlugin` 原生文件桥 |
 | `scripts/` | 无头浏览器冒烟测试和 Android 图标生成脚本 |
+
+### 平台构建配置
+
+桌面版在共享基础配置之上合并平台专用配置，平台专用文件单独标注如下：
+
+| 文件 | 适用平台 | 说明 |
+| --- | --- | --- |
+| `src-tauri/tauri.conf.json` | 通用基础 | 产品名、标识符、图标等共享配置 |
+| `src-tauri/tauri.macos.conf.json` | **macOS 专用** | Overlay 标题栏与红绿灯位置、最低 macOS 10.13、输出 `.app` 与 `.dmg` |
+| `src-tauri/tauri.windows.conf.json` | **Windows 专用** | NSIS 安装程序、WebView2 引导安装与安装语言选择 |
+
+macOS 构建目标为 Apple 芯片（`aarch64-apple-darwin`），由 `package.json` 的 `macos:build` 脚本指定；如需 Intel 或通用架构，请改用 `x86_64-apple-darwin` 或 `universal-apple-darwin` 目标。
 
 ### 数据与同步
 
