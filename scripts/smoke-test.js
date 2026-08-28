@@ -244,8 +244,8 @@ async function main() {
       const calendarMonthVisible = document.body.classList.contains('calendar-view') && !document.querySelector('#calendarToolbar').hidden && Boolean(document.querySelector('.calendar-month-view'));
       const calendarCreatedNoteVisible = Boolean(document.querySelector('[data-calendar-cell="' + todayISO() + '"] [data-calendar-note="welcome-note"]'));
       const calendarCrossDayMonthVisible = crossDayDates.slice(1).every(iso => document.querySelector('[data-calendar-cell="' + iso + '"] [data-calendar-todo="calendar-cross-day"]'));
-      const calendarGreenTheme = getComputedStyle(document.body).getPropertyValue('--calendar-accent').trim().toLowerCase() === '#4f7656'
-        && getComputedStyle(document.querySelector('[data-calendar-mode="month"]')).backgroundColor === 'rgb(79, 118, 86)';
+      const calendarAccentTheme = getComputedStyle(document.body).getPropertyValue('--calendar-accent').trim().toLowerCase() === '#7a704e'
+        && getComputedStyle(document.querySelector('[data-calendar-mode="month"]')).backgroundColor === 'rgb(122, 112, 78)';
       const calendarExpansionMetrics = {
         innerWidth,
         itemWidth:document.querySelector('.item-pane').getBoundingClientRect().width,
@@ -784,7 +784,7 @@ async function main() {
       colorfulTheme.dispatchEvent(new Event('change'));
       const colorfulThemeWorks = document.documentElement.dataset.actaTheme === 'forest-mist'
         && getComputedStyle(document.documentElement).getPropertyValue('--todo-accent').trim() === '#267f91'
-        && getComputedStyle(document.documentElement).getPropertyValue('--note-accent').trim() === '#b6683e';
+        && getComputedStyle(document.documentElement).getPropertyValue('--note-accent').trim() === '#99566b';
       const glowThemeValues = ['neon-ocean', 'aurora-night'];
       const glowThemesAvailable = glowThemeValues.every(value => document.querySelector('input[name="actaTheme"][value="' + value + '"]'));
       const neonTheme = document.querySelector('input[name="actaTheme"][value="neon-ocean"]');
@@ -794,12 +794,12 @@ async function main() {
         && document.documentElement.dataset.actaPalette === 'neon-ocean'
         && document.documentElement.dataset.actaGlow === 'true'
         && getComputedStyle(document.querySelector('#newButton')).boxShadow !== 'none'
-        && getComputedStyle(document.documentElement).getPropertyValue('--calendar-theme-accent').trim() === '#70edaa';
+        && getComputedStyle(document.documentElement).getPropertyValue('--calendar-theme-accent').trim() === '#5fd6a2';
       const lightTheme = document.querySelector('input[name="actaTheme"][value="mono-light"]');
       lightTheme.checked = true;
       lightTheme.dispatchEvent(new Event('change'));
       const lightNativeStatusBar = [latestStatusBarCall('background'), latestStatusBarCall('style')];
-      const nativeStatusBarMatchesThemes = darkNativeStatusBar[0] === '#111310' && darkNativeStatusBar[1] === 'DARK' && customDarkNativeStatusBar[0] === '#101820' && customDarkNativeStatusBar[1] === 'DARK' && lightNativeStatusBar[0] === '#e7e7e3' && lightNativeStatusBar[1] === 'LIGHT' && nativeSystemBarCalls.some(call => call.color === '#111310' && !('lightIcons' in call)) && nativeSystemBarCalls.some(call => call.color === '#e7e7e3' && !('lightIcons' in call));
+      const nativeStatusBarMatchesThemes = darkNativeStatusBar[0] === '#111111' && darkNativeStatusBar[1] === 'DARK' && customDarkNativeStatusBar[0] === '#101820' && customDarkNativeStatusBar[1] === 'DARK' && lightNativeStatusBar[0] === '#e6e6e6' && lightNativeStatusBar[1] === 'LIGHT' && nativeSystemBarCalls.some(call => call.color === '#111111' && !('lightIcons' in call)) && nativeSystemBarCalls.some(call => call.color === '#e6e6e6' && !('lightIcons' in call));
       const readAppearanceSettings = () => JSON.parse(localStorage.getItem('acta.interface.settings.v1') || '{}');
       const fontSizeSetting = document.querySelector('#appFontSizeSetting');
       fontSizeSetting.value = '14';
@@ -1047,7 +1047,7 @@ async function main() {
       await waitFor(() => innerWidth > 1200 && innerHeight > 700);
       window.__actaSmokeStep = 'classification-item-opened';
       const brandVersion = document.querySelector('.brand-version');
-      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '1.2.0'
+      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '2.0.0'
         && parseFloat(getComputedStyle(brandVersion).opacity) > .9
         && brandVersion.getBoundingClientRect().width > 0;
       const miniLogoBeforeCollapseRect = document.querySelector('.brand-mini-logo').getBoundingClientRect();
@@ -1274,7 +1274,7 @@ async function main() {
         calendarCrossDayGrouped,
         calendarCrossDayPeriodOverlap,
         calendarCrossDayMonthVisible,
-        calendarGreenTheme,
+        calendarAccentTheme,
         calendarExpanded,
         calendarExpansionMetrics,
         calendarTodoVisible,
@@ -1530,7 +1530,7 @@ async function main() {
     assert.equal(result.completedHiddenFromTodos, true);
     assert.equal(result.completedVisible, true);
     assert.match(result.darkCreateMenuBackground, /^rgb\(/);
-    assert.equal(result.darkThemeColor, '#111310');
+    assert.equal(result.darkThemeColor, '#111111');
     assert.equal(result.detailedThemeColorsWork, true);
     assert.equal(result.colorfulThemesAvailable, true);
     assert.equal(result.colorfulThemeWorks, true);
@@ -1564,7 +1564,7 @@ async function main() {
     assert.equal(result.calendarCrossDayGrouped, true);
     assert.equal(result.calendarCrossDayPeriodOverlap, true);
     assert.equal(result.calendarCrossDayMonthVisible, true);
-    assert.equal(result.calendarGreenTheme, true);
+    assert.equal(result.calendarAccentTheme, true);
     assert.equal(result.calendarExpanded, true, JSON.stringify(result.calendarExpansionMetrics));
     assert.equal(result.calendarTodoVisible, true);
     assert.equal(result.calendarMonthTitleOnly, true);

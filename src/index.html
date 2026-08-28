@@ -101,7 +101,7 @@
                   </g>
               </g>
           </svg>
-          <span class="brand-version" aria-label="当前版本 1.2.0">1.2.0</span>
+          <span class="brand-version" aria-label="当前版本 2.0.0">2.0.0</span>
           <span class="logo-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
           <img class="brand-mini-logo" src="./icons/Acta_weblogo.png" alt="" aria-hidden="true" />
         </div>
@@ -252,6 +252,16 @@
                 </select>
               </label>
             </div>
+            <label class="filter-select list-sort-field">
+              <svg><use href="#i-sliders"/></svg>
+              <select id="listSortOrder" aria-label="排序方式">
+                <option value="updated" data-i18n="sortUpdated">最近更新</option>
+                <option value="created" data-i18n="sortCreated">最近创建</option>
+                <option value="due" data-i18n="sortDue">按截止时间</option>
+                <option value="priority" data-i18n="sortPriority">按优先级</option>
+                <option value="title" data-i18n="sortTitle">按标题</option>
+              </select>
+            </label>
             <button class="clear-list-filters" id="clearListFilters" type="button" hidden>
               <svg><use href="#i-close"/></svg><span data-i18n="clearFilters">清除</span>
             </button>
@@ -337,15 +347,15 @@
             <section class="settings-panel" data-settings-panel="appearance">
               <header><h3>外观设置</h3><p>主题只改变显示效果，不会影响任何笔记或待办数据。</p></header>
               <div class="theme-grid">
-                <label class="theme-option"><input type="radio" name="actaTheme" value="mono-light"/><span><span class="theme-swatch"><i style="background:#fff"></i><i style="background:#e7e7e3"></i><i style="background:#161716"></i></span><b>黑白浅色</b></span></label>
-                <label class="theme-option"><input type="radio" name="actaTheme" value="mono-dark"/><span><span class="theme-swatch"><i style="background:#111310"></i><i style="background:#292c28"></i><i style="background:#f1f1ed"></i></span><b>黑白深色</b></span></label>
-                <label class="theme-option"><input type="radio" name="actaTheme" value="blue-yellow"/><span><span class="theme-swatch"><i style="background:#f5d96d"></i><i style="background:#edf3f8"></i><i style="background:#326b8b"></i></span><b>蓝黄</b></span></label>
-                <label class="theme-option"><input type="radio" name="actaTheme" value="eye-yellow"/><span><span class="theme-swatch"><i style="background:#e9d99f"></i><i style="background:#fbf2cf"></i><i style="background:#66734e"></i></span><b>黄色护眼</b></span></label>
-                <label class="theme-option"><input type="radio" name="actaTheme" value="forest-mist"/><span><span class="theme-swatch"><i style="background:#cce7db"></i><i style="background:#65b9b0"></i><i style="background:#e8a778"></i></span><b>森林晨雾</b><small>多彩浅色</small></span></label>
-                <label class="theme-option"><input type="radio" name="actaTheme" value="sunset-coral"/><span><span class="theme-swatch"><i style="background:#f5c7b8"></i><i style="background:#8c78bd"></i><i style="background:#67b9c8"></i></span><b>海盐晚霞</b><small>多彩浅色</small></span></label>
-                <label class="theme-option"><input type="radio" name="actaTheme" value="candy-pop"/><span><span class="theme-swatch"><i style="background:#d9c9ff"></i><i style="background:#5ba4e6"></i><i style="background:#ef87a7"></i></span><b>糖果气泡</b><small>多彩浅色</small></span></label>
-                <label class="theme-option glow-theme"><input type="radio" name="actaTheme" value="neon-ocean"/><span><span class="theme-swatch"><i style="background:#061018"></i><i style="background:#33d8f0"></i><i style="background:#f15dce"></i></span><b>深海霓虹</b><small>深色发光</small></span></label>
-                <label class="theme-option glow-theme"><input type="radio" name="actaTheme" value="aurora-night"/><span><span class="theme-swatch"><i style="background:#080714"></i><i style="background:#7b78ff"></i><i style="background:#54e6b3"></i></span><b>极光夜色</b><small>深色发光</small></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="mono-light"/><span><span class="theme-swatch"><i style="background:#ffffff"></i><i style="background:#e6e6e6"></i><i style="background:#1b1b1b"></i></span><b>黑白浅色</b></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="mono-dark"/><span><span class="theme-swatch"><i style="background:#111111"></i><i style="background:#292929"></i><i style="background:#f0f0f0"></i></span><b>黑白深色</b></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="blue-yellow"/><span><span class="theme-swatch"><i style="background:#e9cd5e"></i><i style="background:#eaf0f4"></i><i style="background:#2d6487"></i></span><b>蓝黄</b></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="eye-yellow"/><span><span class="theme-swatch"><i style="background:#f9f5e8"></i><i style="background:#e8e1c8"></i><i style="background:#6f6748"></i></span><b>纸色护眼</b><small>默认</small></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="forest-mist"/><span><span class="theme-swatch"><i style="background:#cbe4d6"></i><i style="background:#55a893"></i><i style="background:#b76a3c"></i></span><b>森林晨雾</b><small>多彩浅色</small></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="sunset-coral"/><span><span class="theme-swatch"><i style="background:#f5c6b6"></i><i style="background:#b25a76"></i><i style="background:#466e97"></i></span><b>海盐晚霞</b><small>多彩浅色</small></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="candy-pop"/><span><span class="theme-swatch"><i style="background:#f8d7e0"></i><i style="background:#3f8f7a"></i><i style="background:#c04f74"></i></span><b>糖果气泡</b><small>多彩浅色</small></span></label>
+                <label class="theme-option glow-theme"><input type="radio" name="actaTheme" value="neon-ocean"/><span><span class="theme-swatch"><i style="background:#051013"></i><i style="background:#3fd6bb"></i><i style="background:#f2866b"></i></span><b>深海霓虹</b><small>深色发光</small></span></label>
+                <label class="theme-option glow-theme"><input type="radio" name="actaTheme" value="aurora-night"/><span><span class="theme-swatch"><i style="background:#060e0d"></i><i style="background:#54d6a4"></i><i style="background:#8fc5e8"></i></span><b>极光夜色</b><small>深色发光</small></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="custom"/><span><span class="theme-swatch"><i id="customSwatchPaper" style="background:#fbfaf6"></i><i id="customSwatchSidebar" style="background:#ebe7dc"></i><i id="customSwatchAccent" style="background:#526b55"></i></span><b>自定义</b></span></label>
               </div>
               <div class="custom-colors" id="customColorSettings">
@@ -416,8 +426,8 @@
               <div class="about-mark"><img src="./images/Acta Poster.jpg" alt="Acta 行记" /></div>
               <div class="about-meta">
                 <div><small>产品</small><b>Acta · 行记</b></div>
-              <div><small>版本</small><b id="aboutVersion">1.2.0</b></div>
-              <div><small>本版更新日期</small><b>2026-08-01</b></div>
+              <div><small>版本</small><b id="aboutVersion">2.0.0</b></div>
+              <div><small>本版更新日期</small><b>2026-08-29</b></div>
                 <div><small>桌面框架</small><b>Tauri（Windows/macOS），Capacitor（Android）</b></div>
               </div>
               <div class="about-update">

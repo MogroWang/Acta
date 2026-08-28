@@ -161,6 +161,8 @@ let todoFolderFilter = 'all';
 let noteFolderFilter = 'all';
 let noteRelationFilter = 'all';
 let noteUpdatedFilter = 'all';
+const listSortModes = ['updated', 'created', 'due', 'priority', 'title'];
+let listSortMode = listSortModes.includes(settings.sortMode) ? settings.sortMode : 'updated';
 let calendarViewMode = 'month';
 let calendarCursor = new Date(`${todayISO()}T12:00:00`);
 let calendarMotion = '';
@@ -1033,9 +1035,16 @@ function syncListFilterUI() {
     select.closest('.filter-select')?.classList.toggle('is-active', value !== 'all');
   });
 
+  const sortSelect = $('#listSortOrder');
+  if (sortSelect) {
+    sortSelect.value = listSortMode;
+    sortSelect.closest('.filter-select')?.classList.toggle('is-active', listSortMode !== 'updated');
+  }
+
   const labels = {
     todoPriorityFilter:'filterByPriority', todoDueFilter:'filterByDeadline', todoFolderFilter:'filterByFolder',
-    noteFolderFilter:'filterByFolder', noteRelationFilter:'filterByRelation', noteUpdatedFilter:'filterByUpdated'
+    noteFolderFilter:'filterByFolder', noteRelationFilter:'filterByRelation', noteUpdatedFilter:'filterByUpdated',
+    listSortOrder:'sortBy'
   };
   Object.entries(labels).forEach(([id, key]) => {
     const select = $(`#${id}`);
@@ -1101,16 +1110,49 @@ function getVisibleItems() {
     });
   }
   const taskFocused = currentView === 'today' || currentView === 'todos' || currentView === 'completed' || currentView === 'calendar' || currentFilter === 'todo';
+  const sortByDueThenPriority = (a, b) => {
+    const dueDifference = String(a.dueAt || '9999-12-31').localeCompare(String(b.dueAt || '9999-12-31'));
+    if (dueDifference) return dueDifference;
+    return priorityRank(a.priority) - priorityRank(b.priority);
+  };
+  const listSortComparers = {
+    updated: (a, b) => {
+      if (a.type === 'todo' && b.type === 'todo') {
+        const priorityDifference = priorityRank(a.priority) - priorityRank(b.priority);
+        if (priorityDifference) return priorityDifference;
+        const dueDifference = String(a.dueAt || '9999-12-31').localeCompare(String(b.dueAt || '9999-12-31'));
+        if (dueDifference) return dueDifference;
+      }
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    },
+    created: (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    due: (a, b) => {
+      if (a.type !== b.type) return a.type === 'todo' ? -1 : 1;
+      if (a.type === 'todo') {
+        const scheduledDifference = sortByDueThenPriority(a, b);
+        if (scheduledDifference) return scheduledDifference;
+      }
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    },
+    priority: (a, b) => {
+      if (a.type !== b.type) return a.type === 'todo' ? -1 : 1;
+      if (a.type === 'todo') {
+        const priorityDifference = priorityRank(a.priority) - priorityRank(b.priority);
+        if (priorityDifference) return priorityDifference;
+        const dueDifference = String(a.dueAt || '9999-12-31').localeCompare(String(b.dueAt || '9999-12-31'));
+        if (dueDifference) return dueDifference;
+      }
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    },
+    title: (a, b) => String(a.title || '').localeCompare(String(b.title || ''), undefined, { numeric: true })
+  };
+  const compareBySortMode = listSortComparers[listSortMode] || ((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
   return items.sort((a, b) => {
     if (taskFocused && a.type === 'todo' && b.type === 'todo') {
       const completionDifference = Number(isTodoComplete(a)) - Number(isTodoComplete(b));
       if (completionDifference) return completionDifference;
-      const priorityDifference = priorityRank(a.priority) - priorityRank(b.priority);
-      if (priorityDifference) return priorityDifference;
-      const dueDifference = String(a.dueAt || '9999-12-31').localeCompare(String(b.dueAt || '9999-12-31'));
-      if (dueDifference) return dueDifference;
     }
-    return new Date(b.updatedAt) - new Date(a.updatedAt);
+    return compareBySortMode(a, b);
   });
 }
 
@@ -2214,6 +2256,12 @@ function bindShell() {
   }));
   $('#clearListFilters')?.addEventListener('click', () => {
     resetListFilters(listFilterContext());
+    refreshFilteredList();
+  });
+  $('#listSortOrder')?.addEventListener('change', event => {
+    listSortMode = listSortModes.includes(event.target.value) ? event.target.value : 'updated';
+    settings.sortMode = listSortMode;
+    persist();
     refreshFilteredList();
   });
   $('#searchInput').addEventListener('input', event => {

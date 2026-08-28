@@ -1,6 +1,6 @@
 {
   "name": "acta",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Acta 行记 — notes and tasks, in one calm workspace.",
   "scripts": {
     "start": "tauri dev",

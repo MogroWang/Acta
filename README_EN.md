@@ -4,7 +4,7 @@
 
 # Acta · 行记
 
-**Current version v1.2.0**
+**Current version v2.0.0**
 
 Acta is a local-first notes and tasks app that brings writing, action, and organization into one calm workspace. The project shares a single web interface across Tauri desktop apps for Windows/macOS, a Capacitor Android app, and a modern-browser PWA.
 

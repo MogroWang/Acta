@@ -3,6 +3,7 @@ package com.mws.acta;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Window;
@@ -43,6 +44,10 @@ public class MainActivity extends BridgeActivity {
             window.setNavigationBarContrastEnforced(false);
         }
         WindowCompat.setDecorFitsSystemWindows(window, true);
+        // Android 15+ enforces edge-to-edge and ignores setStatusBarColor /
+        // setNavigationBarColor, so the strips behind the transparent system bars
+        // show the window background instead. Keep it in sync with the theme color.
+        window.setBackgroundDrawable(new ColorDrawable(background));
         WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
         boolean darkIcons = relativeLuminance(background) >= .42;
         controller.setAppearanceLightStatusBars(darkIcons);
