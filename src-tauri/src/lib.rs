@@ -725,7 +725,7 @@ fn persist_app_icon(app: &AppHandle, data_url: &str, bytes: &[u8]) -> Result<(),
 
 #[cfg(target_os = "macos")]
 fn set_macos_dock_icon(bytes: &[u8]) -> Result<(), String> {
-    use objc2::{ClassType, MainThreadMarker};
+    use objc2::{AnyThread, MainThreadMarker};
     use objc2_app_kit::{NSApplication, NSImage};
     use objc2_foundation::NSData;
 
@@ -819,17 +819,17 @@ pub fn run() {
             let stored_icon = persisted_app_icon_path(app_handle)
                 .ok()
                 .and_then(|path| fs::read(path).ok());
-            if let (Some(bytes), Some(window)) =
-                (stored_icon, app.get_webview_window("main"))
-            {
+            if let Some(bytes) = stored_icon {
                 #[cfg(target_os = "macos")]
                 {
                     let _ = set_macos_dock_icon(&bytes);
                 }
                 #[cfg(not(target_os = "macos"))]
                 {
-                    if let Ok(image) = tauri::image::Image::from_bytes(&bytes) {
-                        let _ = window.set_icon(image);
+                    if let Some(window) = app.get_webview_window("main") {
+                        if let Ok(image) = tauri::image::Image::from_bytes(&bytes) {
+                            let _ = window.set_icon(image);
+                        }
                     }
                 }
             }
