@@ -1,5 +1,24 @@
 apply plugin: 'com.android.application'
 
+// Version always derives from the project's package.json so the APK version
+// (shown in system app info, and checked for upgrade installs) matches releases.
+def packageJson = new groovy.json.JsonSlurper().parseText(file('../../package.json').text)
+def appVersionName = (packageJson.version ?: '0.0.0').toString()
+def verNum = { String s -> def m = (s =~ /(\d+)/); m.find() ? m.group(1) as int : 0 }
+def verParts = appVersionName.split('-')[0].split('\\.')
+def appVersionCode = verNum(verParts[0] ?: '0') * 1000000 +
+        (verParts.length > 1 ? verNum(verParts[1]) : 0) * 1000 +
+        (verParts.length > 2 ? verNum(verParts[2]) : 0)
+
+// Release signing reads android/keystore.properties (git-ignored; created locally
+// or by CI from the ANDROID_RELEASE_KEYSTORE_* secrets). Without it, release
+// builds fall back to the machine's debug keystore.
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader('UTF-8') { keystoreProperties.load(it) }
+}
+
 android {
     namespace "com.mws.acta"
     compileSdk rootProject.ext.compileSdkVersion
@@ -7,8 +26,8 @@ android {
         applicationId "com.mws.acta"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 11
-        versionName "1.2.0"
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +35,21 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            release {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
         }
     }
 }

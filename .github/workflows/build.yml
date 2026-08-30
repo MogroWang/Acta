@@ -108,20 +108,36 @@ jobs:
         run: npm ci
       - name: Sync web assets
         run: npm run android:sync
-      - name: Build debug apk
+      - name: Restore release keystore
+        id: keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
+        run: |
+          cd android
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > acta-release.keystore
+            printf 'storeFile=acta-release.keystore\nstorePassword=%s\nkeyAlias=acta-release\nkeyPassword=%s\n' \
+              "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD" > keystore.properties
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Secrets ANDROID_RELEASE_KEYSTORE_B64 / ANDROID_RELEASE_KEYSTORE_PASSWORD are not set. Falling back to the runner's ephemeral debug key — this APK will NOT upgrade-install over existing releases."
+          fi
+      - name: Build release apk
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease --no-daemon
       - name: Collect apk
         shell: bash
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk "dist/Acta-${{ steps.ver.outputs.version }}-android-debug.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/Acta-${{ steps.ver.outputs.version }}-android.apk"
       - uses: actions/upload-artifact@v4
         with:
           name: Acta-${{ steps.ver.outputs.version }}-android-apk
-          path: dist/Acta-*-android-debug.apk
+          path: dist/Acta-*-android.apk
           if-no-files-found: error
 
   release:

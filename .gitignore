@@ -35,6 +35,8 @@ src-tauri/gen/
 *.pem
 *.key
 android/app/google-services.json
+android/keystore.properties
+android/release-keystore-github-secrets.txt
 
 # Editors, operating systems, and local agent metadata
 .idea/
