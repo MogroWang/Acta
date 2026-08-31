@@ -89,6 +89,7 @@
       <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></symbol>
       <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h3M11 12h9M4 18h8M16 18h4"/><circle cx="16" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="14" cy="18" r="2"/></symbol>
       <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6 7l-2 4M5.5 15A7 7 0 0 0 18 17l2-4"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M5 20v-6M12 20V5M19 20v-10M3 20h18"/></symbol>
     </svg>
 
     <div class="app-shell">
@@ -101,7 +102,7 @@
                   </g>
               </g>
           </svg>
-          <span class="brand-version" aria-label="当前版本 2.0.0">2.0.0</span>
+          <span class="brand-version" aria-label="当前版本 2.1.0">2.1.0</span>
           <span class="logo-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
           <img class="brand-mini-logo" src="./icons/Acta_weblogo.png" alt="" aria-hidden="true" />
         </div>
@@ -109,6 +110,7 @@
         <div class="window-spacer"></div>
         <div class="mobile-titlebar-actions">
           <button class="icon-button mobile-titlebar-action" id="mobileActaData" type="button" aria-label="行记数据"><svg><use href="#i-database"/></svg></button>
+          <button class="icon-button mobile-titlebar-action" id="mobileStats" type="button" data-view="stats" aria-label="统计"><svg><use href="#i-chart"/></svg></button>
           <button class="icon-button mobile-titlebar-action" id="mobileDataRefresh" type="button" aria-label="刷新数据"><svg><use href="#i-refresh"/></svg></button>
           <button class="icon-button mobile-titlebar-action mobile-list-settings" id="mobileListSettings" type="button" aria-label="设置"><svg><use href="#i-settings"/></svg></button>
         </div>
@@ -137,7 +139,7 @@
             <button data-view="calendar"><span><svg><use href="#i-calendar"/></svg><span data-i18n="calendar">日历</span></span><em id="calendarCount">0</em></button>
             <button data-view="todos"><span><svg><use href="#i-check"/></svg><span data-i18n="todos">待办</span></span><em id="todoCount">0</em></button>
             <button data-view="notes"><span><svg><use href="#i-note"/></svg><span data-i18n="notes">笔记</span></span><em id="noteCount">0</em></button>
-            <button data-view="completed"><span><svg><use href="#i-check"/></svg><span data-i18n="completed">已完成</span></span><em id="completedCount">0</em></button>
+            <button data-view="stats"><span><svg><use href="#i-chart"/></svg><span data-i18n="stats">统计</span></span></button>
           </nav>
 
           <section class="folder-section">
@@ -179,7 +181,7 @@
             <div class="mobile-list-shortcuts">
               <button class="mobile-classifications-trigger" id="mobileClassifications" type="button" aria-label="查看归类" aria-haspopup="dialog"><svg><use href="#i-folder"/></svg><span>查看归类</span><svg class="shortcut-chevron"><use href="#i-chevron"/></svg></button>
             </div>
-            <button class="todo-status-switch" id="todoStatusSwitch" type="button" hidden><svg><use href="#i-check"/></svg><span>已完成</span></button>
+            <button class="todo-status-switch" id="todoStatusSwitch" type="button" aria-pressed="false" hidden><svg><use href="#i-check"/></svg><span data-i18n="showCompletedTodos">显示已完成</span></button>
             <div class="calendar-toolbar" id="calendarToolbar" hidden>
               <div class="calendar-navigation" role="group" aria-label="日历导航">
                 <button type="button" data-calendar-shift="-1" title="上一月"><svg><use href="#i-chevron"/></svg><span data-calendar-shift-label>上一月</span></button>
@@ -252,6 +254,11 @@
                 </select>
               </label>
             </div>
+            <label class="filter-select todo-completed-toggle" id="todoCompletedToggle" hidden>
+              <input id="todoShowCompleted" type="checkbox"/>
+              <svg><use href="#i-check"/></svg>
+              <span data-i18n="showCompletedTodos">显示已完成</span>
+            </label>
             <label class="filter-select list-sort-field">
               <svg><use href="#i-sliders"/></svg>
               <select id="listSortOrder" aria-label="排序方式">
@@ -321,7 +328,7 @@
             <section class="settings-panel" data-settings-panel="general">
               <header><h3>常规设置</h3><p>调整启动位置、内容密度和动效偏好。</p></header>
               <div class="settings-group">
-                <label class="settings-row"><span><b>默认启动页面</b><small>打开应用时优先进入的智能视图</small></span><select id="defaultViewSetting"><option value="inbox">收集箱</option><option value="calendar" data-i18n="calendar">日历</option><option value="todos">所有待办</option><option value="notes">所有笔记</option><option value="completed">已完成</option></select></label>
+                <label class="settings-row"><span><b>默认启动页面</b><small>打开应用时优先进入的智能视图</small></span><select id="defaultViewSetting"><option value="inbox">收集箱</option><option value="calendar" data-i18n="calendar">日历</option><option value="todos">所有待办</option><option value="notes">所有笔记</option><option value="stats">统计</option></select></label>
                 <label class="settings-row"><span><b>紧凑列表</b><small>在中栏显示更多笔记和待办</small></span><input id="compactModeSetting" type="checkbox"/></label>
                 <label class="settings-row"><span><b>减少动态效果</b><small>降低转场和弹性动画，减少视觉干扰</small></span><input id="reduceMotionSetting" type="checkbox"/></label>
                 <div class="settings-row"><span><b>缓存与页面</b><small>清除应用缓存并重新加载最新页面，不会删除笔记、待办或设置。</small></span><button class="settings-button secondary" id="clearCacheReload" type="button"><svg><use href="#i-refresh"/></svg><span>清除缓存重新加载</span></button></div>
@@ -336,6 +343,7 @@
                 <label class="settings-row"><span><b>二级标题字号</b><small>Markdown 渲染后的二级标题大小</small></span><select id="noteHeadingH2Size"><option value="20">20 px</option><option value="22">22 px</option><option value="24">24 px</option><option value="26">26 px</option><option value="28">28 px</option><option value="32">32 px</option></select></label>
                 <label class="settings-row"><span><b>三级标题字号</b><small>Markdown 渲染后的三级标题大小</small></span><select id="noteHeadingH3Size"><option value="16">16 px</option><option value="17">17 px</option><option value="18">18 px</option><option value="19">19 px</option><option value="20">20 px</option><option value="22">22 px</option><option value="24">24 px</option></select></label>
                 <label class="settings-row"><span><b>标题样式</b><small>改变可视化编辑器中的标题字体与装饰</small></span><select id="noteHeadingStyle"><option value="classic">经典衬线</option><option value="modern">现代无衬线</option><option value="accent">简约强调</option></select></label>
+                <label class="settings-row"><span><b>正文行间距</b><small>Markdown 渲染后的正文与源码行距</small></span><select id="noteLineHeight"><option value="1.4">1.4</option><option value="1.5">1.5</option><option value="1.6" selected>1.6</option><option value="1.7">1.7</option><option value="1.8">1.8</option><option value="1.9">1.9</option><option value="2">2.0</option></select></label>
               </div>
               <div class="note-heading-preview" id="noteHeadingPreview" aria-label="标题预览"><h1>一级标题</h1><h2>二级标题</h2><h3>三级标题</h3></div>
               <div class="settings-group">
@@ -347,14 +355,14 @@
             <section class="settings-panel" data-settings-panel="appearance">
               <header><h3>外观设置</h3><p>主题只改变显示效果，不会影响任何笔记或待办数据。</p></header>
               <div class="theme-grid">
+                <label class="theme-option"><input type="radio" name="actaTheme" value="eye-yellow"/><span><span class="theme-swatch"><i style="background:#f9f5e8"></i><i style="background:#e8e1c8"></i><i style="background:#6f6748"></i></span><b>纸色护眼</b><small>默认</small></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="mono-light"/><span><span class="theme-swatch"><i style="background:#ffffff"></i><i style="background:#e6e6e6"></i><i style="background:#1b1b1b"></i></span><b>黑白浅色</b></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="mono-dark"/><span><span class="theme-swatch"><i style="background:#111111"></i><i style="background:#292929"></i><i style="background:#f0f0f0"></i></span><b>黑白深色</b></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="blue-yellow"/><span><span class="theme-swatch"><i style="background:#e9cd5e"></i><i style="background:#eaf0f4"></i><i style="background:#2d6487"></i></span><b>蓝黄</b></span></label>
-                <label class="theme-option"><input type="radio" name="actaTheme" value="eye-yellow"/><span><span class="theme-swatch"><i style="background:#f9f5e8"></i><i style="background:#e8e1c8"></i><i style="background:#6f6748"></i></span><b>纸色护眼</b><small>默认</small></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="forest-mist"/><span><span class="theme-swatch"><i style="background:#cbe4d6"></i><i style="background:#55a893"></i><i style="background:#b76a3c"></i></span><b>森林晨雾</b><small>多彩浅色</small></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="sunset-coral"/><span><span class="theme-swatch"><i style="background:#f5c6b6"></i><i style="background:#b25a76"></i><i style="background:#466e97"></i></span><b>海盐晚霞</b><small>多彩浅色</small></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="candy-pop"/><span><span class="theme-swatch"><i style="background:#f8d7e0"></i><i style="background:#3f8f7a"></i><i style="background:#c04f74"></i></span><b>糖果气泡</b><small>多彩浅色</small></span></label>
-                <label class="theme-option glow-theme"><input type="radio" name="actaTheme" value="neon-ocean"/><span><span class="theme-swatch"><i style="background:#051013"></i><i style="background:#3fd6bb"></i><i style="background:#f2866b"></i></span><b>深海霓虹</b><small>深色发光</small></span></label>
+                <label class="theme-option glow-theme"><input type="radio" name="actaTheme" value="neon-ocean"/><span><span class="theme-swatch"><i style="background:#08061a"></i><i style="background:#a78bfa"></i><i style="background:#37e0f2"></i></span><b>深夜霓虹</b><small>特殊主题</small></span></label>
                 <label class="theme-option glow-theme"><input type="radio" name="actaTheme" value="aurora-night"/><span><span class="theme-swatch"><i style="background:#060e0d"></i><i style="background:#54d6a4"></i><i style="background:#8fc5e8"></i></span><b>极光夜色</b><small>深色发光</small></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="custom"/><span><span class="theme-swatch"><i id="customSwatchPaper" style="background:#fbfaf6"></i><i id="customSwatchSidebar" style="background:#ebe7dc"></i><i id="customSwatchAccent" style="background:#526b55"></i></span><b>自定义</b></span></label>
               </div>
@@ -426,8 +434,8 @@
               <div class="about-mark"><img src="./images/Acta Poster.jpg" alt="Acta 行记" /></div>
               <div class="about-meta">
                 <div><small>产品</small><b>Acta · 行记</b></div>
-              <div><small>版本</small><b id="aboutVersion">2.0.0</b></div>
-              <div><small>本版更新日期</small><b>2026-08-29</b></div>
+              <div><small>版本</small><b id="aboutVersion">2.1.0</b></div>
+              <div><small>本版更新日期</small><b>2026-08-31</b></div>
                 <div><small>桌面框架</small><b>Tauri（Windows/macOS），Capacitor（Android）</b></div>
               </div>
               <div class="about-update">

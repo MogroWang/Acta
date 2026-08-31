@@ -38,7 +38,11 @@ const dictionaries = {
     calendar:'日历', yearView:'年', monthView:'月', weekView:'周', dayView:'日', previousPeriod:'上一时段', nextPeriod:'下一时段', previousYear:'上一年', nextYear:'下一年', previousMonth:'上一月', nextMonth:'下一月', previousWeek:'上一周', nextWeek:'下一周', previousDay:'上一日', nextDay:'下一日', backToToday:'今天', calendarNavigation:'日历导航', calendarViewOptions:'日历视图',
     noScheduledTodos:'这段时间没有待办', noScheduledTodosHint:'为待办设置截止日期后，它会显示在日历中。', scheduledTodos:'项待办',
     noCalendarItems:'这段时间没有日历内容', noCalendarItemsHint:'有排期的待办和当天创建的笔记会显示在这里。', calendarItems:'项日历内容', createdNotes:'当日创建笔记',
-    moreTodos:'另有 {0} 项', linkedNotes:'关联笔记', calendarLegendLinked:'带笔记关联', calendarOpenTodo:'打开待办', calendarOpenNote:'打开笔记', calendarOpenDay:'查看当日', weekNumber:'周数', swipeWeekHint:'左右滑动查看其他日期'
+    moreTodos:'另有 {0} 项', linkedNotes:'关联笔记', calendarLegendLinked:'带笔记关联', calendarOpenTodo:'打开待办', calendarOpenNote:'打开笔记', calendarOpenDay:'查看当日', weekNumber:'周数', swipeWeekHint:'左右滑动查看其他日期',
+    stats:'统计', showCompletedTodos:'显示已完成', statOpen:'进行中', confirm:'确定', cancel:'取消',
+    statsCompletion:'待办完成情况', statsCompletionHint:'已完成占比', statsActivity:'最近 30 天记录', statsActivityHint:'按天统计新建的待办与笔记',
+    statsPriority:'优先级分布', statsPriorityHint:'进行中待办', statsFolders:'归类分布', statsFoldersHint:'全部项目',
+    statsEmpty:'这里还没有内容可以统计', statsEmptyHint:'创建笔记或待办后，这里会展示记录情况。'
   },
   en: {
     saved: 'Saved', saving: 'Saving…', new: 'New', quickCapture: 'Quick capture', quickCaptureHint: 'Create a task or note fast', newNote: 'New note', newNoteHint: 'Capture ideas and sparks',
@@ -65,7 +69,11 @@ const dictionaries = {
     calendar:'Calendar', yearView:'Year', monthView:'Month', weekView:'Week', dayView:'Day', previousPeriod:'Previous period', nextPeriod:'Next period', previousYear:'Previous year', nextYear:'Next year', previousMonth:'Previous month', nextMonth:'Next month', previousWeek:'Previous week', nextWeek:'Next week', previousDay:'Previous day', nextDay:'Next day', backToToday:'Today', calendarNavigation:'Calendar navigation', calendarViewOptions:'Calendar views',
     noScheduledTodos:'No tasks in this period', noScheduledTodosHint:'Set a task deadline to place it on the calendar.', scheduledTodos:'tasks',
     noCalendarItems:'Nothing on this calendar yet', noCalendarItemsHint:'Scheduled tasks and notes created that day appear here.', calendarItems:'calendar items', createdNotes:'Notes created that day',
-    moreTodos:'{0} more', linkedNotes:'Linked notes', calendarLegendLinked:'Linked to notes', calendarOpenTodo:'Open task', calendarOpenNote:'Open note', calendarOpenDay:'Open day', weekNumber:'Week', swipeWeekHint:'Swipe left or right for other days'
+    moreTodos:'{0} more', linkedNotes:'Linked notes', calendarLegendLinked:'Linked to notes', calendarOpenTodo:'Open task', calendarOpenNote:'Open note', calendarOpenDay:'Open day', weekNumber:'Week', swipeWeekHint:'Swipe left or right for other days',
+    stats:'Statistics', showCompletedTodos:'Show completed', statOpen:'In progress', confirm:'Confirm', cancel:'Cancel',
+    statsCompletion:'Task completion', statsCompletionHint:'Completed share', statsActivity:'Last 30 days', statsActivityHint:'Tasks and notes created each day',
+    statsPriority:'Priority mix', statsPriorityHint:'Open tasks', statsFolders:'Classification mix', statsFoldersHint:'All items',
+    statsEmpty:'Nothing to report yet', statsEmptyHint:'Once you add notes or tasks, your activity shows up here.'
   }
 };
 
@@ -153,6 +161,7 @@ function normalizeLibrary(candidate) {
 
 let library = normalizeLibrary(loadJSON(STORAGE_KEY, createDefaultLibrary()));
 let settings = loadJSON(SETTINGS_KEY, { language: 'zh', syncFolder: '', lastSyncedAt: '' });
+settings.showCompletedTodos = Boolean(settings.showCompletedTodos);
 let currentView = 'inbox';
 let currentFilter = 'all';
 let todoPriorityFilter = 'all';
@@ -928,6 +937,7 @@ function syncCalendarShell() {
   document.body.classList.toggle('calendar-view', active);
   document.body.classList.toggle('calendar-week-active', active && calendarViewMode === 'week');
   document.body.classList.toggle('inbox-view', currentView === 'inbox');
+  document.body.classList.toggle('stats-view', currentView === 'stats');
   const toolbar = $('#calendarToolbar');
   if (toolbar) {
     toolbar.hidden = !active;
@@ -959,12 +969,13 @@ function translateStaticUI() {
 
 function viewTitle() {
   if (currentView.startsWith('folder:')) return folderName(getFolder(currentView.split(':')[1]));
-  return ({ inbox: t('inbox'), today: t('viewToday'), todos: t('viewTodos'), notes: t('viewNotes'), calendar: t('calendar'), completed: t('completed') })[currentView];
+  return ({ inbox: t('inbox'), today: t('viewToday'), todos: t('viewTodos'), notes: t('viewNotes'), calendar: t('calendar'), stats: t('stats') })[currentView];
 }
 
 function listViewContext() {
   if (currentView === 'calendar') return 'calendar';
-  if (['today', 'todos', 'completed'].includes(currentView)) return 'todo';
+  if (currentView === 'stats') return 'stats';
+  if (['today', 'todos'].includes(currentView)) return 'todo';
   if (currentView === 'notes') return 'note';
   return 'mixed';
 }
@@ -989,7 +1000,7 @@ function resetListFilters(context = 'all') {
 }
 
 function hasActiveListFilters(context = listFilterContext()) {
-  if (context === 'calendar') return false;
+  if (context === 'calendar' || context === 'stats') return false;
   if (context === 'mixed') return currentFilter !== 'all';
   if (context === 'todo') return [todoPriorityFilter, todoDueFilter, todoFolderFilter].some(value => value !== 'all');
   return [noteFolderFilter, noteRelationFilter, noteUpdatedFilter].some(value => value !== 'all');
@@ -1052,6 +1063,14 @@ function syncListFilterUI() {
     select?.setAttribute('title', t(key));
   });
 
+  const completedToggle = $('#todoCompletedToggle');
+  if (completedToggle) {
+    completedToggle.hidden = currentView !== 'todos';
+    completedToggle.classList.toggle('is-active', settings.showCompletedTodos);
+    const box = $('#todoShowCompleted');
+    if (box) box.checked = settings.showCompletedTodos;
+  }
+
   const clearButton = $('#clearListFilters');
   if (clearButton) {
     clearButton.hidden = !hasActiveListFilters(context);
@@ -1065,9 +1084,8 @@ function getVisibleItems() {
   if (currentView === 'calendar') items = items.filter(item => (item.type === 'todo' && todoIsScheduled(item)) || item.type === 'note');
   if (currentView === 'inbox') items = items.filter(item => !isTodoComplete(item));
   if (currentView === 'today') items = items.filter(item => item.type === 'todo' && todoScheduleDate(item) === todayISO() && !isTodoComplete(item));
-  if (currentView === 'todos') items = items.filter(item => item.type === 'todo' && !isTodoComplete(item));
+  if (currentView === 'todos') items = items.filter(item => item.type === 'todo' && (settings.showCompletedTodos || !isTodoComplete(item)));
   if (currentView === 'notes') items = items.filter(item => item.type === 'note');
-  if (currentView === 'completed') items = items.filter(item => isTodoComplete(item));
   if (currentView.startsWith('folder:')) items = items.filter(item => item.folderId === currentView.split(':')[1]);
   const viewContext = listViewContext();
   const filterContext = listFilterContext();
@@ -1109,7 +1127,7 @@ function getVisibleItems() {
       return `${item.title} ${content} ${linkedTitles} ${(item.tags || []).join(' ')}`.toLocaleLowerCase().includes(query);
     });
   }
-  const taskFocused = currentView === 'today' || currentView === 'todos' || currentView === 'completed' || currentView === 'calendar' || currentFilter === 'todo';
+  const taskFocused = currentView === 'today' || currentView === 'todos' || currentView === 'calendar' || currentFilter === 'todo';
   const sortByDueThenPriority = (a, b) => {
     const dueDifference = String(a.dueAt || '9999-12-31').localeCompare(String(b.dueAt || '9999-12-31'));
     if (dueDifference) return dueDifference;
@@ -1161,7 +1179,6 @@ function renderSidebar() {
   $('#todoCount').textContent = library.items.filter(item => item.type === 'todo' && !isTodoComplete(item)).length;
   $('#noteCount').textContent = library.items.filter(item => item.type === 'note').length;
   $('#calendarCount').textContent = calendarTodos().length + calendarNotes().length;
-  $('#completedCount').textContent = library.items.filter(isTodoComplete).length;
 
   $$('#smartNav button').forEach(button => button.classList.toggle('active', button.dataset.view === currentView));
   $('#folderNav').innerHTML = library.folders.map(folder => {
@@ -1181,6 +1198,129 @@ function itemPreview(item) {
   return open[0] || item.notes || (isTodoComplete(item) ? t('done') : t('taskPlaceholder'));
 }
 
+function statsLocalDateKey(offsetDays = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() - offsetDays);
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date - offset).toISOString().slice(0, 10);
+}
+
+function renderStats() {
+  const notes = library.items.filter(item => item.type === 'note');
+  const todos = library.items.filter(item => item.type === 'todo');
+  const completedTodos = todos.filter(isTodoComplete);
+  const openTodos = todos.filter(item => !isTodoComplete(item));
+  if (!library.items.length) {
+    return `<div class="stats-empty"><div><span><svg><use href="#i-chart"/></svg></span><h3>${escapeHTML(t('statsEmpty'))}</h3><p>${escapeHTML(t('statsEmptyHint'))}</p></div></div>`;
+  }
+
+  const completionRate = todos.length ? Math.round(completedTodos.length / todos.length * 100) : 0;
+  const donutRadius = 54;
+  const donutCircumference = 2 * Math.PI * donutRadius;
+  const donutDash = donutCircumference * completionRate / 100;
+
+  const dayBuckets = new Map();
+  library.items.forEach(item => {
+    const stamp = Date.parse(item.createdAt || item.updatedAt || '');
+    if (!Number.isFinite(stamp)) return;
+    const date = new Date(stamp);
+    const key = new Date(stamp - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    if (!dayBuckets.has(key)) dayBuckets.set(key, { todo: 0, note: 0 });
+    dayBuckets.get(key)[item.type === 'todo' ? 'todo' : 'note'] += 1;
+  });
+  const days = Array.from({ length: 30 }, (_, index) => statsLocalDateKey(29 - index));
+  const maxDayTotal = Math.max(1, ...days.map(key => {
+    const bucket = dayBuckets.get(key);
+    return bucket ? bucket.todo + bucket.note : 0;
+  }));
+  const dayBars = days.map(key => {
+    const bucket = dayBuckets.get(key) || { todo: 0, note: 0 };
+    const todoHeight = Math.round(bucket.todo / maxDayTotal * 100);
+    const noteHeight = Math.round(bucket.note / maxDayTotal * 100);
+    return `<span class="stats-bar" title="${escapeHTML(`${key} · ${t('todo')} ${bucket.todo} · ${t('note')} ${bucket.note}`)}">${noteHeight ? `<i class="seg-note" style="height:${noteHeight}%"></i>` : ''}<i class="seg-todo" style="height:${todoHeight}%"></i></span>`;
+  }).join('');
+  const axisLabels = days.map((key, index) => {
+    if (index % 5 !== 0) return '<span></span>';
+    const day = Number(key.slice(8));
+    const label = index === 0 ? `${Number(key.slice(5, 7))}/${day}` : String(day);
+    return `<span>${escapeHTML(label)}</span>`;
+  }).join('');
+
+  const priorityCounts = { high: 0, medium: 0, low: 0 };
+  openTodos.forEach(item => { priorityCounts[item.priority || 'medium'] += 1; });
+  const priorityColors = { high: '#cf5f52', medium: '#c9973f', low: '#58a06c' };
+  const maxPriority = Math.max(1, ...Object.values(priorityCounts));
+  const priorityRows = ['high', 'medium', 'low'].map(key => `
+    <div class="stats-hbar">
+      <span class="stats-hbar-label">${escapeHTML(t(key))}</span>
+      <span class="stats-hbar-track"><i style="width:${Math.round(priorityCounts[key] / maxPriority * 100)}%;background:${priorityColors[key]}"></i></span>
+      <b>${priorityCounts[key]}</b>
+    </div>`).join('');
+
+  const folderRowsData = library.folders.map(folder => ({
+    label: folderName(folder),
+    color: folder.color,
+    count: library.items.filter(item => item.folderId === folder.id).length
+  }));
+  const unclassifiedCount = library.items.filter(item => !item.folderId || !getFolder(item.folderId)).length;
+  if (unclassifiedCount) folderRowsData.push({ label: t('unclassified'), color: '', count: unclassifiedCount });
+  const maxFolderCount = Math.max(1, ...folderRowsData.map(row => row.count));
+  const folderRows = folderRowsData.map(row => `
+    <div class="stats-hbar">
+      <span class="stats-hbar-label" title="${escapeHTML(row.label)}">${escapeHTML(row.label)}</span>
+      <span class="stats-hbar-track"><i style="width:${Math.round(row.count / maxFolderCount * 100)}%;background:${row.count ? escapeHTML(row.color || 'var(--faint)') : 'transparent'}"></i></span>
+      <b>${row.count}</b>
+    </div>`).join('');
+
+  return `<div class="stats-dashboard">
+    <div class="stats-summary">
+      <div class="stats-card is-note"><span class="stats-card-icon"><svg><use href="#i-note"/></svg></span><b data-stat="notes">${notes.length}</b><span>${escapeHTML(t('notes'))}</span></div>
+      <div class="stats-card is-todo"><span class="stats-card-icon"><svg><use href="#i-check"/></svg></span><b data-stat="todos">${todos.length}</b><span>${escapeHTML(t('todos'))}</span></div>
+      <div class="stats-card is-open"><span class="stats-card-icon"><svg><use href="#i-spark"/></svg></span><b data-stat="open">${openTodos.length}</b><span>${escapeHTML(t('statOpen'))}</span></div>
+      <div class="stats-card is-done"><span class="stats-card-icon"><svg><use href="#i-chart"/></svg></span><b data-stat="completed">${completedTodos.length}</b><span>${escapeHTML(t('completed'))}</span></div>
+    </div>
+    <div class="stats-grid">
+      <section class="stats-panel stats-panel-donut">
+        <header><b>${escapeHTML(t('statsCompletion'))}</b><span>${escapeHTML(t('statsCompletionHint'))}</span></header>
+        <div class="stats-donut-row">
+          <div class="stats-donut-wrap">
+            <svg class="stats-donut" viewBox="0 0 140 140" aria-hidden="true">
+              <circle class="stats-donut-track" cx="70" cy="70" r="${donutRadius}"/>
+              <circle class="stats-donut-value" cx="70" cy="70" r="${donutRadius}" stroke-dasharray="${donutDash} ${donutCircumference - donutDash}"/>
+            </svg>
+            <b class="stats-donut-center">${todos.length ? `${completionRate}%` : '—'}</b>
+          </div>
+          <div class="stats-donut-legend">
+            <span><i></i>${escapeHTML(t('completed'))} <b>${completedTodos.length}</b></span>
+            <span><i class="legend-open"></i>${escapeHTML(t('statOpen'))} <b>${openTodos.length}</b></span>
+          </div>
+        </div>
+      </section>
+      <section class="stats-panel">
+        <header><b>${escapeHTML(t('statsActivity'))}</b><span>${escapeHTML(t('statsActivityHint'))}</span></header>
+        <div class="stats-activity">
+          <div class="stats-bars">${dayBars}</div>
+          <div class="stats-bars-axis">${axisLabels}</div>
+          <div class="stats-legend">
+            <span><i class="legend-todo"></i>${escapeHTML(t('todo'))}</span>
+            <span><i class="legend-note"></i>${escapeHTML(t('note'))}</span>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="stats-grid stats-grid-secondary">
+      <section class="stats-panel">
+        <header><b>${escapeHTML(t('statsPriority'))}</b><span>${escapeHTML(t('statsPriorityHint'))}</span></header>
+        <div class="stats-hbars">${priorityRows}</div>
+      </section>
+      <section class="stats-panel">
+        <header><b>${escapeHTML(t('statsFolders'))}</b><span>${escapeHTML(t('statsFoldersHint'))}</span></header>
+        <div class="stats-hbars">${folderRows}</div>
+      </section>
+    </div>
+  </div>`;
+}
+
 function renderList() {
   syncCalendarShell();
   syncListFilterUI();
@@ -1194,6 +1334,15 @@ function renderList() {
     list.innerHTML = renderCalendar();
     playCalendarTransition(list);
     alignMobileWeek(list);
+    return;
+  }
+  if (currentView === 'stats') {
+    const total = library.items.length;
+    $('#viewTitle').textContent = viewTitle();
+    $('#viewEyebrow').textContent = window.actaDataName || t('actaData');
+    $('#itemCountLabel').textContent = `${total} ${t('item')}`;
+    list.className = 'item-list stats-list';
+    list.innerHTML = renderStats();
     return;
   }
   const items = getVisibleItems();
@@ -1964,7 +2113,11 @@ function openItem(id) {
   const target = library.items.find(item => item.id === id);
   if (!target) return;
   selectedId = id;
-  currentView = isTodoComplete(target) ? 'completed' : (target.type === 'todo' ? 'todos' : 'notes');
+  if (isTodoComplete(target) && target.type === 'todo') {
+    settings.showCompletedTodos = true;
+    persist();
+  }
+  currentView = target.type === 'todo' ? 'todos' : 'notes';
   resetListFilters(target.type);
   searchQuery = '';
   mobileEditorOpen = true;
@@ -2108,6 +2261,44 @@ async function exportNoteToFile(item) {
   } catch (error) {
     showToast(`${t('exportFailed')}: ${error?.message || t('invalidNoteFile')}`);
   }
+}
+
+function askClassificationName(defaultName) {
+  return new Promise(resolve => {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'relation-dialog folder-name-dialog';
+    dialog.innerHTML = `
+      <header class="relation-dialog-head"><span><svg><use href="#i-folder"/></svg></span><h3>${escapeHTML(t('folderPrompt'))}</h3><button class="relation-dialog-close" type="button" aria-label="${escapeHTML(t('cancel'))}"><svg><use href="#i-close"/></svg></button></header>
+      <form class="relation-dialog-body folder-name-form" method="dialog" novalidate>
+        <input class="folder-name-input" maxlength="60" autocomplete="off" value="${escapeHTML(defaultName)}"/>
+        <div class="settings-actions">
+          <button type="button" class="settings-button secondary" data-folder-cancel>${escapeHTML(t('cancel'))}</button>
+          <button type="submit" class="settings-button"><svg><use href="#i-plus"/></svg><span>${escapeHTML(t('confirm'))}</span></button>
+        </div>
+      </form>`;
+    const input = dialog.querySelector('.folder-name-input');
+    let settled = false;
+    const finish = value => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+      if (dialog.open) dialog.close();
+      dialog.remove();
+    };
+    dialog.querySelector('[data-folder-cancel]').addEventListener('click', () => finish(null));
+    dialog.querySelector('.relation-dialog-close').addEventListener('click', () => finish(null));
+    dialog.addEventListener('cancel', event => { event.preventDefault(); finish(null); });
+    dialog.addEventListener('close', () => finish(null));
+    dialog.addEventListener('submit', event => {
+      event.preventDefault();
+      const value = input.value.trim();
+      finish(value || null);
+    });
+    document.body.appendChild(dialog);
+    dialog.showModal();
+    input.focus();
+    input.select();
+  });
 }
 
 function bindShell() {
@@ -2264,13 +2455,18 @@ function bindShell() {
     persist();
     refreshFilteredList();
   });
+  $('#todoShowCompleted')?.addEventListener('change', event => {
+    settings.showCompletedTodos = event.target.checked;
+    persist();
+    refreshFilteredList();
+  });
   $('#searchInput').addEventListener('input', event => {
     searchQuery = event.target.value.trim(); renderList();
     const visible = getVisibleItems();
     if (!visible.some(item => item.id === selectedId)) { selectedId = visible[0]?.id || null; renderEditor(); }
   });
-  $('#addFolder').addEventListener('click', () => {
-    const name = prompt(t('folderPrompt'), t('folderDefault'))?.trim();
+  $('#addFolder').addEventListener('click', async () => {
+    const name = await askClassificationName(t('folderDefault'));
     if (!name) return;
     const palette = ['#6f8a72', '#b68b54', '#7a7799', '#a87876', '#668792'];
     const folder = { id: uid(), name, color: palette[library.folders.length % palette.length] };

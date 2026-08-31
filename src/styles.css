@@ -350,7 +350,7 @@ html[data-desktop-platform="darwin"] .brand { padding-left: 84px; }
 html[data-note-toolbar-labels="show"] .note-tool-label { display: inline; }
 html[data-note-toolbar-position="top"] .note-editor .note-toolbar { top: 8px; bottom: auto; margin: 10px 0; }
 .toolbar-divider { width: 1px; height: 18px; flex: 0 0 1px; background: var(--line); margin: 0 4px; }
-.note-body { min-height: 440px; padding: 26px 5px 50px; outline: 0; color: #3c403a; font: calc(15px * var(--acta-font-scale))/1.85 var(--acta-font-display); user-select: text; }
+.note-body { min-height: 440px; padding: 26px 5px 50px; outline: 0; color: #3c403a; font: calc(15px * var(--acta-font-scale))/var(--note-line-height, 1.6) var(--acta-font-display); user-select: text; }
 .note-body:empty::before { content: attr(data-placeholder); color: var(--faint); }
 .note-body h2 { margin: 1.5em 0 .5em; color: var(--ink); font-size: calc(22px * var(--acta-font-scale)); line-height: 1.3; }
 .note-body h3 { margin: 1.3em 0 .4em; color: var(--ink); font-size: calc(17px * var(--acta-font-scale)); }

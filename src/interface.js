@@ -6,7 +6,7 @@
     customTodo: '#4f86a8', customTodoSoft: '#dceef8', customNote: '#987329', customNoteSoft: '#fff0bd', customCalendar: '#4f7656', customCalendarSoft: '#dcebdd',
     appIconPreset: 'default', customAppIcon: '',
     appFont: 'system', customFont: 'Inter', appFontSize: 14,
-    noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteHeadingStyle: 'classic',
+    noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteHeadingStyle: 'classic', noteLineHeight: 1.6,
     noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
     oneDriveFolder: '', oneDriveLabel: '', workspaceLabel: '',
     dataProfiles: [], activeDataProfileId: '', cloudSyncMode: 'onedrive', webDavServer: '', webDavUsername: '', autoSync: false, autoSyncInterval: 5, listPaneWidth: 330, sidebarCollapsed: false, language: ['zh', 'zh-Hant', 'en'].includes(settings.language) ? settings.language : 'zh'
@@ -19,12 +19,15 @@
   let currentAppIconURL = './icons/icon-192.png';
   const migratedTodayView = uiSettings.defaultView === 'today';
   if (migratedTodayView) uiSettings.defaultView = 'calendar';
+  const migratedStatsView = uiSettings.defaultView === 'completed';
+  if (migratedStatsView) uiSettings.defaultView = 'stats';
 
   const byId = id => document.getElementById(id);
   const settingsModal = byId('settingsModal');
   const saveUISettings = () => localStorage.setItem(uiStorageKey, JSON.stringify(uiSettings));
   if (migratedTodayView || migratedAppIconPreset) saveUISettings();
   const saveRendererSettings = () => localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...settings, language: uiSettings.language === 'zh-Hant' ? 'zh' : uiSettings.language }));
+  if (migratedTodayView || migratedStatsView) saveUISettings();
   Object.assign(dictionaries.zh, { syncTitle:'连接本地文件夹', syncCopy:'选择设备本地、局域网或系统已挂载的网络文件夹。Acta 会在其中读写清单、归类、notes 和 todos 完整数据文件夹。', download:'下载完整数据文件夹', upload:'上传完整数据文件夹' });
   Object.assign(dictionaries.en, { syncTitle:'Connect a local folder', syncCopy:'Choose a device folder, LAN location, or mounted network folder. Acta reads and writes the complete manifest, classifications, notes, and todos data folder there.', download:'Download complete data folder', upload:'Upload complete data folder' });
   dictionaries['zh-Hant'] = {
@@ -44,7 +47,11 @@
     inboxFolder:'靈感收集', workFolder:'工作計畫', lifeFolder:'生活清單', readingFolder:'閱讀摘記', linkedItems:'關聯項目', linkTodo:'關聯待辦', linkNote:'關聯筆記',
     chooseTodo:'選擇一個待辦…', chooseNote:'選擇一則筆記…', noLinks:'還沒有關聯項目', unlink:'取消關聯', linked:'已建立雙向關聯', unlinked:'已取消關聯',
     importNote:'匯入筆記', importNoteHint:'支援 Markdown 與純文字', exportNote:'匯出這則筆記', noteImported:'筆記已匯入', noteExported:'筆記已匯出',
-    importFailed:'匯入失敗', exportFailed:'匯出失敗', fileTooLarge:'檔案不能超過 5 MB', invalidNoteFile:'無法讀取這份筆記'
+    importFailed:'匯入失敗', exportFailed:'匯出失敗', fileTooLarge:'檔案不能超過 5 MB', invalidNoteFile:'無法讀取這份筆記',
+    stats:'統計', showCompletedTodos:'顯示已完成', statOpen:'進行中', confirm:'確定', cancel:'取消',
+    statsCompletion:'待辦完成情況', statsCompletionHint:'已完成佔比', statsActivity:'最近 30 天記錄', statsActivityHint:'按天統計新增的待辦與筆記',
+    statsPriority:'優先順序分佈', statsPriorityHint:'進行中待辦', statsFolders:'歸類分佈', statsFoldersHint:'全部項目',
+    statsEmpty:'這裡還沒有內容可以統計', statsEmptyHint:'建立筆記或待辦後，這裡會展示記錄情況。'
   };
   Object.assign(dictionaries.zh, { high:'优先处理', medium:'稍后处理', low:'延缓处理' });
   Object.assign(dictionaries.en, { high:'Do first', medium:'Do later', low:'Delay' });
@@ -128,7 +135,7 @@
     '缓存与页面':'Cache and page',
     '清除应用缓存并重新加载最新页面，不会删除笔记、待办或设置。':'Clear the app cache and reload the latest page. Notes, tasks, and settings are not deleted.',
     '清除缓存重新加载':'Clear cache and reload',
-    '森林晨雾':'Forest mist', '海盐晚霞':'Sea-salt sunset', '糖果气泡':'Candy pop', '深海霓虹':'Neon ocean', '极光夜色':'Aurora night', '多彩浅色':'Colorful light', '深色发光':'Dark glow',
+    '森林晨雾':'Forest mist', '海盐晚霞':'Sea-salt sunset', '糖果气泡':'Candy pop', '深夜霓虹':'Midnight neon', '极光夜色':'Aurora night', '多彩浅色':'Colorful light', '深色发光':'Dark glow', '特殊主题':'Special theme',
     '基础界面':'Base interface', '内容类型':'Content types', '待办主题色':'Task accent', '待办浅色背景':'Task soft background', '笔记主题色':'Note accent', '笔记浅色背景':'Note soft background', '日历主题色':'Calendar accent', '日历浅色背景':'Calendar soft background',
     '应用图标':'App icon', '应用于 Tauri 桌面客户端和 Capacitor 移动客户端；网页标签页图标保持默认。':'Used by the Tauri desktop client and Capacitor mobile client; the browser tab icon stays unchanged.',
     '默认书页':'Default page', '正·书页':'True · Page', '勾勒·书页':'Outline · Page', '初版简洁':'Original minimal', '自定义图标':'Custom icon', '选择自定义图标':'Choose custom icon', '恢复默认图标':'Restore default icon',
@@ -143,13 +150,15 @@
     '经典衬线':'Classic serif', '现代无衬线':'Modern sans serif', '简约强调':'Minimal accent',
     '工具栏位置':'Toolbar position', '固定在笔记编辑器的上方或下方':'Pin the toolbar above or below the note editor',
     '上方':'Top', '下方':'Bottom', '显示工具名称':'Show tool names', '在图标旁显示工具名称，空间不足时自动换行':'Show names beside icons; wrap automatically when space is limited',
-    '标题预览':'Heading preview', '一级标题':'Heading 1', '二级标题':'Heading 2', '三级标题':'Heading 3'
+    '标题预览':'Heading preview', '一级标题':'Heading 1', '二级标题':'Heading 2', '三级标题':'Heading 3',
+    '正文行间距':'Body line spacing', 'Markdown 渲染后的正文与源码行距':'Line spacing for the rendered Markdown body and source',
+    '统计':'Statistics'
   });
   Object.assign(interfaceTranslations['zh-Hant'], {
     '缓存与页面':'快取與頁面',
     '清除应用缓存并重新加载最新页面，不会删除笔记、待办或设置。':'清除應用程式快取並重新載入最新頁面，不會刪除筆記、待辦或設定。',
     '清除缓存重新加载':'清除快取並重新載入',
-    '森林晨雾':'森林晨霧', '海盐晚霞':'海鹽晚霞', '糖果气泡':'糖果氣泡', '深海霓虹':'深海霓虹', '极光夜色':'極光夜色', '多彩浅色':'多彩淺色', '深色发光':'深色發光',
+    '森林晨雾':'森林晨霧', '海盐晚霞':'海鹽晚霞', '糖果气泡':'糖果氣泡', '深夜霓虹':'深夜霓虹', '极光夜色':'極光夜色', '多彩浅色':'多彩淺色', '深色发光':'深色發光', '特殊主题':'特殊主題',
     '基础界面':'基礎介面', '内容类型':'內容類型', '待办主题色':'待辦主題色', '待办浅色背景':'待辦淺色背景', '笔记主题色':'筆記主題色', '笔记浅色背景':'筆記淺色背景', '日历主题色':'日曆主題色', '日历浅色背景':'日曆淺色背景',
     '应用图标':'應用程式圖示', '应用于 Tauri 桌面客户端和 Capacitor 移动客户端；网页标签页图标保持默认。':'套用於 Tauri 桌面用戶端與 Capacitor 行動用戶端；瀏覽器分頁圖示維持預設。',
     '默认书页':'預設書頁', '正·书页':'正·書頁', '勾勒·书页':'勾勒·書頁', '初版简洁':'初版簡潔', '自定义图标':'自訂圖示', '选择自定义图标':'選擇自訂圖示', '恢复默认图标':'恢復預設圖示',
@@ -164,7 +173,9 @@
     '经典衬线':'經典襯線', '现代无衬线':'現代無襯線', '简约强调':'簡約強調',
     '工具栏位置':'工具列位置', '固定在笔记编辑器的上方或下方':'固定在筆記編輯器的上方或下方',
     '上方':'上方', '下方':'下方', '显示工具名称':'顯示工具名稱', '在图标旁显示工具名称，空间不足时自动换行':'在圖示旁顯示工具名稱，空間不足時自動換行',
-    '标题预览':'標題預覽', '一级标题':'一級標題', '二级标题':'二級標題', '三级标题':'三級標題'
+    '标题预览':'標題預覽', '一级标题':'一級標題', '二级标题':'二級標題', '三级标题':'三級標題',
+    '正文行间距':'正文行距', 'Markdown 渲染后的正文与源码行距':'Markdown 轉譯後的正文與原始碼行距',
+    '统计':'統計'
   });
 
   const settingsTextEntries = [];
@@ -1314,18 +1325,20 @@
   function syncMergedTodoNavigation() {
     const switchButton = byId('todoStatusSwitch');
     const todoNavigation = document.querySelector('.smart-nav [data-view="todos"]');
-    const onTodoView = currentView === 'todos' || currentView === 'completed';
+    const onTodoView = currentView === 'todos';
     const mobile = matchMedia('(max-width: 800px)').matches;
     document.body.classList.remove('hide-type-filters');
     document.body.classList.toggle('merged-todo-view', onTodoView);
-    switchButton.hidden = !onTodoView;
-    if (onTodoView) {
-      const nextLabel = currentView === 'completed' ? t('todos') : t('completed');
-      switchButton.querySelector('span').textContent = nextLabel;
-      switchButton.title = nextLabel;
-      switchButton.setAttribute('aria-label', nextLabel);
+    switchButton.hidden = !(onTodoView && mobile);
+    if (!switchButton.hidden) {
+      const showingCompleted = Boolean(settings.showCompletedTodos);
+      switchButton.classList.toggle('active', showingCompleted);
+      switchButton.setAttribute('aria-pressed', String(showingCompleted));
+      const label = t('showCompletedTodos');
+      switchButton.title = label;
+      switchButton.setAttribute('aria-label', label);
     }
-    if (todoNavigation) todoNavigation.classList.toggle('active', currentView === 'todos' || (mobile && currentView === 'completed'));
+    if (todoNavigation) todoNavigation.classList.toggle('active', currentView === 'todos');
 
     document.querySelectorAll('.item-card').forEach(card => {
       if (!card.querySelector('.type-pill.note')) return;
@@ -1341,8 +1354,9 @@
   };
 
   byId('todoStatusSwitch').addEventListener('click', () => {
-    const targetView = currentView === 'completed' ? 'todos' : 'completed';
-    document.querySelector(`.smart-nav [data-view="${targetView}"]`)?.click();
+    settings.showCompletedTodos = !settings.showCompletedTodos;
+    persist();
+    renderList();
   });
   matchMedia('(max-width: 800px)').addEventListener?.('change', syncMergedTodoNavigation);
 
@@ -2868,6 +2882,7 @@
   const noteHeadingH2Size = byId('noteHeadingH2Size');
   const noteHeadingH3Size = byId('noteHeadingH3Size');
   const noteHeadingStyle = byId('noteHeadingStyle');
+  const noteLineHeight = byId('noteLineHeight');
   const noteToolbarPosition = byId('noteToolbarPosition');
   const noteToolbarShowLabels = byId('noteToolbarShowLabels');
   const noteHeadingSizes = {
@@ -2875,6 +2890,7 @@
     noteHeadingH2Size: new Set([20, 22, 24, 26, 28, 32]),
     noteHeadingH3Size: new Set([16, 17, 18, 19, 20, 22, 24])
   };
+  const noteLineHeightValues = new Set([1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2]);
 
   function applyNoteEditorSettings() {
     const root = document.documentElement;
@@ -2883,12 +2899,14 @@
       const value = Number(uiSettings[key]);
       uiSettings[key] = allowed.has(value) ? value : fallback;
     });
+    uiSettings.noteLineHeight = noteLineHeightValues.has(Number(uiSettings.noteLineHeight)) ? Number(uiSettings.noteLineHeight) : defaultUISettings.noteLineHeight;
     if (!['classic', 'modern', 'accent'].includes(uiSettings.noteHeadingStyle)) uiSettings.noteHeadingStyle = defaultUISettings.noteHeadingStyle;
     if (!['top', 'bottom'].includes(uiSettings.noteToolbarPosition)) uiSettings.noteToolbarPosition = defaultUISettings.noteToolbarPosition;
     uiSettings.noteToolbarShowLabels = Boolean(uiSettings.noteToolbarShowLabels);
     root.style.setProperty('--note-heading-h1-size', `${uiSettings.noteHeadingH1Size}px`);
     root.style.setProperty('--note-heading-h2-size', `${uiSettings.noteHeadingH2Size}px`);
     root.style.setProperty('--note-heading-h3-size', `${uiSettings.noteHeadingH3Size}px`);
+    root.style.setProperty('--note-line-height', String(uiSettings.noteLineHeight));
     root.dataset.noteHeadingStyle = uiSettings.noteHeadingStyle;
     root.dataset.noteToolbarPosition = uiSettings.noteToolbarPosition;
     root.dataset.noteToolbarLabels = uiSettings.noteToolbarShowLabels ? 'show' : 'hide';
@@ -2896,6 +2914,7 @@
     noteHeadingH2Size.value = String(uiSettings.noteHeadingH2Size);
     noteHeadingH3Size.value = String(uiSettings.noteHeadingH3Size);
     noteHeadingStyle.value = uiSettings.noteHeadingStyle;
+    noteLineHeight.value = String(uiSettings.noteLineHeight);
     noteToolbarPosition.value = uiSettings.noteToolbarPosition;
     noteToolbarShowLabels.checked = uiSettings.noteToolbarShowLabels;
   }
@@ -2911,6 +2930,11 @@
   }));
   noteHeadingStyle.addEventListener('change', () => {
     uiSettings.noteHeadingStyle = noteHeadingStyle.value;
+    applyNoteEditorSettings();
+    saveUISettings();
+  });
+  noteLineHeight.addEventListener('change', () => {
+    uiSettings.noteLineHeight = Number(noteLineHeight.value);
     applyNoteEditorSettings();
     saveUISettings();
   });
@@ -3615,7 +3639,7 @@
     burst.className = `todo-burst${undo ? ' undo' : ''}`;
     burst.style.left = `${rect.left + rect.width / 2}px`;
     burst.style.top = `${rect.top + rect.height / 2}px`;
-    burst.innerHTML = `${undo ? '<b>↶</b>' : '<svg><use href="#i-check"/></svg>'}<i></i><i></i><i></i><i></i><i></i><i></i>`;
+    burst.innerHTML = `${undo ? '<svg class="undo-icon"><use href="#i-undo"/></svg>' : '<svg><use href="#i-check"/></svg>'}<i></i><i></i><i></i><i></i><i></i><i></i>`;
     document.body.appendChild(burst);
     setTimeout(() => burst.remove(), 780);
   }

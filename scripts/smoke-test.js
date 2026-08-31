@@ -244,8 +244,8 @@ async function main() {
       const calendarMonthVisible = document.body.classList.contains('calendar-view') && !document.querySelector('#calendarToolbar').hidden && Boolean(document.querySelector('.calendar-month-view'));
       const calendarCreatedNoteVisible = Boolean(document.querySelector('[data-calendar-cell="' + todayISO() + '"] [data-calendar-note="welcome-note"]'));
       const calendarCrossDayMonthVisible = crossDayDates.slice(1).every(iso => document.querySelector('[data-calendar-cell="' + iso + '"] [data-calendar-todo="calendar-cross-day"]'));
-      const calendarAccentTheme = getComputedStyle(document.body).getPropertyValue('--calendar-accent').trim().toLowerCase() === '#7a704e'
-        && getComputedStyle(document.querySelector('[data-calendar-mode="month"]')).backgroundColor === 'rgb(122, 112, 78)';
+      const calendarAccentTheme = getComputedStyle(document.body).getPropertyValue('--calendar-accent').trim().toLowerCase() === '#4f7656'
+        && getComputedStyle(document.querySelector('[data-calendar-mode="month"]')).backgroundColor === 'rgb(79, 118, 86)';
       const calendarExpansionMetrics = {
         innerWidth,
         itemWidth:document.querySelector('.item-pane').getBoundingClientRect().width,
@@ -733,8 +733,18 @@ async function main() {
       task.completed = false;
       document.querySelector('[data-view="todos"]').click();
       const completedHiddenFromTodos = !document.querySelector('[data-id="launch-plan"]');
-      document.querySelector('[data-view="completed"]').click();
-      const completedVisible = Boolean(document.querySelector('[data-id="launch-plan"]'));
+      const showCompletedToggleVisible = Boolean(document.querySelector('#todoCompletedToggle')) && !document.querySelector('#todoCompletedToggle').hidden;
+      document.querySelector('#todoShowCompleted').click();
+      const completedShownInTodos = Boolean(document.querySelector('[data-id="launch-plan"]'));
+      document.querySelector('#todoShowCompleted').click();
+      const completedHiddenAgainAfterToggle = !document.querySelector('[data-id="launch-plan"]');
+      document.querySelector('[data-view="stats"]').click();
+      const statsDashboardVisible = Boolean(document.querySelector('.stats-dashboard')) && document.body.classList.contains('stats-view');
+      const statsCountsCorrect = document.querySelector('[data-stat="notes"]')?.textContent === '2'
+        && document.querySelector('[data-stat="todos"]')?.textContent === String(library.items.filter(item => item.type === 'todo').length)
+        && document.querySelector('[data-stat="completed"]')?.textContent === '1';
+      const statsDonutVisible = Boolean(document.querySelector('.stats-donut-value')) && Boolean(document.querySelector('.stats-bars'));
+      document.querySelector('[data-view="todos"]').click();
       const nativeStatusBarCalls = [];
       const nativeSystemBarCalls = [];
       const nativeAppIconCalls = [];
@@ -794,7 +804,7 @@ async function main() {
         && document.documentElement.dataset.actaPalette === 'neon-ocean'
         && document.documentElement.dataset.actaGlow === 'true'
         && getComputedStyle(document.querySelector('#newButton')).boxShadow !== 'none'
-        && getComputedStyle(document.documentElement).getPropertyValue('--calendar-theme-accent').trim() === '#5fd6a2';
+        && getComputedStyle(document.documentElement).getPropertyValue('--calendar-theme-accent').trim() === '#45e0c0';
       const lightTheme = document.querySelector('input[name="actaTheme"][value="mono-light"]');
       lightTheme.checked = true;
       lightTheme.dispatchEvent(new Event('change'));
@@ -909,6 +919,19 @@ async function main() {
       const hasPriorityBadge = Boolean(document.querySelector('.priority-pill.high'));
       const colorFlags = document.querySelectorAll('.language-flag img').length;
       const classificationActionsTogether = document.querySelector('#manageFolders').parentElement === document.querySelector('#addFolder').parentElement;
+      const folderCountBeforeAddDialog = library.folders.length;
+      document.querySelector('#addFolder').click();
+      await waitFor(() => Boolean(document.querySelector('.folder-name-dialog')));
+      const folderNameDialog = document.querySelector('.folder-name-dialog');
+      const addFolderDialogOpens = folderNameDialog.open && Boolean(folderNameDialog.querySelector('.folder-name-input'));
+      folderNameDialog.querySelector('.folder-name-input').value = '冒烟测试归类';
+      folderNameDialog.querySelector('button[type="submit"]').click();
+      await waitFor(() => library.folders.length === folderCountBeforeAddDialog + 1 && !document.querySelector('.folder-name-dialog'));
+      const addFolderDialogCreates = library.folders.length === folderCountBeforeAddDialog + 1
+        && library.folders.at(-1).name === '冒烟测试归类'
+        && currentView === 'folder:' + library.folders.at(-1).id
+        && !document.querySelector('.folder-name-dialog');
+      document.querySelector('[data-view="inbox"]').click();
       document.querySelector('#manageFolders').click();
       await waitFor(() => document.querySelector('#classificationManagerDialog').open && Boolean(document.querySelector('[data-classification-folder].active')));
       const classificationManagerDialog = document.querySelector('#classificationManagerDialog');
@@ -1047,7 +1070,7 @@ async function main() {
       await waitFor(() => innerWidth > 1200 && innerHeight > 700);
       window.__actaSmokeStep = 'classification-item-opened';
       const brandVersion = document.querySelector('.brand-version');
-      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '2.0.0'
+      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '2.1.0'
         && parseFloat(getComputedStyle(brandVersion).opacity) > .9
         && brandVersion.getBoundingClientRect().width > 0;
       const miniLogoBeforeCollapseRect = document.querySelector('.brand-mini-logo').getBoundingClientRect();
@@ -1234,7 +1257,12 @@ async function main() {
         inboxNoteFilterControlsVisible,
         inboxNoteFilterWorks,
         completedHiddenFromTodos,
-        completedVisible,
+        showCompletedToggleVisible,
+        completedShownInTodos,
+        completedHiddenAgainAfterToggle,
+        statsDashboardVisible,
+        statsCountsCorrect,
+        statsDonutVisible,
         darkCreateMenuBackground,
         darkThemeColor,
         detailedThemeColorsWork,
@@ -1393,6 +1421,8 @@ async function main() {
         unsafeBody: unsafe.body,
         colorFlags,
         classificationActionsTogether,
+        addFolderDialogOpens,
+        addFolderDialogCreates,
         classificationWindowAnimation,
         classificationCompactLayoutFits,
         classificationCompactCanScroll,
@@ -1528,7 +1558,12 @@ async function main() {
     assert.equal(result.inboxNoteFilterControlsVisible, true);
     assert.equal(result.inboxNoteFilterWorks, true);
     assert.equal(result.completedHiddenFromTodos, true);
-    assert.equal(result.completedVisible, true);
+    assert.equal(result.showCompletedToggleVisible, true);
+    assert.equal(result.completedShownInTodos, true);
+    assert.equal(result.completedHiddenAgainAfterToggle, true);
+    assert.equal(result.statsDashboardVisible, true);
+    assert.equal(result.statsCountsCorrect, true);
+    assert.equal(result.statsDonutVisible, true);
     assert.match(result.darkCreateMenuBackground, /^rgb\(/);
     assert.equal(result.darkThemeColor, '#111111');
     assert.equal(result.detailedThemeColorsWork, true);
@@ -1673,6 +1708,8 @@ async function main() {
     assert.doesNotMatch(result.unsafeBody, /javascript:|<img/i);
     assert.equal(result.colorFlags, 3);
     assert.equal(result.classificationActionsTogether, true);
+    assert.equal(result.addFolderDialogOpens, true);
+    assert.equal(result.addFolderDialogCreates, true);
     assert.equal(result.classificationWindowAnimation, true);
     assert.equal(result.classificationCompactLayoutFits, true);
     assert.equal(result.classificationCompactCanScroll, true);
