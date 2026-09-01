@@ -2,9 +2,13 @@
   <strong>简体中文</strong> · <a href="./README_EN.md">English</a>
 </p>
 
-# Acta · 行记
+<p align="center">
+  <img src="./acta-logo.svg" alt="Acta 行记" width="340">
+</p>
 
-**当前版本 v2.0.0**
+<p align="center">
+  <strong>当前版本 v2.1.0</strong>
+</p>
 
 Acta 是一个本地优先的笔记与待办应用，把记录、行动和资料整理放在一个安静的工作空间中。项目共用一套 Web 界面，并通过 Tauri 提供 Windows/macOS 桌面版、通过 Capacitor 提供 Android 版，也可以作为 PWA 在现代浏览器中运行。
 
@@ -15,6 +19,7 @@ Acta 是一个本地优先的笔记与待办应用，把记录、行动和资料
 - 笔记与待办双向关联，可从任一编辑器建立、跳转或解除关系
 - 高、中、低三级待办优先级，以及子任务、进度、创建时间、可选开始时间和截止时间
 - 取代“今天”页面的年、月、周、日日历：月视图显示周数并紧凑浏览，桌面与移动周视图独立滚动，周/日可直接完成或撤销待办与子待办
+- 统计页面汇总数量总览、待办完成率、最近 30 天新建趋势以及优先级与归类分布
 - 文件夹、智能视图、待办/笔记组合筛选和统一搜索
 - 富文本编辑与 UTF-8 Markdown 单笔记导入、导出
 - 简体中文、繁体中文和英文界面，以及多种主题和字体设置
@@ -74,7 +79,7 @@ flowchart TB
 | `src/tauri-bridge.js` | 把 Tauri 命令、系统对话框和窗口控制适配为共享桌面 API |
 | `src-tauri/` | Tauri 2 配置、Rust 原生命令、桌面权限与 Windows/macOS 图标 |
 | `android/` | Capacitor Android 工程和 `ActaSyncPlugin` 原生文件桥 |
-| `scripts/` | 无头浏览器冒烟测试和 Android 图标生成脚本 |
+| `scripts/` | 无头浏览器冒烟测试、预览截图和 Android 图标生成脚本 |
 
 ### 平台构建配置
 

@@ -2,9 +2,13 @@
   <a href="./README.md">简体中文</a> · <strong>English</strong>
 </p>
 
-# Acta · 行记
+<p align="center">
+  <img src="./acta-logo.svg" alt="Acta 行记" width="340">
+</p>
 
-**Current version v2.0.0**
+<p align="center">
+  <strong>Current version v2.1.0</strong>
+</p>
 
 Acta is a local-first notes and tasks app that brings writing, action, and organization into one calm workspace. The project shares a single web interface across Tauri desktop apps for Windows/macOS, a Capacitor Android app, and a modern-browser PWA.
 
@@ -15,6 +19,7 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 - Bidirectional links between notes and tasks, with navigation and unlinking from either editor
 - High, medium, and low task priorities, plus subtasks, progress, immutable creation time, and optional start/due times
 - A year/month/week/day calendar replacing Today: week numbers in the compact month view, independently scrollable desktop/mobile week layouts, and direct task/subtask completion in week and day views
+- A statistics page with totals, completion rate, last-30-day trends, and priority/folder distribution
 - Folders, smart views, combinable task/note filters, and unified search
 - Rich-text editing and UTF-8 Markdown import/export for individual notes
 - Simplified Chinese, Traditional Chinese, and English interfaces with theme and font settings
@@ -74,7 +79,7 @@ flowchart TB
 | `src/tauri-bridge.js` | Adapts Tauri commands, system dialogs, and window controls to the shared desktop API |
 | `src-tauri/` | Tauri 2 configuration, Rust commands, desktop permissions, and Windows/macOS icons |
 | `android/` | Capacitor Android project and the native `ActaSyncPlugin` file bridge |
-| `scripts/` | Headless-browser smoke tests and Android icon generation |
+| `scripts/` | Headless-browser smoke tests, preview screenshots, and Android icon generation |
 
 ### Platform build configuration
 
