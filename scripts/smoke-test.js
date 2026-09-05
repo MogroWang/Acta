@@ -826,9 +826,9 @@ async function main() {
         && !document.querySelector('#confirmDestroyAll').hidden
         && document.querySelector('#deleteChoiceTrash').closest('.delete-confirm-choices').hidden;
       document.querySelector('#confirmDestroyAll').click();
-      const trashEmptiedWorks = await waitFor(() => !library.items.some(item => item.id === 'smoke-trash-a' || item.id === 'smoke-trash-b'))
+      const trashEmptiedWorks = await waitFor(() => !library.items.some(item => item.id === 'smoke-trash-a' || item.id === 'smoke-trash-b')
         && document.querySelector('#trashCount')?.textContent === '0'
-        && !document.querySelector('#deleteConfirmDialog').open;
+        && !document.querySelector('#deleteConfirmDialog').open);
       document.querySelector('[data-view="todos"]').click();
       const nativeStatusBarCalls = [];
       const nativeSystemBarCalls = [];

@@ -1286,10 +1286,42 @@ function statsItemRow(item, index) {
   </div>`;
 }
 
+function renderStatsToolbar(selectedCount) {
+  return `<section class="stats-toolbar">
+    <label class="filter-select stats-range-field">
+      <svg><use href="#i-clock"/></svg>
+      <select id="statsRange" aria-label="${escapeHTML(t('statsListTitle'))}">
+        <option value="all">${escapeHTML(t('statsRangeAll'))}</option>
+        <option value="today">${escapeHTML(t('statsRangeToday'))}</option>
+        <option value="7">${escapeHTML(t('statsRange7'))}</option>
+        <option value="30">${escapeHTML(t('statsRange30'))}</option>
+        <option value="90">${escapeHTML(t('statsRange90'))}</option>
+        <option value="custom">${escapeHTML(t('statsRangeCustom'))}</option>
+      </select>
+    </label>
+    <div class="stats-custom-range" id="statsCustomRange" ${settings.statsRange === 'custom' ? '' : 'hidden'}>
+      <input type="date" id="statsRangeStart" value="${escapeHTML(settings.statsRangeStart || '')}" aria-label="${escapeHTML(t('statsCustomStart'))}"/>
+      <i aria-hidden="true">—</i>
+      <input type="date" id="statsRangeEnd" value="${escapeHTML(settings.statsRangeEnd || '')}" aria-label="${escapeHTML(t('statsCustomEnd'))}"/>
+    </div>
+    <div class="stats-toolbar-actions">
+      <span class="stats-selection-count" id="statsSelectionCount">${escapeHTML(t('statsSelectedCount').replace('{0}', selectedCount))}</span>
+      <button type="button" class="stats-tool-button" id="statsSelectAll">${escapeHTML(t('statsSelectAll'))}</button>
+      <button type="button" class="stats-tool-button" id="statsClearSelection">${escapeHTML(t('statsClearSelection'))}</button>
+      <button type="button" class="stats-tool-button is-primary" id="statsMakeImage"><svg><use href="#i-image"/></svg>${escapeHTML(t('statsMakeImage'))}</button>
+    </div>
+  </section>`;
+}
+
 function renderStats() {
   const items = statsCollectionItems();
+  const selectedCount = items.filter(item => statsSelection.has(item.id)).length;
   if (!items.length) {
-    return `<div class="stats-empty"><div><span><svg><use href="#i-chart"/></svg></span><h3>${escapeHTML(t('statsListTitle'))}</h3><p>${escapeHTML(t('statsEmptyRange'))}</p></div></div>`;
+    // Keep the toolbar rendered so the period picker stays reachable on empty ranges.
+    return `<div class="stats-collection-wrap">
+      ${renderStatsToolbar(selectedCount)}
+      <div class="stats-empty"><div><span><svg><use href="#i-chart"/></svg></span><h3>${escapeHTML(t('statsListTitle'))}</h3><p>${escapeHTML(t('statsEmptyRange'))}</p></div></div>
+    </div>`;
   }
   const groups = new Map();
   items.forEach(item => {
@@ -1303,32 +1335,8 @@ function renderStats() {
       <header class="stats-day-head"><b>${escapeHTML(statsGroupLabel(key))}</b><span>${escapeHTML(key)} · ${groupItems.length} ${t('item')}</span></header>
       ${groupItems.map(item => statsItemRow(item, rowIndex++)).join('')}
     </section>`).join('');
-  const selectedCount = items.filter(item => statsSelection.has(item.id)).length;
   return `<div class="stats-collection-wrap">
-    <section class="stats-toolbar">
-      <label class="filter-select stats-range-field">
-        <svg><use href="#i-clock"/></svg>
-        <select id="statsRange" aria-label="${escapeHTML(t('statsListTitle'))}">
-          <option value="all">${escapeHTML(t('statsRangeAll'))}</option>
-          <option value="today">${escapeHTML(t('statsRangeToday'))}</option>
-          <option value="7">${escapeHTML(t('statsRange7'))}</option>
-          <option value="30">${escapeHTML(t('statsRange30'))}</option>
-          <option value="90">${escapeHTML(t('statsRange90'))}</option>
-          <option value="custom">${escapeHTML(t('statsRangeCustom'))}</option>
-        </select>
-      </label>
-      <div class="stats-custom-range" id="statsCustomRange" ${settings.statsRange === 'custom' ? '' : 'hidden'}>
-        <input type="date" id="statsRangeStart" value="${escapeHTML(settings.statsRangeStart || '')}" aria-label="${escapeHTML(t('statsCustomStart'))}"/>
-        <i aria-hidden="true">—</i>
-        <input type="date" id="statsRangeEnd" value="${escapeHTML(settings.statsRangeEnd || '')}" aria-label="${escapeHTML(t('statsCustomEnd'))}"/>
-      </div>
-      <div class="stats-toolbar-actions">
-        <span class="stats-selection-count" id="statsSelectionCount">${escapeHTML(t('statsSelectedCount').replace('{0}', selectedCount))}</span>
-        <button type="button" class="stats-tool-button" id="statsSelectAll">${escapeHTML(t('statsSelectAll'))}</button>
-        <button type="button" class="stats-tool-button" id="statsClearSelection">${escapeHTML(t('statsClearSelection'))}</button>
-        <button type="button" class="stats-tool-button is-primary" id="statsMakeImage"><svg><use href="#i-image"/></svg>${escapeHTML(t('statsMakeImage'))}</button>
-      </div>
-    </section>
+    ${renderStatsToolbar(selectedCount)}
     <div class="stats-collection">${groupsMarkup}</div>
     <p class="stats-collection-hint">${escapeHTML(t('statsListHint'))}</p>
   </div>`;
@@ -1619,7 +1627,7 @@ function bindTrashList() {
   $('#emptyTrashButton')?.addEventListener('click', async () => {
     const items = trashedItems();
     if (!items.length) return;
-    if (!await askDestroyConfirm(t('emptyTrashConfirmMessage').replace('{0}', items.length))) return;
+    if (!await askDestroyConfirm({ itemLabel: t('emptyTrash'), message: t('emptyTrashConfirmMessage').replace('{0}', items.length) })) return;
     destroyItems(items.map(item => item.id));
     showToast(t('trashEmptied'));
   });
@@ -1635,7 +1643,7 @@ function bindTrashList() {
     const item = library.items.find(entry => entry.id === button.dataset.trashDestroy);
     if (!item) return;
     const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
-    if (!await askDestroyConfirm(t('deleteSubtitle').replace('{0}', title))) return;
+    if (!await askDestroyConfirm({ itemLabel: `${t(item.type)} · ${title}`, message: t('deleteDestroyHint') })) return;
     destroyItems([item.id]);
     showToast(t('destroyed'));
   }));
@@ -1650,11 +1658,15 @@ function destroyItems(ids) {
   renderAll();
 }
 
-const deleteConfirmState = { dialog: null, resolve: null, mode: '' };
+const deleteConfirmState = { dialog: null, resolve: null, mode: '', closeTimer: 0 };
 
 function deleteConfirmDialogEl() {
   if (!deleteConfirmState.dialog) deleteConfirmState.dialog = $('#deleteConfirmDialog');
   return deleteConfirmState.dialog;
+}
+
+function reduceWindowMotion() {
+  return document.body.classList.contains('acta-reduce-motion') || matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 function finishDeleteConfirm(result) {
@@ -1662,20 +1674,31 @@ function finishDeleteConfirm(result) {
   if (!dialog?.open) return;
   const resolve = deleteConfirmState.resolve;
   deleteConfirmState.resolve = null;
-  dialog.close();
-  resolve?.(result);
+  const closeNow = () => {
+    clearTimeout(deleteConfirmState.closeTimer);
+    deleteConfirmState.closeTimer = 0;
+    if (dialog.open) dialog.close();
+    dialog.classList.remove('is-closing');
+    resolve?.(result);
+  };
+  if (reduceWindowMotion()) { closeNow(); return; }
+  dialog.classList.add('is-closing');
+  deleteConfirmState.closeTimer = setTimeout(closeNow, 250);
 }
 
 function openDeleteConfirm({ itemLabel, message, mode }) {
   const dialog = deleteConfirmDialogEl();
   if (!dialog) return null;
+  clearTimeout(deleteConfirmState.closeTimer);
+  deleteConfirmState.closeTimer = 0;
   if (deleteConfirmState.resolve) finishDeleteConfirm(null);
   deleteConfirmState.mode = mode;
   $('#deleteConfirmItem').textContent = itemLabel || '';
   $('#deleteConfirmMessage').textContent = message || '';
   $('.delete-confirm-choices', dialog).hidden = mode !== 'item';
   $('#confirmDestroyAll').hidden = mode === 'item';
-  dialog.showModal();
+  dialog.classList.remove('is-closing');
+  if (!dialog.open) dialog.showModal();
   return new Promise(resolve => { deleteConfirmState.resolve = resolve; });
 }
 
@@ -1693,8 +1716,8 @@ function askItemDelete(item) {
   });
 }
 
-function askDestroyConfirm(message) {
-  return openDeleteConfirm({ itemLabel: t('deleteTitle'), message, mode: 'destroy' }).then(result => result === 'destroy');
+function askDestroyConfirm({ itemLabel, message }) {
+  return openDeleteConfirm({ itemLabel, message, mode: 'destroy' }).then(result => result === 'destroy');
 }
 
 function bindDeleteConfirmDialog() {
@@ -1704,6 +1727,7 @@ function bindDeleteConfirmDialog() {
   $('#deleteChoiceDestroy')?.addEventListener('click', () => finishDeleteConfirm('destroy'));
   $('#confirmDestroyAll')?.addEventListener('click', () => finishDeleteConfirm('destroy'));
   $('#cancelDeleteConfirm')?.addEventListener('click', () => finishDeleteConfirm(null));
+  $('#closeDeleteConfirm')?.addEventListener('click', () => finishDeleteConfirm(null));
   dialog.addEventListener('cancel', event => {
     event.preventDefault();
     finishDeleteConfirm(null);
