@@ -1155,7 +1155,7 @@ async function main() {
       await waitFor(() => innerWidth > 1200 && innerHeight > 700);
       window.__actaSmokeStep = 'classification-item-opened';
       const brandVersion = document.querySelector('.brand-version');
-      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '2.2.0'
+      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '2.2.2'
         && parseFloat(getComputedStyle(brandVersion).opacity) > .9
         && brandVersion.getBoundingClientRect().width > 0;
       const miniLogoBeforeCollapseRect = document.querySelector('.brand-mini-logo').getBoundingClientRect();

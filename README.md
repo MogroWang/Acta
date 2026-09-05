@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <strong>当前版本 v2.2.0</strong>
+  <strong>当前版本 v2.2.2</strong>
 </p>
 
 Acta 是一个本地优先的笔记与待办应用，把记录、行动和资料整理放在一个安静的工作空间中。项目共用一套 Web 界面，并通过 Tauri 提供 Windows/macOS 桌面版、通过 Capacitor 提供 Android 版，也可以作为 PWA 在现代浏览器中运行。

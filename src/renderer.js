@@ -130,9 +130,20 @@ function loadJSON(key, fallback) {
   catch { return fallback; }
 }
 
+// Note bodies are user-authored HTML that round-trips through sync/import, so any
+// HTML entering the library gets sanitized once at this single choke point.
+const sanitizeNoteHTML = value => (
+  typeof value === 'string' && value && window.DOMPurify?.sanitize ? window.DOMPurify.sanitize(value) : value
+);
+
+const folderColor = value => (typeof value === 'string' && /^#[0-9a-f]{3,8}$/i.test(value) ? value : '#999');
+
 function normalizeLibrary(candidate) {
   if (!candidate || !Array.isArray(candidate.items) || !Array.isArray(candidate.folders)) return createDefaultLibrary();
   const normalized = { ...candidate, version: Math.max(Number(candidate.version) || 1, 1) };
+  normalized.folders = candidate.folders.map(folder => (
+    folder && typeof folder === 'object' ? { ...folder, color: folderColor(folder.color) } : folder
+  ));
   const ids = new Set(candidate.items.map(item => item?.id).filter(Boolean));
   const normalizedAt = new Date().toISOString();
   normalized.items = candidate.items
@@ -147,7 +158,7 @@ function normalizeLibrary(candidate) {
         tags: Array.isArray(item.tags) ? item.tags.filter(tag => typeof tag === 'string') : [],
         linkedIds: Array.isArray(item.linkedIds) ? [...new Set(item.linkedIds.filter(id => typeof id === 'string' && id !== item.id && ids.has(id)))] : []
       };
-      if (item.type === 'note') return { ...common, body:typeof item.body === 'string' ? item.body : '<p><br></p>' };
+      if (item.type === 'note') return { ...common, body:typeof item.body === 'string' ? sanitizeNoteHTML(item.body) : '<p><br></p>' };
 
       const hasStartAt = Object.prototype.hasOwnProperty.call(item, 'startAt');
       const hasDueAt = Object.prototype.hasOwnProperty.call(item, 'dueAt');
@@ -1229,6 +1240,20 @@ function itemPreview(item) {
 const statsRangePresets = ['all', 'today', '7', '30', '90', 'custom'];
 const statsSelection = new Set();
 
+// createdAt is a UTC ISO string; slicing it would put items created before the UTC
+// offset (e.g. UTC+8 mornings) on the previous day. Stats group by local calendar day.
+const statsDateKey = item => {
+  const raw = validDate(item.createdAt);
+  return raw ? calendarDateISO(new Date(raw)) : '';
+};
+
+// Drop ids that no longer belong to the current period/library so the toolbar count,
+// the checkboxes and the exported picture always describe the same selection.
+const pruneStatsSelection = () => {
+  const collected = new Set(statsCollectionItems().map(item => item.id));
+  [...statsSelection].forEach(id => { if (!collected.has(id)) statsSelection.delete(id); });
+};
+
 function statsRangeWindow() {
   const range = statsRangePresets.includes(settings.statsRange) ? settings.statsRange : 'all';
   const today = todayISO();
@@ -1254,7 +1279,7 @@ function statsRangeLabel() {
 function statsCollectionItems() {
   const [start, end] = statsRangeWindow();
   return activeItems().filter(item => {
-    const key = String(validDate(item.createdAt) || item.createdAt || '').slice(0, 10);
+    const key = statsDateKey(item);
     if (!key) return false;
     if (start && key < start) return false;
     if (end && key > end) return false;
@@ -1281,7 +1306,7 @@ function statsItemRow(item, index) {
     <button type="button" class="stats-item-open" data-stats-open="${escapeHTML(item.id)}">
       <span class="stats-item-topline"><span class="type-pill ${item.type}"><svg><use href="#i-${item.type === 'todo' ? 'check' : 'note'}"/></svg>${t(item.type)}${item.type === 'todo' ? ` · ${done ? t('done') : t('statOpen')}` : ''}</span><time datetime="${escapeHTML(item.createdAt)}">${escapeHTML(formatListDateTime(item.createdAt))}</time></span>
       <b>${escapeHTML(title)}</b>
-      <small><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span>${escapeHTML(itemPreview(item)).slice(0, 80)}</small>
+      <small><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span>${escapeHTML(itemPreview(item).slice(0, 80))}</small>
     </button>
   </div>`;
 }
@@ -1325,7 +1350,8 @@ function renderStats() {
   }
   const groups = new Map();
   items.forEach(item => {
-    const key = String(item.createdAt).slice(0, 10);
+    const key = statsDateKey(item);
+    if (!key) return;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(item);
   });
@@ -1344,7 +1370,9 @@ function renderStats() {
 
 function syncStatsSelectionCount() {
   const counter = $('#statsSelectionCount');
-  if (counter) counter.textContent = t('statsSelectedCount').replace('{0}', statsSelection.size);
+  if (!counter) return;
+  const selectedCount = statsCollectionItems().filter(item => statsSelection.has(item.id)).length;
+  counter.textContent = t('statsSelectedCount').replace('{0}', selectedCount);
 }
 
 function bindStatsView() {
@@ -1353,12 +1381,14 @@ function bindStatsView() {
   range.value = statsRangePresets.includes(settings.statsRange) ? settings.statsRange : 'all';
   range.addEventListener('change', () => {
     settings.statsRange = statsRangePresets.includes(range.value) ? range.value : 'all';
+    pruneStatsSelection();
     persist();
     renderList();
   });
   [['statsRangeStart', 'statsRangeStart'], ['statsRangeEnd', 'statsRangeEnd']].forEach(([id, key]) => {
     $(`#${id}`)?.addEventListener('change', event => {
       settings[key] = event.target.value;
+      pruneStatsSelection();
       persist();
       renderList();
     });
@@ -1434,7 +1464,8 @@ function renderStatsCanvas(items) {
 
   const groups = new Map();
   items.forEach(item => {
-    const key = String(item.createdAt).slice(0, 10);
+    const key = statsDateKey(item);
+    if (!key) return;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(item);
   });
@@ -1635,6 +1666,7 @@ function bindTrashList() {
     const item = library.items.find(entry => entry.id === button.dataset.trashRestore);
     if (!item) return;
     delete item.deletedAt;
+    relinkFromTrash(item);
     touchItem(item);
     renderAll();
     showToast(t('restored'));
@@ -1653,9 +1685,43 @@ function destroyItems(ids) {
   const idSet = new Set(ids);
   library.items.forEach(entry => { entry.linkedIds = (entry.linkedIds || []).filter(id => !idSet.has(id)); });
   library.items = library.items.filter(entry => !idSet.has(entry.id));
+  idSet.forEach(id => statsSelection.delete(id));
   if (selectedId && idSet.has(selectedId)) selectedId = activeItems()[0]?.id || null;
   persist();
   renderAll();
+}
+
+// Moving an item to the trash keeps its two-way links recoverable: both sides stash
+// the removed link in _trashedLinkedIds so a restore can rebuild the pair. Items
+// destroyed from the trash drop out of the library, and relinkFromTrash skips ids
+// that no longer resolve, so stale stashes are cleaned up lazily.
+function unlinkForTrash(item) {
+  const linked = (item.linkedIds || []).filter(id => id && id !== item.id);
+  item._trashedLinkedIds = Array.from(new Set([...(item._trashedLinkedIds || []), ...linked]));
+  item.linkedIds = [];
+  linked.forEach(id => {
+    const other = library.items.find(entry => entry.id === id);
+    if (!other) return;
+    other._trashedLinkedIds = Array.from(new Set([...(other._trashedLinkedIds || other.linkedIds || []), item.id]));
+    other.linkedIds = (other.linkedIds || []).filter(entryId => entryId !== item.id);
+  });
+}
+
+function relinkFromTrash(item) {
+  const linked = Array.isArray(item._trashedLinkedIds) ? item._trashedLinkedIds.filter(id => id && id !== item.id) : [];
+  delete item._trashedLinkedIds;
+  const restored = [];
+  linked.forEach(id => {
+    const other = library.items.find(entry => entry.id === id);
+    if (!other || other.deletedAt) return;
+    restored.push(id);
+    other.linkedIds = Array.from(new Set([...(other.linkedIds || []), item.id]));
+    if (Array.isArray(other._trashedLinkedIds)) {
+      other._trashedLinkedIds = other._trashedLinkedIds.filter(entryId => entryId !== item.id);
+      if (!other._trashedLinkedIds.length) delete other._trashedLinkedIds;
+    }
+  });
+  item.linkedIds = Array.from(new Set([...(item.linkedIds || []), ...restored]));
 }
 
 const deleteConfirmState = { dialog: null, resolve: null, mode: '', closeTimer: 0 };
@@ -1686,15 +1752,34 @@ function finishDeleteConfirm(result) {
   deleteConfirmState.closeTimer = setTimeout(closeNow, 250);
 }
 
+// Settle a still-pending confirm synchronously: openDeleteConfirm can be re-entered
+// while the previous dialog is animating out, and the animation timer would otherwise
+// close the new dialog or strand the old promise forever.
+function settleDeleteConfirm(result) {
+  const dialog = deleteConfirmDialogEl();
+  const resolve = deleteConfirmState.resolve;
+  deleteConfirmState.resolve = null;
+  clearTimeout(deleteConfirmState.closeTimer);
+  deleteConfirmState.closeTimer = 0;
+  if (dialog?.open) dialog.close();
+  dialog?.classList.remove('is-closing');
+  resolve?.(result);
+}
+
 function openDeleteConfirm({ itemLabel, message, mode }) {
   const dialog = deleteConfirmDialogEl();
   if (!dialog) return null;
-  clearTimeout(deleteConfirmState.closeTimer);
-  deleteConfirmState.closeTimer = 0;
-  if (deleteConfirmState.resolve) finishDeleteConfirm(null);
+  if (deleteConfirmState.resolve || deleteConfirmState.closeTimer) settleDeleteConfirm(null);
   deleteConfirmState.mode = mode;
-  $('#deleteConfirmItem').textContent = itemLabel || '';
-  $('#deleteConfirmMessage').textContent = message || '';
+  $('#deleteConfirmTitle').textContent = t('deleteTitle');
+  $('#deleteConfirmItem').textContent = t('deleteSubtitle').replace('{0}', itemLabel || '');
+  $('#deleteConfirmMessage').textContent = message || t('deleteConfirm');
+  $('#deleteChoiceTrashLabel').textContent = t('deleteTrashLabel');
+  $('#deleteChoiceTrashHint').textContent = t('deleteTrashHint');
+  $('#deleteChoiceDestroyLabel').textContent = t('deleteDestroyLabel');
+  $('#deleteChoiceDestroyHint').textContent = t('deleteDestroyHint');
+  $('#confirmDestroyAllLabel').textContent = t('destroy');
+  $('#cancelDeleteConfirm').textContent = t('cancel');
   $('.delete-confirm-choices', dialog).hidden = mode !== 'item';
   $('#confirmDestroyAll').hidden = mode === 'item';
   dialog.classList.remove('is-closing');
@@ -1796,9 +1881,9 @@ function renderList() {
       <div class="card-top"><span class="type-pill ${item.type}"><svg><use href="#i-${item.type === 'todo' ? 'check' : 'note'}"/></svg>${t(item.type)}</span>${item.type === 'todo' ? `<span class="priority-pill ${item.priority || 'medium'}">${t(item.priority || 'medium')}</span>` : ''}${dateMarkup}</div>
       <h3>${escapeHTML(item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote')))}</h3>
       <p>${escapeHTML(itemPreview(item))}</p>
-      <div class="card-bottom"><span class="mini-folder"><i class="folder-dot" style="background:${folder?.color || '#999'}"></i>${escapeHTML(folderName(folder))}</span>
+      <div class="card-bottom"><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span>
       ${linkedCount ? `<span class="link-count"><svg><use href="#i-link"/></svg>${linkedCount}</span>` : ''}
-      ${item.type === 'todo' ? `<span>${completed}/${total}</span><span class="mini-progress"><i style="width:${progress}%"></i></span>` : `<span><svg><use href="#i-tag"/></svg> ${(item.tags || []).length}</span>`}</div>
+      ${item.type === 'todo' ? `<span>${completed}/${total}</span><span class="mini-progress"><i style="width:${progress}%"></i></span>` : ''}</div>
     </button>`;
   }).join('');
 }
@@ -1812,7 +1897,7 @@ function editorTop(item) {
     <div class="editor-actions">
       ${item.type === 'todo' ? `<button id="completeItem" title="${isTodoComplete(item) ? t('reopenTask') : t('completeTask')}"><svg><use href="#i-check"/></svg></button>` : ''}
       ${item.type === 'note' ? `<button id="exportNote" title="${t('exportNote')}"><svg><use href="#i-upload"/></svg></button>` : ''}
-      <button id="deleteItem" title="${t('deleted')}"><svg><use href="#i-trash"/></svg></button>
+      <button id="deleteItem" title="${t('moveToTrash')}"><svg><use href="#i-trash"/></svg></button>
       <button title="${t('archive')}"><svg><use href="#i-more"/></svg></button>
     </div>
   </div>`;
@@ -1963,11 +2048,7 @@ function bindEditor(item) {
     if (!choice) return;
     if (choice === 'trash') {
       item.deletedAt = new Date().toISOString();
-      library.items.forEach(entry => {
-        if (entry.id === item.id) return;
-        entry.linkedIds = (entry.linkedIds || []).filter(id => id !== item.id);
-      });
-      item.linkedIds = [];
+      unlinkForTrash(item);
       const nextSelection = getVisibleItems().find(entry => entry.id !== item.id) || activeItems()[0];
       selectedId = nextSelection?.id || null;
       persist();
@@ -1992,13 +2073,6 @@ function bindEditor(item) {
     renderSidebar();
     renderList();
   });
-  $('#classificationTags')?.addEventListener('change', event => {
-    item.tags = event.target.value.split(',').map(tag => tag.trim()).filter(Boolean);
-    touchItem(item);
-    syncEditorModifiedTime(item);
-    updateCard(item);
-  });
-
   if (item.type === 'note') bindNoteEditor(item);
   else bindTodoEditor(item);
   bindLinkedItems(item);
@@ -2921,9 +2995,17 @@ function bindShell() {
   document.addEventListener('keydown', event => {
     if (isImeComposing(event)) return;
     const mod = event.metaKey || event.ctrlKey;
-    if (mod && event.key.toLowerCase() === 'n') { event.preventDefault(); createItem('note'); }
-    if (mod && event.key.toLowerCase() === 'k') { event.preventDefault(); $('#searchInput').focus(); }
-    if (event.key === 'Escape') $('#createMenu').classList.remove('open');
+    if (!mod) {
+      if (event.key === 'Escape') $('#createMenu').classList.remove('open');
+      return;
+    }
+    // Keep the global shortcuts from hijacking keys inside the editor, quick capture
+    // and settings inputs; ignore auto-repeat so holding the combo creates one item.
+    if (event.repeat) return;
+    if (event.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return;
+    if (document.querySelector('dialog[open]')) return;
+    if (event.key.toLowerCase() === 'n') { event.preventDefault(); createItem('note'); }
+    if (event.key.toLowerCase() === 'k') { event.preventDefault(); $('#searchInput').focus(); }
   });
 }
 

@@ -1419,11 +1419,7 @@
         if (!choice) return;
         if (choice === 'trash') {
           item.deletedAt = new Date().toISOString();
-          library.items.forEach(entry => {
-            if (entry.id === item.id) return;
-            entry.linkedIds = (entry.linkedIds || []).filter(id => id !== item.id);
-          });
-          item.linkedIds = [];
+          unlinkForTrash(item);
           const nextSelection = getVisibleItems().find(entry => entry.id !== item.id) || activeItems()[0];
           selectedId = nextSelection?.id || null;
           persist();
@@ -2036,6 +2032,7 @@
 
   function replaceLibrary(nextLibrary) {
     library = clearLegacyTags(normalizeLibrary(nextLibrary));
+    statsSelection.clear();
     selectedId = activeItems()[0]?.id || null;
     currentView = 'inbox';
     resetListFilters();
@@ -2250,6 +2247,20 @@
       }
     }, 320);
   };
+
+  // The debounced save plus the async write queue can outlive a closed window or a
+  // backgrounded tab, so flush pending edits on pagehide. Local profiles finish
+  // synchronously inside the call; folder profiles fire the write and let it land.
+  const flushPendingSaves = () => {
+    clearTimeout(saveTimer);
+    clearTimeout(autoSyncSaveTimer);
+    autoSyncSaveTimer = null;
+    flushCurrentDataProfile().catch(() => {});
+  };
+  window.addEventListener('pagehide', flushPendingSaves);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushPendingSaves();
+  });
 
   function missingLibraryFile(error) {
     return error?.name === 'NotFoundError' || /ENOENT|not found|没有 (acta-library|acta-manifest)|不存在|Profile data not found/i.test(error?.message || '');
@@ -2552,9 +2563,16 @@
     el.classList.remove('ok', 'error');
     if (aboutUpdateState === 'error') el.classList.add('error');
     else if (aboutUpdateState === 'available' || aboutUpdateState === 'latest') el.classList.add('ok');
-    const linkHtml = (url, key) => `<a href="${url}" target="_blank" rel="noopener">${updateText(key)}</a>`;
+    // The url/remote values come from the GitHub API; whitelist the host and escape
+    // before they reach an href or the innerHTML template.
+    const safeReleaseHref = value => (
+      typeof value === 'string' && /^https:\/\/(github\.com|api\.github\.com)\//i.test(value)
+        ? escapeHTML(value)
+        : escapeHTML(ACTA_RELEASES_URL)
+    );
+    const linkHtml = (url, key) => `<a href="${safeReleaseHref(url)}" target="_blank" rel="noopener">${updateText(key)}</a>`;
     if (aboutUpdateState === 'available') {
-      const remote = extractActaVersion(aboutUpdateVars.remote) || aboutUpdateVars.remote || '';
+      const remote = escapeHTML(extractActaVersion(aboutUpdateVars.remote) || aboutUpdateVars.remote || '');
       el.innerHTML = updateText('available', { remote, link: linkHtml(aboutUpdateVars.url || ACTA_RELEASES_URL, 'downloadLink') });
     } else if (aboutUpdateState === 'noRelease') {
       el.innerHTML = updateText('noRelease', { link: linkHtml(ACTA_RELEASES_URL, 'releasesLink') });
@@ -2671,10 +2689,11 @@
     });
     saveState.textContent = source === 'sync' ? copy.syncLoading : copy.localLoading;
     saveState.classList.add('saving');
-    clearTimeout(saveTimer);
     clearTimeout(autoSyncSaveTimer);
     autoSyncSaveTimer = null;
     try {
+      // Load the remote snapshot only after pending edits have been written.
+      await flushCurrentDataProfile().catch(() => {});
       await workspaceWriteQueue.catch(() => {});
       let snapshot;
       if (syncAdapter) {
@@ -3766,7 +3785,7 @@
     const calendarItem = target.dataset.calendarToggle ? library.items.find(item => item.id === target.dataset.calendarToggle) : null;
     const calendarSubtaskItem = target.dataset.calendarSubtaskToggle ? library.items.find(item => item.id === target.dataset.calendarSubtaskToggle) : null;
     const calendarSubtask = calendarSubtaskItem?.tasks?.find(task => task.id === target.dataset.calendarSubtaskId);
-    const undo = row ? row.classList.contains('done') : calendarSubtask ? Boolean(calendarSubtask.done) : calendarItem ? isTodoComplete(calendarItem) : isTodoComplete(getItem(selectedId));
+    const undo = row ? row.classList.contains('done') : calendarSubtask ? Boolean(calendarSubtask.done) : calendarItem ? isTodoComplete(calendarItem) : isTodoComplete(getItem());
     showTodoBurst(target, undo);
     document.body.classList.add('acta-steady');
     document.body.classList.add('suppress-task-refresh');

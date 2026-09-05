@@ -1,3 +1,14 @@
+/* Boot splash: full-screen paper layer with the centered Acta wordmark. It is
+   pointer-events:none so it can never block interaction, and a delayed CSS
+   keyframe hides it even if splash.js never runs (see splash.js failsafes). */
+.splash-screen { position: fixed; inset: 0; z-index: 999; display: grid; place-items: center; background: var(--paper); pointer-events: none; animation: actaSplashFailsafe .5s ease 5.5s forwards; }
+.splash-logo { width: min(300px, 52vw); height: auto; aspect-ratio: 659 / 190; fill: var(--ink); stroke: none; animation: actaSplashLogoIn .8s var(--ease-out) both; transition: opacity .55s ease, transform .55s var(--ease-out); }
+.splash-screen.is-leaving { animation: none; opacity: 0; visibility: hidden; transition: opacity .6s ease, visibility 0s linear .6s; }
+.splash-screen.is-leaving .splash-logo { animation: none; opacity: 0; transform: scale(1.14); }
+@keyframes actaSplashLogoIn { from { opacity: 0; transform: scale(.94); } }
+@keyframes actaSplashFailsafe { to { opacity: 0; visibility: hidden; } }
+body.acta-reduce-motion .splash-screen { display: none; }
+
 .brand-logo { width: 116px; height: 34px; display: block; fill: currentColor; stroke: none !important; transform: translateZ(0); transform-origin: 18px 50%; backface-visibility: hidden; }
 .brand-logo * { stroke: none !important; }
 .workspace-card-status.demo { color: #9a6f2d; }

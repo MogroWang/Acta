@@ -38,7 +38,22 @@ const dictionaries = {
     calendar:'日历', yearView:'年', monthView:'月', weekView:'周', dayView:'日', previousPeriod:'上一时段', nextPeriod:'下一时段', previousYear:'上一年', nextYear:'下一年', previousMonth:'上一月', nextMonth:'下一月', previousWeek:'上一周', nextWeek:'下一周', previousDay:'上一日', nextDay:'下一日', backToToday:'今天', calendarNavigation:'日历导航', calendarViewOptions:'日历视图',
     noScheduledTodos:'这段时间没有待办', noScheduledTodosHint:'为待办设置截止日期后，它会显示在日历中。', scheduledTodos:'项待办',
     noCalendarItems:'这段时间没有日历内容', noCalendarItemsHint:'有排期的待办和当天创建的笔记会显示在这里。', calendarItems:'项日历内容', createdNotes:'当日创建笔记',
-    moreTodos:'另有 {0} 项', linkedNotes:'关联笔记', calendarLegendLinked:'带笔记关联', calendarOpenTodo:'打开待办', calendarOpenNote:'打开笔记', calendarOpenDay:'查看当日', weekNumber:'周数', swipeWeekHint:'左右滑动查看其他日期'
+    moreTodos:'另有 {0} 项', linkedNotes:'关联笔记', calendarLegendLinked:'带笔记关联', calendarOpenTodo:'打开待办', calendarOpenNote:'打开笔记', calendarOpenDay:'查看当日', weekNumber:'周数', swipeWeekHint:'左右滑动查看其他日期',
+    stats:'统计', showCompletedTodos:'显示已完成', statOpen:'进行中', confirm:'确定', cancel:'取消',
+    statsEmpty:'这里还没有内容可以统计', statsEmptyHint:'创建笔记或待办后，这里会展示记录情况。',
+    trash:'回收站', trashItems:'件回收',
+    trashEmptyTitle:'回收站还是空的', trashEmptyHint:'删除的待办和笔记会先躺在这里，不会自动清空，随时回来翻翻，也许就有新的灵感。',
+    trashFooterNote:'回收站不会自动倾倒', restore:'恢复', destroy:'彻底删除', restored:'已恢复到原位', destroyed:'已彻底删除',
+    emptyTrash:'清空回收站', emptyTrashConfirmTitle:'清空回收站', emptyTrashConfirmMessage:'回收站中的 {0} 件内容将被彻底删除，无法恢复。', trashEmptied:'回收站已清空',
+    deletedAt:'删除于', restoreHint:'恢复到原来的归类', trashOpenHint:'回收站中的内容不会出现在列表、日历与统计里',
+    deleteTitle:'删除项目', deleteSubtitle:'选择如何处理「{0}」', deleteTrashLabel:'移入回收站', deleteTrashHint:'保留在回收站中，随时可以恢复', deleteDestroyLabel:'直接删除', deleteDestroyHint:'不进入回收站，立即彻底删除', moveToTrash:'移入回收站', deletedToTrash:'已移入回收站',
+    statsListTitle:'待办笔记清单', statsListHint:'收集指定时间段创建的待办与笔记，勾选后可制作图片',
+    statsRangeAll:'全部时间', statsRangeToday:'今天', statsRange7:'最近 7 天', statsRange30:'最近 30 天', statsRange90:'最近 90 天', statsRangeCustom:'自定义',
+    statsCustomStart:'开始日期', statsCustomEnd:'截止日期', statsMakeImage:'生成图片', statsSelectedCount:'已选 {0} 件', statsSelectAll:'全选', statsClearSelection:'清除选择',
+    statsNeedSelection:'请先勾选要生成图片的条目', statsImageDone:'清单图片已生成', statsImageFailed:'图片生成失败', statsEmptyRange:'这个时间段还没有内容',
+    statsGroupToday:'今天', statsGroupYesterday:'昨天', statsCheckItem:'加入图片',
+    metaQuickActions:'快捷操作', metaCopyTitle:'复制标题', metaCopyBody:'复制全文', metaCopyNotes:'复制说明', metaCopyMarkdown:'复制 Markdown', metaMarkComplete:'标记完成', metaReopen:'重新打开', metaViewCalendar:'在日历查看', metaTrash:'移入回收站',
+    copied:'已复制到剪贴板', copyFailed:'复制失败'
   },
   en: {
     saved: 'Saved', saving: 'Saving…', new: 'New', quickCapture: 'Quick capture', quickCaptureHint: 'Create a task or note fast', newNote: 'New note', newNoteHint: 'Capture ideas and sparks',
@@ -65,7 +80,22 @@ const dictionaries = {
     calendar:'Calendar', yearView:'Year', monthView:'Month', weekView:'Week', dayView:'Day', previousPeriod:'Previous period', nextPeriod:'Next period', previousYear:'Previous year', nextYear:'Next year', previousMonth:'Previous month', nextMonth:'Next month', previousWeek:'Previous week', nextWeek:'Next week', previousDay:'Previous day', nextDay:'Next day', backToToday:'Today', calendarNavigation:'Calendar navigation', calendarViewOptions:'Calendar views',
     noScheduledTodos:'No tasks in this period', noScheduledTodosHint:'Set a task deadline to place it on the calendar.', scheduledTodos:'tasks',
     noCalendarItems:'Nothing on this calendar yet', noCalendarItemsHint:'Scheduled tasks and notes created that day appear here.', calendarItems:'calendar items', createdNotes:'Notes created that day',
-    moreTodos:'{0} more', linkedNotes:'Linked notes', calendarLegendLinked:'Linked to notes', calendarOpenTodo:'Open task', calendarOpenNote:'Open note', calendarOpenDay:'Open day', weekNumber:'Week', swipeWeekHint:'Swipe left or right for other days'
+    moreTodos:'{0} more', linkedNotes:'Linked notes', calendarLegendLinked:'Linked to notes', calendarOpenTodo:'Open task', calendarOpenNote:'Open note', calendarOpenDay:'Open day', weekNumber:'Week', swipeWeekHint:'Swipe left or right for other days',
+    stats:'Statistics', showCompletedTodos:'Show completed', statOpen:'In progress', confirm:'Confirm', cancel:'Cancel',
+    statsEmpty:'Nothing to report yet', statsEmptyHint:'Once you add notes or tasks, your activity shows up here.',
+    trash:'Trash', trashItems:'items',
+    trashEmptyTitle:'The trash is empty', trashEmptyHint:'Deleted notes and tasks rest here. Nothing is emptied automatically — come back and rummage whenever you like.',
+    trashFooterNote:'Trash is never emptied automatically', restore:'Restore', destroy:'Delete forever', restored:'Restored to its place', destroyed:'Deleted forever',
+    emptyTrash:'Empty trash', emptyTrashConfirmTitle:'Empty trash', emptyTrashConfirmMessage:'{0} items in the trash will be deleted forever and cannot be recovered.', trashEmptied:'Trash emptied',
+    deletedAt:'Deleted', restoreHint:'Restore to its original classification', trashOpenHint:'Trashed items stay out of lists, calendar, and statistics',
+    deleteTitle:'Delete item', deleteSubtitle:'Choose what to do with “{0}”', deleteTrashLabel:'Move to trash', deleteTrashHint:'Kept in the trash, restore anytime', deleteDestroyLabel:'Delete now', deleteDestroyHint:'Skips the trash and is deleted forever', moveToTrash:'Move to trash', deletedToTrash:'Moved to trash',
+    statsListTitle:'Notes and tasks list', statsListHint:'Gather notes and tasks created in a chosen period, tick some, and make a picture',
+    statsRangeAll:'All time', statsRangeToday:'Today', statsRange7:'Last 7 days', statsRange30:'Last 30 days', statsRange90:'Last 90 days', statsRangeCustom:'Custom',
+    statsCustomStart:'Start date', statsCustomEnd:'End date', statsMakeImage:'Make picture', statsSelectedCount:'{0} selected', statsSelectAll:'Select all', statsClearSelection:'Clear',
+    statsNeedSelection:'Tick some items before making a picture', statsImageDone:'List picture saved', statsImageFailed:'Picture export failed', statsEmptyRange:'Nothing was created in this period',
+    statsGroupToday:'Today', statsGroupYesterday:'Yesterday', statsCheckItem:'Include in picture',
+    metaQuickActions:'Quick actions', metaCopyTitle:'Copy title', metaCopyBody:'Copy content', metaCopyNotes:'Copy notes', metaCopyMarkdown:'Copy Markdown', metaMarkComplete:'Mark complete', metaReopen:'Reopen', metaViewCalendar:'Show on calendar', metaTrash:'Move to trash',
+    copied:'Copied to clipboard', copyFailed:'Copy failed'
   }
 };
 
@@ -100,9 +130,20 @@ function loadJSON(key, fallback) {
   catch { return fallback; }
 }
 
+// Note bodies are user-authored HTML that round-trips through sync/import, so any
+// HTML entering the library gets sanitized once at this single choke point.
+const sanitizeNoteHTML = value => (
+  typeof value === 'string' && value && window.DOMPurify?.sanitize ? window.DOMPurify.sanitize(value) : value
+);
+
+const folderColor = value => (typeof value === 'string' && /^#[0-9a-f]{3,8}$/i.test(value) ? value : '#999');
+
 function normalizeLibrary(candidate) {
   if (!candidate || !Array.isArray(candidate.items) || !Array.isArray(candidate.folders)) return createDefaultLibrary();
   const normalized = { ...candidate, version: Math.max(Number(candidate.version) || 1, 1) };
+  normalized.folders = candidate.folders.map(folder => (
+    folder && typeof folder === 'object' ? { ...folder, color: folderColor(folder.color) } : folder
+  ));
   const ids = new Set(candidate.items.map(item => item?.id).filter(Boolean));
   const normalizedAt = new Date().toISOString();
   normalized.items = candidate.items
@@ -117,7 +158,7 @@ function normalizeLibrary(candidate) {
         tags: Array.isArray(item.tags) ? item.tags.filter(tag => typeof tag === 'string') : [],
         linkedIds: Array.isArray(item.linkedIds) ? [...new Set(item.linkedIds.filter(id => typeof id === 'string' && id !== item.id && ids.has(id)))] : []
       };
-      if (item.type === 'note') return { ...common, body:typeof item.body === 'string' ? item.body : '<p><br></p>' };
+      if (item.type === 'note') return { ...common, body:typeof item.body === 'string' ? sanitizeNoteHTML(item.body) : '<p><br></p>' };
 
       const hasStartAt = Object.prototype.hasOwnProperty.call(item, 'startAt');
       const hasDueAt = Object.prototype.hasOwnProperty.call(item, 'dueAt');
@@ -153,6 +194,7 @@ function normalizeLibrary(candidate) {
 
 let library = normalizeLibrary(loadJSON(STORAGE_KEY, createDefaultLibrary()));
 let settings = loadJSON(SETTINGS_KEY, { language: 'zh', syncFolder: '', lastSyncedAt: '' });
+settings.showCompletedTodos = Boolean(settings.showCompletedTodos);
 let currentView = 'inbox';
 let currentFilter = 'all';
 let todoPriorityFilter = 'all';
@@ -161,11 +203,13 @@ let todoFolderFilter = 'all';
 let noteFolderFilter = 'all';
 let noteRelationFilter = 'all';
 let noteUpdatedFilter = 'all';
+const listSortModes = ['updated', 'created', 'due', 'priority', 'title'];
+let listSortMode = listSortModes.includes(settings.sortMode) ? settings.sortMode : 'updated';
 let calendarViewMode = 'month';
 let calendarCursor = new Date(`${todayISO()}T12:00:00`);
 let calendarMotion = '';
 let calendarMotionTimer = null;
-let selectedId = library.items[0]?.id || null;
+let selectedId = library.items.find(item => !item.deletedAt)?.id || null;
 let searchQuery = '';
 let mobileEditorOpen = false;
 let saveTimer;
@@ -450,6 +494,9 @@ const folderShortName = (folder) => {
   return folderShortSegments(name.replace(/\s+/g, '')).slice(0, 2).join('').toLocaleUpperCase();
 };
 const isTodoComplete = (item) => item?.type === 'todo' && (Boolean(item.completed) || ((item.tasks || []).length > 0 && item.tasks.every(task => task.done)));
+const isTrashed = (item) => Boolean(item?.deletedAt);
+const activeItems = () => library.items.filter(item => !isTrashed(item));
+const trashedItems = () => library.items.filter(isTrashed).sort((a, b) => String(b.deletedAt).localeCompare(String(a.deletedAt)));
 const priorityRank = (priority) => ({ high: 0, medium: 1, low: 2 })[priority] ?? 1;
 const getLinkedItems = (item) => (item.linkedIds || []).map(id => library.items.find(entry => entry.id === id)).filter(Boolean);
 
@@ -580,7 +627,7 @@ function calendarTodoTime(item) {
 
 function calendarTodos() {
   return library.items
-    .filter(item => item.type === 'todo' && todoIsScheduled(item))
+    .filter(item => !isTrashed(item) && item.type === 'todo' && todoIsScheduled(item))
     .sort((first, second) => {
       const startDifference = String(first.startAt).localeCompare(String(second.startAt));
       if (startDifference) return startDifference;
@@ -594,7 +641,7 @@ function calendarTodos() {
 
 function calendarNotes() {
   return library.items
-    .filter(item => item.type === 'note' && calendarDateISO(new Date(item.createdAt)))
+    .filter(item => !isTrashed(item) && item.type === 'note' && calendarDateISO(new Date(item.createdAt)))
     .sort((first, second) => new Date(first.createdAt) - new Date(second.createdAt));
 }
 
@@ -926,6 +973,8 @@ function syncCalendarShell() {
   document.body.classList.toggle('calendar-view', active);
   document.body.classList.toggle('calendar-week-active', active && calendarViewMode === 'week');
   document.body.classList.toggle('inbox-view', currentView === 'inbox');
+  document.body.classList.toggle('stats-view', currentView === 'stats');
+  document.body.classList.toggle('trash-view', currentView === 'trash');
   const toolbar = $('#calendarToolbar');
   if (toolbar) {
     toolbar.hidden = !active;
@@ -957,12 +1006,13 @@ function translateStaticUI() {
 
 function viewTitle() {
   if (currentView.startsWith('folder:')) return folderName(getFolder(currentView.split(':')[1]));
-  return ({ inbox: t('inbox'), today: t('viewToday'), todos: t('viewTodos'), notes: t('viewNotes'), calendar: t('calendar'), completed: t('completed') })[currentView];
+  return ({ inbox: t('inbox'), today: t('viewToday'), todos: t('viewTodos'), notes: t('viewNotes'), calendar: t('calendar'), trash: t('trash'), stats: t('stats') })[currentView];
 }
 
 function listViewContext() {
   if (currentView === 'calendar') return 'calendar';
-  if (['today', 'todos', 'completed'].includes(currentView)) return 'todo';
+  if (currentView === 'stats' || currentView === 'trash') return currentView;
+  if (['today', 'todos'].includes(currentView)) return 'todo';
   if (currentView === 'notes') return 'note';
   return 'mixed';
 }
@@ -987,7 +1037,7 @@ function resetListFilters(context = 'all') {
 }
 
 function hasActiveListFilters(context = listFilterContext()) {
-  if (context === 'calendar') return false;
+  if (['calendar', 'stats', 'trash'].includes(context)) return false;
   if (context === 'mixed') return currentFilter !== 'all';
   if (context === 'todo') return [todoPriorityFilter, todoDueFilter, todoFolderFilter].some(value => value !== 'all');
   return [noteFolderFilter, noteRelationFilter, noteUpdatedFilter].some(value => value !== 'all');
@@ -1033,15 +1083,30 @@ function syncListFilterUI() {
     select.closest('.filter-select')?.classList.toggle('is-active', value !== 'all');
   });
 
+  const sortSelect = $('#listSortOrder');
+  if (sortSelect) {
+    sortSelect.value = listSortMode;
+    sortSelect.closest('.filter-select')?.classList.toggle('is-active', listSortMode !== 'updated');
+  }
+
   const labels = {
     todoPriorityFilter:'filterByPriority', todoDueFilter:'filterByDeadline', todoFolderFilter:'filterByFolder',
-    noteFolderFilter:'filterByFolder', noteRelationFilter:'filterByRelation', noteUpdatedFilter:'filterByUpdated'
+    noteFolderFilter:'filterByFolder', noteRelationFilter:'filterByRelation', noteUpdatedFilter:'filterByUpdated',
+    listSortOrder:'sortBy'
   };
   Object.entries(labels).forEach(([id, key]) => {
     const select = $(`#${id}`);
     select?.setAttribute('aria-label', t(key));
     select?.setAttribute('title', t(key));
   });
+
+  const completedToggle = $('#todoCompletedToggle');
+  if (completedToggle) {
+    completedToggle.hidden = currentView !== 'todos';
+    completedToggle.classList.toggle('is-active', settings.showCompletedTodos);
+    const box = $('#todoShowCompleted');
+    if (box) box.checked = settings.showCompletedTodos;
+  }
 
   const clearButton = $('#clearListFilters');
   if (clearButton) {
@@ -1052,13 +1117,12 @@ function syncListFilterUI() {
 }
 
 function getVisibleItems() {
-  let items = [...library.items];
+  let items = currentView === 'trash' ? trashedItems() : activeItems();
   if (currentView === 'calendar') items = items.filter(item => (item.type === 'todo' && todoIsScheduled(item)) || item.type === 'note');
   if (currentView === 'inbox') items = items.filter(item => !isTodoComplete(item));
   if (currentView === 'today') items = items.filter(item => item.type === 'todo' && todoScheduleDate(item) === todayISO() && !isTodoComplete(item));
-  if (currentView === 'todos') items = items.filter(item => item.type === 'todo' && !isTodoComplete(item));
+  if (currentView === 'todos') items = items.filter(item => item.type === 'todo' && (settings.showCompletedTodos || !isTodoComplete(item)));
   if (currentView === 'notes') items = items.filter(item => item.type === 'note');
-  if (currentView === 'completed') items = items.filter(item => isTodoComplete(item));
   if (currentView.startsWith('folder:')) items = items.filter(item => item.folderId === currentView.split(':')[1]);
   const viewContext = listViewContext();
   const filterContext = listFilterContext();
@@ -1100,30 +1164,64 @@ function getVisibleItems() {
       return `${item.title} ${content} ${linkedTitles} ${(item.tags || []).join(' ')}`.toLocaleLowerCase().includes(query);
     });
   }
-  const taskFocused = currentView === 'today' || currentView === 'todos' || currentView === 'completed' || currentView === 'calendar' || currentFilter === 'todo';
+  const taskFocused = currentView === 'today' || currentView === 'todos' || currentView === 'calendar' || currentFilter === 'todo';
+  const sortByDueThenPriority = (a, b) => {
+    const dueDifference = String(a.dueAt || '9999-12-31').localeCompare(String(b.dueAt || '9999-12-31'));
+    if (dueDifference) return dueDifference;
+    return priorityRank(a.priority) - priorityRank(b.priority);
+  };
+  const listSortComparers = {
+    updated: (a, b) => {
+      if (a.type === 'todo' && b.type === 'todo') {
+        const priorityDifference = priorityRank(a.priority) - priorityRank(b.priority);
+        if (priorityDifference) return priorityDifference;
+        const dueDifference = String(a.dueAt || '9999-12-31').localeCompare(String(b.dueAt || '9999-12-31'));
+        if (dueDifference) return dueDifference;
+      }
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    },
+    created: (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    due: (a, b) => {
+      if (a.type !== b.type) return a.type === 'todo' ? -1 : 1;
+      if (a.type === 'todo') {
+        const scheduledDifference = sortByDueThenPriority(a, b);
+        if (scheduledDifference) return scheduledDifference;
+      }
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    },
+    priority: (a, b) => {
+      if (a.type !== b.type) return a.type === 'todo' ? -1 : 1;
+      if (a.type === 'todo') {
+        const priorityDifference = priorityRank(a.priority) - priorityRank(b.priority);
+        if (priorityDifference) return priorityDifference;
+        const dueDifference = String(a.dueAt || '9999-12-31').localeCompare(String(b.dueAt || '9999-12-31'));
+        if (dueDifference) return dueDifference;
+      }
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    },
+    title: (a, b) => String(a.title || '').localeCompare(String(b.title || ''), undefined, { numeric: true })
+  };
+  const compareBySortMode = listSortComparers[listSortMode] || ((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  if (currentView === 'trash') return items;
   return items.sort((a, b) => {
     if (taskFocused && a.type === 'todo' && b.type === 'todo') {
       const completionDifference = Number(isTodoComplete(a)) - Number(isTodoComplete(b));
       if (completionDifference) return completionDifference;
-      const priorityDifference = priorityRank(a.priority) - priorityRank(b.priority);
-      if (priorityDifference) return priorityDifference;
-      const dueDifference = String(a.dueAt || '9999-12-31').localeCompare(String(b.dueAt || '9999-12-31'));
-      if (dueDifference) return dueDifference;
     }
-    return new Date(b.updatedAt) - new Date(a.updatedAt);
+    return compareBySortMode(a, b);
   });
 }
 
 function renderSidebar() {
-  $('#inboxCount').textContent = library.items.filter(item => !isTodoComplete(item)).length;
-  $('#todoCount').textContent = library.items.filter(item => item.type === 'todo' && !isTodoComplete(item)).length;
-  $('#noteCount').textContent = library.items.filter(item => item.type === 'note').length;
+  $('#inboxCount').textContent = activeItems().filter(item => !isTodoComplete(item)).length;
+  $('#todoCount').textContent = activeItems().filter(item => item.type === 'todo' && !isTodoComplete(item)).length;
+  $('#noteCount').textContent = activeItems().filter(item => item.type === 'note').length;
   $('#calendarCount').textContent = calendarTodos().length + calendarNotes().length;
-  $('#completedCount').textContent = library.items.filter(isTodoComplete).length;
+  $('#trashCount').textContent = trashedItems().length;
 
   $$('#smartNav button').forEach(button => button.classList.toggle('active', button.dataset.view === currentView));
   $('#folderNav').innerHTML = library.folders.map(folder => {
-    const count = library.items.filter(item => item.folderId === folder.id).length;
+    const count = activeItems().filter(item => item.folderId === folder.id).length;
     const shortName = folderShortName(folder);
     const shortNameClasses = ['folder-short-name', folderShortNameUsesEmoji(shortName) ? 'is-emoji' : '', folderShortSegments(shortName).length > 2 ? 'is-long' : ''].filter(Boolean).join(' ');
     return `<button data-view="folder:${escapeHTML(folder.id)}" class="${currentView === `folder:${folder.id}` ? 'active' : ''}" title="${escapeHTML(folderName(folder))}" aria-label="${escapeHTML(folderName(folder))}">
@@ -1139,6 +1237,588 @@ function itemPreview(item) {
   return open[0] || item.notes || (isTodoComplete(item) ? t('done') : t('taskPlaceholder'));
 }
 
+const statsRangePresets = ['all', 'today', '7', '30', '90', 'custom'];
+const statsSelection = new Set();
+
+// createdAt is a UTC ISO string; slicing it would put items created before the UTC
+// offset (e.g. UTC+8 mornings) on the previous day. Stats group by local calendar day.
+const statsDateKey = item => {
+  const raw = validDate(item.createdAt);
+  return raw ? calendarDateISO(new Date(raw)) : '';
+};
+
+// Drop ids that no longer belong to the current period/library so the toolbar count,
+// the checkboxes and the exported picture always describe the same selection.
+const pruneStatsSelection = () => {
+  const collected = new Set(statsCollectionItems().map(item => item.id));
+  [...statsSelection].forEach(id => { if (!collected.has(id)) statsSelection.delete(id); });
+};
+
+function statsRangeWindow() {
+  const range = statsRangePresets.includes(settings.statsRange) ? settings.statsRange : 'all';
+  const today = todayISO();
+  if (range === 'today') return [today, today];
+  if (range === '7' || range === '30' || range === '90') return [daysFromToday(-(Number(range) - 1)), today];
+  if (range === 'custom') {
+    const start = validDate(settings.statsRangeStart) ? settings.statsRangeStart.slice(0, 10) : '';
+    const end = validDate(settings.statsRangeEnd) ? settings.statsRangeEnd.slice(0, 10) : '';
+    if (start || end) return [start, end];
+  }
+  return [null, null];
+}
+
+function statsRangeLabel() {
+  const [start, end] = statsRangeWindow();
+  const range = statsRangePresets.includes(settings.statsRange) ? settings.statsRange : 'all';
+  if (range === 'today') return t('statsRangeToday');
+  if (range === '7' || range === '30' || range === '90') return t(`statsRange${range}`);
+  if (range === 'custom') return `${start || '…'} — ${end || '…'}`;
+  return t('statsRangeAll');
+}
+
+function statsCollectionItems() {
+  const [start, end] = statsRangeWindow();
+  return activeItems().filter(item => {
+    const key = statsDateKey(item);
+    if (!key) return false;
+    if (start && key < start) return false;
+    if (end && key > end) return false;
+    return true;
+  }).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+}
+
+function statsGroupLabel(dateKey) {
+  if (dateKey === todayISO()) return t('statsGroupToday');
+  if (dateKey === daysFromToday(-1)) return t('yesterday');
+  return new Intl.DateTimeFormat(calendarLocale(), { month:'long', day:'numeric', weekday:'short' }).format(new Date(`${dateKey}T12:00:00`));
+}
+
+function statsItemRow(item, index) {
+  const folder = getFolder(item.folderId);
+  const checked = statsSelection.has(item.id);
+  const done = item.type === 'todo' && isTodoComplete(item);
+  const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
+  return `<div class="stats-item-row ${checked ? 'is-checked' : ''}" data-stats-row="${escapeHTML(item.id)}" style="animation-delay:${Math.min(index * 16, 90)}ms">
+    <label class="stats-item-check" title="${escapeHTML(t('statsCheckItem'))}">
+      <input type="checkbox" data-stats-check="${escapeHTML(item.id)}" ${checked ? 'checked' : ''}/>
+      <i aria-hidden="true"><svg><use href="#i-check"/></svg></i>
+    </label>
+    <button type="button" class="stats-item-open" data-stats-open="${escapeHTML(item.id)}">
+      <span class="stats-item-topline"><span class="type-pill ${item.type}"><svg><use href="#i-${item.type === 'todo' ? 'check' : 'note'}"/></svg>${t(item.type)}${item.type === 'todo' ? ` · ${done ? t('done') : t('statOpen')}` : ''}</span><time datetime="${escapeHTML(item.createdAt)}">${escapeHTML(formatListDateTime(item.createdAt))}</time></span>
+      <b>${escapeHTML(title)}</b>
+      <small><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span>${escapeHTML(itemPreview(item).slice(0, 80))}</small>
+    </button>
+  </div>`;
+}
+
+function renderStatsToolbar(selectedCount) {
+  return `<section class="stats-toolbar">
+    <label class="filter-select stats-range-field">
+      <svg><use href="#i-clock"/></svg>
+      <select id="statsRange" aria-label="${escapeHTML(t('statsListTitle'))}">
+        <option value="all">${escapeHTML(t('statsRangeAll'))}</option>
+        <option value="today">${escapeHTML(t('statsRangeToday'))}</option>
+        <option value="7">${escapeHTML(t('statsRange7'))}</option>
+        <option value="30">${escapeHTML(t('statsRange30'))}</option>
+        <option value="90">${escapeHTML(t('statsRange90'))}</option>
+        <option value="custom">${escapeHTML(t('statsRangeCustom'))}</option>
+      </select>
+    </label>
+    <div class="stats-custom-range" id="statsCustomRange" ${settings.statsRange === 'custom' ? '' : 'hidden'}>
+      <input type="date" id="statsRangeStart" value="${escapeHTML(settings.statsRangeStart || '')}" aria-label="${escapeHTML(t('statsCustomStart'))}"/>
+      <i aria-hidden="true">—</i>
+      <input type="date" id="statsRangeEnd" value="${escapeHTML(settings.statsRangeEnd || '')}" aria-label="${escapeHTML(t('statsCustomEnd'))}"/>
+    </div>
+    <div class="stats-toolbar-actions">
+      <span class="stats-selection-count" id="statsSelectionCount">${escapeHTML(t('statsSelectedCount').replace('{0}', selectedCount))}</span>
+      <button type="button" class="stats-tool-button" id="statsSelectAll">${escapeHTML(t('statsSelectAll'))}</button>
+      <button type="button" class="stats-tool-button" id="statsClearSelection">${escapeHTML(t('statsClearSelection'))}</button>
+      <button type="button" class="stats-tool-button is-primary" id="statsMakeImage"><svg><use href="#i-image"/></svg>${escapeHTML(t('statsMakeImage'))}</button>
+    </div>
+  </section>`;
+}
+
+function renderStats() {
+  const items = statsCollectionItems();
+  const selectedCount = items.filter(item => statsSelection.has(item.id)).length;
+  if (!items.length) {
+    // Keep the toolbar rendered so the period picker stays reachable on empty ranges.
+    return `<div class="stats-collection-wrap">
+      ${renderStatsToolbar(selectedCount)}
+      <div class="stats-empty"><div><span><svg><use href="#i-chart"/></svg></span><h3>${escapeHTML(t('statsListTitle'))}</h3><p>${escapeHTML(t('statsEmptyRange'))}</p></div></div>
+    </div>`;
+  }
+  const groups = new Map();
+  items.forEach(item => {
+    const key = statsDateKey(item);
+    if (!key) return;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  });
+  let rowIndex = 0;
+  const groupsMarkup = [...groups.entries()].map(([key, groupItems]) => `
+    <section class="stats-day-group">
+      <header class="stats-day-head"><b>${escapeHTML(statsGroupLabel(key))}</b><span>${escapeHTML(key)} · ${groupItems.length} ${t('item')}</span></header>
+      ${groupItems.map(item => statsItemRow(item, rowIndex++)).join('')}
+    </section>`).join('');
+  return `<div class="stats-collection-wrap">
+    ${renderStatsToolbar(selectedCount)}
+    <div class="stats-collection">${groupsMarkup}</div>
+    <p class="stats-collection-hint">${escapeHTML(t('statsListHint'))}</p>
+  </div>`;
+}
+
+function syncStatsSelectionCount() {
+  const counter = $('#statsSelectionCount');
+  if (!counter) return;
+  const selectedCount = statsCollectionItems().filter(item => statsSelection.has(item.id)).length;
+  counter.textContent = t('statsSelectedCount').replace('{0}', selectedCount);
+}
+
+function bindStatsView() {
+  const range = $('#statsRange');
+  if (!range) return;
+  range.value = statsRangePresets.includes(settings.statsRange) ? settings.statsRange : 'all';
+  range.addEventListener('change', () => {
+    settings.statsRange = statsRangePresets.includes(range.value) ? range.value : 'all';
+    pruneStatsSelection();
+    persist();
+    renderList();
+  });
+  [['statsRangeStart', 'statsRangeStart'], ['statsRangeEnd', 'statsRangeEnd']].forEach(([id, key]) => {
+    $(`#${id}`)?.addEventListener('change', event => {
+      settings[key] = event.target.value;
+      pruneStatsSelection();
+      persist();
+      renderList();
+    });
+  });
+  $('#statsSelectAll')?.addEventListener('click', () => {
+    statsCollectionItems().forEach(item => statsSelection.add(item.id));
+    $$('.stats-item-row').forEach(row => row.classList.add('is-checked'));
+    $$('.stats-item-check input').forEach(box => { box.checked = true; });
+    syncStatsSelectionCount();
+  });
+  $('#statsClearSelection')?.addEventListener('click', () => {
+    statsSelection.clear();
+    $$('.stats-item-row').forEach(row => row.classList.remove('is-checked'));
+    $$('.stats-item-check input').forEach(box => { box.checked = false; });
+    syncStatsSelectionCount();
+  });
+  $('#statsMakeImage')?.addEventListener('click', () => exportStatsImage());
+  $$('.stats-item-check input').forEach(box => box.addEventListener('change', () => {
+    if (box.checked) statsSelection.add(box.dataset.statsCheck);
+    else statsSelection.delete(box.dataset.statsCheck);
+    box.closest('.stats-item-row')?.classList.toggle('is-checked', box.checked);
+    syncStatsSelectionCount();
+  }));
+  $$('.stats-item-open').forEach(button => button.addEventListener('click', () => openItem(button.dataset.statsOpen)));
+}
+
+function themeCanvasColors() {
+  const style = getComputedStyle(document.documentElement);
+  const pick = (name, fallback) => style.getPropertyValue(name).trim() || fallback;
+  return {
+    paper: pick('--paper', '#fbfaf6'),
+    ink: pick('--ink', '#242823'),
+    muted: pick('--muted', '#6b6f66'),
+    faint: pick('--faint', '#9aa094'),
+    line: pick('--line', '#e3e2da'),
+    card: pick('--white', '#ffffff'),
+    todoAccent: pick('--todo-accent', '#4f86a8'),
+    todoSoft: pick('--todo-soft', '#dceef8'),
+    noteAccent: pick('--note-accent', '#987329'),
+    noteSoft: pick('--note-soft', '#fff0bd')
+  };
+}
+
+const STATS_CANVAS_MAX_HEIGHT = 14000;
+
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    const radius = Math.min(r, w / 2, h / 2);
+    this.moveTo(x + radius, y);
+    this.arcTo(x + w, y, x + w, y + h, radius);
+    this.arcTo(x + w, y + h, x, y + h, radius);
+    this.arcTo(x, y + h, x, y, radius);
+    this.arcTo(x, y, x + w, y, radius);
+    this.closePath();
+    return this;
+  };
+}
+
+function canvasTruncateText(ctx, text, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let truncated = String(text);
+  while (truncated.length > 1 && ctx.measureText(`${truncated}…`).width > maxWidth) truncated = truncated.slice(0, -1);
+  return `${truncated}…`;
+}
+
+function renderStatsCanvas(items) {
+  const colors = themeCanvasColors();
+  const width = 1080;
+  const margin = 84;
+  const fontFamily = '"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif';
+  const measure = document.createElement('canvas').getContext('2d');
+  measure.font = `650 30px ${fontFamily}`;
+
+  const groups = new Map();
+  items.forEach(item => {
+    const key = statsDateKey(item);
+    if (!key) return;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  });
+
+  const layout = [];
+  let height = margin + 96 + 44 + 36;
+  const limit = STATS_CANVAS_MAX_HEIGHT - margin - 120;
+  let omitted = 0;
+  groups.forEach((groupItems, key) => {
+    if (height >= limit) { omitted += groupItems.length; return; }
+    height += 30 + 52;
+    layout.push({ type:'group', key, count:groupItems.length });
+    groupItems.forEach(item => {
+      if (height >= limit) { omitted += 1; return; }
+      const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
+      const folder = getFolder(item.folderId);
+      const meta = [folderName(folder), formatListDateTime(item.createdAt)].filter(Boolean).join(' · ');
+      const preview = stripHTML(item.type === 'note' ? item.body : item.notes || '') || '';
+      measure.font = `650 30px ${fontFamily}`;
+      const titleWidth = width - margin * 2 - 118 - 24;
+      const titleLines = canvasTruncateText(measure, title, titleWidth);
+      measure.font = `400 22px ${fontFamily}`;
+      const metaWidth = width - margin * 2 - 118 - 24;
+      const metaLines = meta ? [canvasTruncateText(measure, meta, metaWidth)] : [];
+      const previewLines = preview ? [canvasTruncateText(measure, preview.replace(/\s+/g, ' ').trim(), metaWidth)] : [];
+      const rowHeight = 34 + (titleLines ? 42 : 0) + (metaLines.length ? 32 : 0) + (previewLines.length ? 30 : 0) + 26;
+      height += rowHeight;
+      layout.push({ type:'item', item, title:titleLines, meta, metaLines, previewLines, height:rowHeight });
+    });
+  });
+  height = Math.min(height + 150, STATS_CANVAS_MAX_HEIGHT);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = Math.round(height);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = colors.paper;
+  ctx.fillRect(0, 0, width, canvas.height);
+  ctx.textBaseline = 'alphabetic';
+
+  let y = margin;
+  ctx.fillStyle = colors.ink;
+  ctx.font = `700 56px ${fontFamily}`;
+  ctx.fillText('Acta · 行记', margin, y + 56);
+  ctx.fillStyle = colors.faint;
+  ctx.font = `600 26px ${fontFamily}`;
+  const todoCount = items.filter(item => item.type === 'todo').length;
+  const summary = `${statsRangeLabel()} · ${items.length} ${t('item')}（${todoCount} ${t('todo')} · ${items.length - todoCount} ${t('note')}）`;
+  ctx.fillText(canvasTruncateText(ctx, summary, width - margin * 2), margin, y + 104);
+  y += 140;
+  ctx.strokeStyle = colors.line;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(margin, y);
+  ctx.lineTo(width - margin, y);
+  ctx.stroke();
+  y += 30;
+
+  layout.forEach(entry => {
+    if (entry.type === 'group') {
+      ctx.fillStyle = colors.faint;
+      ctx.font = `700 26px ${fontFamily}`;
+      ctx.fillText(`${statsGroupLabel(entry.key)} · ${entry.key}`, margin, y + 34);
+      y += 52;
+      return;
+    }
+    const item = entry.item;
+    const isTodo = item.type === 'todo';
+    const done = isTodo && isTodoComplete(item);
+    const badge = { x:margin, y:y + 6, w:118, h:40 };
+    ctx.fillStyle = isTodo ? colors.todoSoft : colors.noteSoft;
+    ctx.beginPath();
+    ctx.roundRect(badge.x, badge.y, badge.w, badge.h, 12);
+    ctx.fill();
+    ctx.fillStyle = isTodo ? colors.todoAccent : colors.noteAccent;
+    ctx.font = `700 21px ${fontFamily}`;
+    const badgeText = isTodo ? (done ? `✓ ${t('done')}` : t('todo')) : t('note');
+    const badgeWidth = ctx.measureText(badgeText).width;
+    ctx.fillText(badgeText, badge.x + (badge.w - badgeWidth) / 2, badge.y + 27);
+    const textX = margin + 118 + 24;
+    let textY = y + 30;
+    ctx.fillStyle = done ? colors.faint : colors.ink;
+    ctx.font = `650 30px ${fontFamily}`;
+    ctx.fillText(entry.title, textX, textY);
+    if (done) {
+      const titleWidth = ctx.measureText(entry.title).width;
+      ctx.strokeStyle = colors.faint;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(textX, textY - 10);
+      ctx.lineTo(textX + titleWidth, textY - 10);
+      ctx.stroke();
+    }
+    textY += 42;
+    ctx.font = `400 22px ${fontFamily}`;
+    ctx.fillStyle = colors.muted;
+    if (entry.metaLines.length) {
+      ctx.fillText(entry.metaLines[0], textX, textY);
+      textY += 32;
+    }
+    if (entry.previewLines.length) {
+      ctx.fillStyle = colors.faint;
+      ctx.fillText(entry.previewLines[0], textX, textY);
+      textY += 30;
+    }
+    y += entry.height;
+  });
+
+  if (omitted > 0) {
+    ctx.fillStyle = colors.faint;
+    ctx.font = `600 22px ${fontFamily}`;
+    ctx.fillText(t('moreTodos').replace('{0}', omitted), margin, y + 30);
+    y += 46;
+  }
+
+  ctx.fillStyle = colors.faint;
+  ctx.font = `500 22px ${fontFamily}`;
+  ctx.fillText(`${formatDateTimeSeconds(new Date().toISOString())} · Acta 行记`, margin, canvas.height - margin / 1.6);
+  return canvas;
+}
+
+async function saveExportAssets(assets) {
+  if (window.actaDesktop?.exportAssets) return window.actaDesktop.exportAssets(assets);
+  const nativeExport = window.Capacitor?.Plugins?.ActaSync?.exportAsset;
+  if (nativeExport) {
+    const results = [];
+    for (const asset of assets) results.push(await nativeExport(asset));
+    return results;
+  }
+  assets.forEach((asset, index) => {
+    const [header, data] = asset.dataUrl.split(',');
+    const mimeType = /data:([^;]+)/.exec(header)?.[1] || asset.mimeType;
+    const binary = atob(data);
+    const bytes = new Uint8Array(binary.length);
+    for (let offset = 0; offset < binary.length; offset += 1) bytes[offset] = binary.charCodeAt(offset);
+    const url = URL.createObjectURL(new Blob([bytes], { type:mimeType }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = asset.fileName;
+    anchor.hidden = true;
+    document.body.appendChild(anchor);
+    setTimeout(() => {
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1200);
+    }, index * 140);
+  });
+  return assets;
+}
+
+async function exportStatsImage() {
+  const items = statsCollectionItems().filter(item => statsSelection.has(item.id));
+  if (!items.length) {
+    showToast(t('statsNeedSelection'));
+    return;
+  }
+  try {
+    const canvas = renderStatsCanvas(items);
+    const stamp = todayISO();
+    const asset = { fileName:`Acta ${t('statsListTitle')} ${stamp}.png`, mimeType:'image/png', dataUrl:canvas.toDataURL('image/png') };
+    const saved = await saveExportAssets([asset]);
+    if (saved) showToast(t('statsImageDone'));
+  } catch (error) {
+    showToast(`${t('statsImageFailed')}: ${error?.message || error}`);
+  }
+}
+
+function renderTrashList(items) {
+  return `<div class="trash-tools">
+      <span class="trash-note">${escapeHTML(t('trashFooterNote'))}</span>
+      <button type="button" class="stats-tool-button" id="emptyTrashButton"><svg><use href="#i-trash"/></svg>${escapeHTML(t('emptyTrash'))}</button>
+    </div>
+    ${items.map((item, index) => {
+      const folder = getFolder(item.folderId);
+      return `<div class="trash-card ${item.type === 'todo' ? 'is-todo' : 'is-note'}" data-trash-card="${escapeHTML(item.id)}" style="animation-delay:${Math.min(index * 18, 100)}ms">
+        <span class="type-pill ${item.type}"><svg><use href="#i-${item.type === 'todo' ? 'check' : 'note'}"/></svg>${t(item.type)}</span>
+        <div class="trash-card-body">
+          <b>${escapeHTML(item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote')))}</b>
+          <small><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span><time datetime="${escapeHTML(item.deletedAt)}">${escapeHTML(t('deletedAt'))} ${escapeHTML(formatListDateTime(item.deletedAt))}</time></small>
+        </div>
+        <div class="trash-card-actions">
+          <button type="button" class="trash-action is-restore" data-trash-restore="${escapeHTML(item.id)}" title="${escapeHTML(t('restoreHint'))}"><svg><use href="#i-undo"/></svg><span>${escapeHTML(t('restore'))}</span></button>
+          <button type="button" class="trash-action is-destroy" data-trash-destroy="${escapeHTML(item.id)}" title="${escapeHTML(t('destroy'))}"><svg><use href="#i-trash"/></svg><span>${escapeHTML(t('destroy'))}</span></button>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+function bindTrashList() {
+  $('#emptyTrashButton')?.addEventListener('click', async () => {
+    const items = trashedItems();
+    if (!items.length) return;
+    if (!await askDestroyConfirm({ itemLabel: t('emptyTrash'), message: t('emptyTrashConfirmMessage').replace('{0}', items.length) })) return;
+    destroyItems(items.map(item => item.id));
+    showToast(t('trashEmptied'));
+  });
+  $$('[data-trash-restore]').forEach(button => button.addEventListener('click', () => {
+    const item = library.items.find(entry => entry.id === button.dataset.trashRestore);
+    if (!item) return;
+    delete item.deletedAt;
+    relinkFromTrash(item);
+    touchItem(item);
+    renderAll();
+    showToast(t('restored'));
+  }));
+  $$('[data-trash-destroy]').forEach(button => button.addEventListener('click', async () => {
+    const item = library.items.find(entry => entry.id === button.dataset.trashDestroy);
+    if (!item) return;
+    const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
+    if (!await askDestroyConfirm({ itemLabel: `${t(item.type)} · ${title}`, message: t('deleteDestroyHint') })) return;
+    destroyItems([item.id]);
+    showToast(t('destroyed'));
+  }));
+}
+
+function destroyItems(ids) {
+  const idSet = new Set(ids);
+  library.items.forEach(entry => { entry.linkedIds = (entry.linkedIds || []).filter(id => !idSet.has(id)); });
+  library.items = library.items.filter(entry => !idSet.has(entry.id));
+  idSet.forEach(id => statsSelection.delete(id));
+  if (selectedId && idSet.has(selectedId)) selectedId = activeItems()[0]?.id || null;
+  persist();
+  renderAll();
+}
+
+// Moving an item to the trash keeps its two-way links recoverable: both sides stash
+// the removed link in _trashedLinkedIds so a restore can rebuild the pair. Items
+// destroyed from the trash drop out of the library, and relinkFromTrash skips ids
+// that no longer resolve, so stale stashes are cleaned up lazily.
+function unlinkForTrash(item) {
+  const linked = (item.linkedIds || []).filter(id => id && id !== item.id);
+  item._trashedLinkedIds = Array.from(new Set([...(item._trashedLinkedIds || []), ...linked]));
+  item.linkedIds = [];
+  linked.forEach(id => {
+    const other = library.items.find(entry => entry.id === id);
+    if (!other) return;
+    other._trashedLinkedIds = Array.from(new Set([...(other._trashedLinkedIds || other.linkedIds || []), item.id]));
+    other.linkedIds = (other.linkedIds || []).filter(entryId => entryId !== item.id);
+  });
+}
+
+function relinkFromTrash(item) {
+  const linked = Array.isArray(item._trashedLinkedIds) ? item._trashedLinkedIds.filter(id => id && id !== item.id) : [];
+  delete item._trashedLinkedIds;
+  const restored = [];
+  linked.forEach(id => {
+    const other = library.items.find(entry => entry.id === id);
+    if (!other || other.deletedAt) return;
+    restored.push(id);
+    other.linkedIds = Array.from(new Set([...(other.linkedIds || []), item.id]));
+    if (Array.isArray(other._trashedLinkedIds)) {
+      other._trashedLinkedIds = other._trashedLinkedIds.filter(entryId => entryId !== item.id);
+      if (!other._trashedLinkedIds.length) delete other._trashedLinkedIds;
+    }
+  });
+  item.linkedIds = Array.from(new Set([...(item.linkedIds || []), ...restored]));
+}
+
+const deleteConfirmState = { dialog: null, resolve: null, mode: '', closeTimer: 0 };
+
+function deleteConfirmDialogEl() {
+  if (!deleteConfirmState.dialog) deleteConfirmState.dialog = $('#deleteConfirmDialog');
+  return deleteConfirmState.dialog;
+}
+
+function reduceWindowMotion() {
+  return document.body.classList.contains('acta-reduce-motion') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function finishDeleteConfirm(result) {
+  const dialog = deleteConfirmDialogEl();
+  if (!dialog?.open) return;
+  const resolve = deleteConfirmState.resolve;
+  deleteConfirmState.resolve = null;
+  const closeNow = () => {
+    clearTimeout(deleteConfirmState.closeTimer);
+    deleteConfirmState.closeTimer = 0;
+    if (dialog.open) dialog.close();
+    dialog.classList.remove('is-closing');
+    resolve?.(result);
+  };
+  if (reduceWindowMotion()) { closeNow(); return; }
+  dialog.classList.add('is-closing');
+  deleteConfirmState.closeTimer = setTimeout(closeNow, 250);
+}
+
+// Settle a still-pending confirm synchronously: openDeleteConfirm can be re-entered
+// while the previous dialog is animating out, and the animation timer would otherwise
+// close the new dialog or strand the old promise forever.
+function settleDeleteConfirm(result) {
+  const dialog = deleteConfirmDialogEl();
+  const resolve = deleteConfirmState.resolve;
+  deleteConfirmState.resolve = null;
+  clearTimeout(deleteConfirmState.closeTimer);
+  deleteConfirmState.closeTimer = 0;
+  if (dialog?.open) dialog.close();
+  dialog?.classList.remove('is-closing');
+  resolve?.(result);
+}
+
+function openDeleteConfirm({ itemLabel, message, mode }) {
+  const dialog = deleteConfirmDialogEl();
+  if (!dialog) return null;
+  if (deleteConfirmState.resolve || deleteConfirmState.closeTimer) settleDeleteConfirm(null);
+  deleteConfirmState.mode = mode;
+  $('#deleteConfirmTitle').textContent = t('deleteTitle');
+  $('#deleteConfirmItem').textContent = t('deleteSubtitle').replace('{0}', itemLabel || '');
+  $('#deleteConfirmMessage').textContent = message || t('deleteConfirm');
+  $('#deleteChoiceTrashLabel').textContent = t('deleteTrashLabel');
+  $('#deleteChoiceTrashHint').textContent = t('deleteTrashHint');
+  $('#deleteChoiceDestroyLabel').textContent = t('deleteDestroyLabel');
+  $('#deleteChoiceDestroyHint').textContent = t('deleteDestroyHint');
+  $('#confirmDestroyAllLabel').textContent = t('destroy');
+  $('#cancelDeleteConfirm').textContent = t('cancel');
+  $('.delete-confirm-choices', dialog).hidden = mode !== 'item';
+  $('#confirmDestroyAll').hidden = mode === 'item';
+  dialog.classList.remove('is-closing');
+  if (!dialog.open) dialog.showModal();
+  return new Promise(resolve => { deleteConfirmState.resolve = resolve; });
+}
+
+function askItemDelete(item) {
+  const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
+  const label = `${t(item.type)} · ${title}`;
+  return openDeleteConfirm({
+    itemLabel: label,
+    message: t('deleteTrashHint'),
+    mode: 'item'
+  }).then(choice => {
+    if (choice !== 'trash') return choice;
+    showToast(t('deletedToTrash'));
+    return choice;
+  });
+}
+
+function askDestroyConfirm({ itemLabel, message }) {
+  return openDeleteConfirm({ itemLabel, message, mode: 'destroy' }).then(result => result === 'destroy');
+}
+
+function bindDeleteConfirmDialog() {
+  const dialog = deleteConfirmDialogEl();
+  if (!dialog) return;
+  $('#deleteChoiceTrash')?.addEventListener('click', () => finishDeleteConfirm('trash'));
+  $('#deleteChoiceDestroy')?.addEventListener('click', () => finishDeleteConfirm('destroy'));
+  $('#confirmDestroyAll')?.addEventListener('click', () => finishDeleteConfirm('destroy'));
+  $('#cancelDeleteConfirm')?.addEventListener('click', () => finishDeleteConfirm(null));
+  $('#closeDeleteConfirm')?.addEventListener('click', () => finishDeleteConfirm(null));
+  dialog.addEventListener('cancel', event => {
+    event.preventDefault();
+    finishDeleteConfirm(null);
+  });
+}
+
 function renderList() {
   syncCalendarShell();
   syncListFilterUI();
@@ -1152,6 +1832,28 @@ function renderList() {
     list.innerHTML = renderCalendar();
     playCalendarTransition(list);
     alignMobileWeek(list);
+    return;
+  }
+  if (currentView === 'stats') {
+    const total = statsCollectionItems().length;
+    $('#viewTitle').textContent = viewTitle();
+    $('#viewEyebrow').textContent = window.actaDataName || t('actaData');
+    $('#itemCountLabel').textContent = `${total} ${t('item')}`;
+    list.className = 'item-list stats-list';
+    list.innerHTML = renderStats();
+    bindStatsView();
+    return;
+  }
+  if (currentView === 'trash') {
+    const items = getVisibleItems();
+    $('#viewTitle').textContent = viewTitle();
+    $('#viewEyebrow').textContent = t('trashOpenHint');
+    $('#itemCountLabel').textContent = `${items.length} ${t('trashItems')}`;
+    list.className = 'item-list trash-list';
+    list.innerHTML = items.length
+      ? renderTrashList(items)
+      : `<div class="empty-list trash-empty"><div><span><svg><use href="#i-trash"/></svg></span><h3>${escapeHTML(t('trashEmptyTitle'))}</h3><p>${escapeHTML(t('trashEmptyHint'))}</p></div></div>`;
+    bindTrashList();
     return;
   }
   const items = getVisibleItems();
@@ -1179,9 +1881,9 @@ function renderList() {
       <div class="card-top"><span class="type-pill ${item.type}"><svg><use href="#i-${item.type === 'todo' ? 'check' : 'note'}"/></svg>${t(item.type)}</span>${item.type === 'todo' ? `<span class="priority-pill ${item.priority || 'medium'}">${t(item.priority || 'medium')}</span>` : ''}${dateMarkup}</div>
       <h3>${escapeHTML(item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote')))}</h3>
       <p>${escapeHTML(itemPreview(item))}</p>
-      <div class="card-bottom"><span class="mini-folder"><i class="folder-dot" style="background:${folder?.color || '#999'}"></i>${escapeHTML(folderName(folder))}</span>
+      <div class="card-bottom"><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span>
       ${linkedCount ? `<span class="link-count"><svg><use href="#i-link"/></svg>${linkedCount}</span>` : ''}
-      ${item.type === 'todo' ? `<span>${completed}/${total}</span><span class="mini-progress"><i style="width:${progress}%"></i></span>` : `<span><svg><use href="#i-tag"/></svg> ${(item.tags || []).length}</span>`}</div>
+      ${item.type === 'todo' ? `<span>${completed}/${total}</span><span class="mini-progress"><i style="width:${progress}%"></i></span>` : ''}</div>
     </button>`;
   }).join('');
 }
@@ -1195,7 +1897,7 @@ function editorTop(item) {
     <div class="editor-actions">
       ${item.type === 'todo' ? `<button id="completeItem" title="${isTodoComplete(item) ? t('reopenTask') : t('completeTask')}"><svg><use href="#i-check"/></svg></button>` : ''}
       ${item.type === 'note' ? `<button id="exportNote" title="${t('exportNote')}"><svg><use href="#i-upload"/></svg></button>` : ''}
-      <button id="deleteItem" title="${t('deleted')}"><svg><use href="#i-trash"/></svg></button>
+      <button id="deleteItem" title="${t('moveToTrash')}"><svg><use href="#i-trash"/></svg></button>
       <button title="${t('archive')}"><svg><use href="#i-more"/></svg></button>
     </div>
   </div>`;
@@ -1204,6 +1906,7 @@ function editorTop(item) {
 function linkedItemsSection(item) {
   const linkedItems = getLinkedItems(item);
   const availableItems = library.items.filter(entry => entry.id !== item.id
+    && !isTrashed(entry)
     && (item.type === 'todo' || entry.type === 'todo')
     && !linkedItems.some(linked => linked.id === entry.id));
   const pickerLabel = item.type === 'note' ? t('chooseTodo') : t('linkedItems');
@@ -1233,7 +1936,8 @@ let bindTodoEditor;
 let createItem;
 
 function renderEditor() {
-  const item = getItem();
+  let item = getItem();
+  if (item && isTrashed(item)) item = null;
   const pane = $('#editorPane');
   const previousEditorId = $('.editor-wrap', pane)?.dataset.editorId;
   document.body.classList.remove('note-focus-mode', 'note-focus-leaving');
@@ -1339,12 +2043,20 @@ function bindEditor(item) {
     if (focusTitle) focusTitle.textContent = item.title || t('untitledNote');
     updateCard(item);
   });
-  $('#deleteItem')?.addEventListener('click', () => {
-    if (!confirm(t('deleteConfirm'))) return;
-    library.items.forEach(entry => { entry.linkedIds = (entry.linkedIds || []).filter(id => id !== item.id); });
-    library.items = library.items.filter(entry => entry.id !== item.id);
-    selectedId = getVisibleItems()[0]?.id || library.items[0]?.id || null;
-    persist(); renderAll(); showToast(t('deleted'));
+  $('#deleteItem')?.addEventListener('click', async () => {
+    const choice = await askItemDelete(item);
+    if (!choice) return;
+    if (choice === 'trash') {
+      item.deletedAt = new Date().toISOString();
+      unlinkForTrash(item);
+      const nextSelection = getVisibleItems().find(entry => entry.id !== item.id) || activeItems()[0];
+      selectedId = nextSelection?.id || null;
+      persist();
+      renderAll();
+      return;
+    }
+    destroyItems([item.id]);
+    showToast(t('destroyed'));
   });
   $('#completeItem')?.addEventListener('click', () => {
     const nextState = !isTodoComplete(item);
@@ -1361,13 +2073,6 @@ function bindEditor(item) {
     renderSidebar();
     renderList();
   });
-  $('#classificationTags')?.addEventListener('change', event => {
-    item.tags = event.target.value.split(',').map(tag => tag.trim()).filter(Boolean);
-    touchItem(item);
-    syncEditorModifiedTime(item);
-    updateCard(item);
-  });
-
   if (item.type === 'note') bindNoteEditor(item);
   else bindTodoEditor(item);
   bindLinkedItems(item);
@@ -1922,7 +2627,11 @@ function openItem(id) {
   const target = library.items.find(item => item.id === id);
   if (!target) return;
   selectedId = id;
-  currentView = isTodoComplete(target) ? 'completed' : (target.type === 'todo' ? 'todos' : 'notes');
+  if (isTodoComplete(target) && target.type === 'todo') {
+    settings.showCompletedTodos = true;
+    persist();
+  }
+  currentView = target.type === 'todo' ? 'todos' : 'notes';
   resetListFilters(target.type);
   searchQuery = '';
   mobileEditorOpen = true;
@@ -2066,6 +2775,44 @@ async function exportNoteToFile(item) {
   } catch (error) {
     showToast(`${t('exportFailed')}: ${error?.message || t('invalidNoteFile')}`);
   }
+}
+
+function askClassificationName(defaultName) {
+  return new Promise(resolve => {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'relation-dialog folder-name-dialog';
+    dialog.innerHTML = `
+      <header class="relation-dialog-head"><span><svg><use href="#i-folder"/></svg></span><h3>${escapeHTML(t('folderPrompt'))}</h3><button class="relation-dialog-close" type="button" aria-label="${escapeHTML(t('cancel'))}"><svg><use href="#i-close"/></svg></button></header>
+      <form class="relation-dialog-body folder-name-form" method="dialog" novalidate>
+        <input class="folder-name-input" maxlength="60" autocomplete="off" value="${escapeHTML(defaultName)}"/>
+        <div class="settings-actions">
+          <button type="button" class="settings-button secondary" data-folder-cancel>${escapeHTML(t('cancel'))}</button>
+          <button type="submit" class="settings-button"><svg><use href="#i-plus"/></svg><span>${escapeHTML(t('confirm'))}</span></button>
+        </div>
+      </form>`;
+    const input = dialog.querySelector('.folder-name-input');
+    let settled = false;
+    const finish = value => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+      if (dialog.open) dialog.close();
+      dialog.remove();
+    };
+    dialog.querySelector('[data-folder-cancel]').addEventListener('click', () => finish(null));
+    dialog.querySelector('.relation-dialog-close').addEventListener('click', () => finish(null));
+    dialog.addEventListener('cancel', event => { event.preventDefault(); finish(null); });
+    dialog.addEventListener('close', () => finish(null));
+    dialog.addEventListener('submit', event => {
+      event.preventDefault();
+      const value = input.value.trim();
+      finish(value || null);
+    });
+    document.body.appendChild(dialog);
+    dialog.showModal();
+    input.focus();
+    input.select();
+  });
 }
 
 function bindShell() {
@@ -2216,13 +2963,24 @@ function bindShell() {
     resetListFilters(listFilterContext());
     refreshFilteredList();
   });
+  $('#listSortOrder')?.addEventListener('change', event => {
+    listSortMode = listSortModes.includes(event.target.value) ? event.target.value : 'updated';
+    settings.sortMode = listSortMode;
+    persist();
+    refreshFilteredList();
+  });
+  $('#todoShowCompleted')?.addEventListener('change', event => {
+    settings.showCompletedTodos = event.target.checked;
+    persist();
+    refreshFilteredList();
+  });
   $('#searchInput').addEventListener('input', event => {
     searchQuery = event.target.value.trim(); renderList();
     const visible = getVisibleItems();
     if (!visible.some(item => item.id === selectedId)) { selectedId = visible[0]?.id || null; renderEditor(); }
   });
-  $('#addFolder').addEventListener('click', () => {
-    const name = prompt(t('folderPrompt'), t('folderDefault'))?.trim();
+  $('#addFolder').addEventListener('click', async () => {
+    const name = await askClassificationName(t('folderDefault'));
     if (!name) return;
     const palette = ['#6f8a72', '#b68b54', '#7a7799', '#a87876', '#668792'];
     const folder = { id: uid(), name, color: palette[library.folders.length % palette.length] };
@@ -2233,12 +2991,21 @@ function bindShell() {
     if (currentView !== 'calendar') return;
     renderList();
   });
+  bindDeleteConfirmDialog();
   document.addEventListener('keydown', event => {
     if (isImeComposing(event)) return;
     const mod = event.metaKey || event.ctrlKey;
-    if (mod && event.key.toLowerCase() === 'n') { event.preventDefault(); createItem('note'); }
-    if (mod && event.key.toLowerCase() === 'k') { event.preventDefault(); $('#searchInput').focus(); }
-    if (event.key === 'Escape') $('#createMenu').classList.remove('open');
+    if (!mod) {
+      if (event.key === 'Escape') $('#createMenu').classList.remove('open');
+      return;
+    }
+    // Keep the global shortcuts from hijacking keys inside the editor, quick capture
+    // and settings inputs; ignore auto-repeat so holding the combo creates one item.
+    if (event.repeat) return;
+    if (event.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return;
+    if (document.querySelector('dialog[open]')) return;
+    if (event.key.toLowerCase() === 'n') { event.preventDefault(); createItem('note'); }
+    if (event.key.toLowerCase() === 'k') { event.preventDefault(); $('#searchInput').focus(); }
   });
 }
 

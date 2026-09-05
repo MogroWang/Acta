@@ -6,7 +6,7 @@
     customTodo: '#4f86a8', customTodoSoft: '#dceef8', customNote: '#987329', customNoteSoft: '#fff0bd', customCalendar: '#4f7656', customCalendarSoft: '#dcebdd',
     appIconPreset: 'default', customAppIcon: '',
     appFont: 'system', customFont: 'Inter', appFontSize: 14,
-    noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteHeadingStyle: 'classic',
+    noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteHeadingStyle: 'classic', noteLineHeight: 1.6,
     noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
     oneDriveFolder: '', oneDriveLabel: '', workspaceLabel: '',
     dataProfiles: [], activeDataProfileId: '', cloudSyncMode: 'onedrive', webDavServer: '', webDavUsername: '', autoSync: false, autoSyncInterval: 5, listPaneWidth: 330, sidebarCollapsed: false, language: ['zh', 'zh-Hant', 'en'].includes(settings.language) ? settings.language : 'zh'
@@ -19,12 +19,15 @@
   let currentAppIconURL = './icons/icon-192.png';
   const migratedTodayView = uiSettings.defaultView === 'today';
   if (migratedTodayView) uiSettings.defaultView = 'calendar';
+  const migratedStatsView = uiSettings.defaultView === 'completed';
+  if (migratedStatsView) uiSettings.defaultView = 'stats';
 
   const byId = id => document.getElementById(id);
   const settingsModal = byId('settingsModal');
   const saveUISettings = () => localStorage.setItem(uiStorageKey, JSON.stringify(uiSettings));
   if (migratedTodayView || migratedAppIconPreset) saveUISettings();
   const saveRendererSettings = () => localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...settings, language: uiSettings.language === 'zh-Hant' ? 'zh' : uiSettings.language }));
+  if (migratedTodayView || migratedStatsView) saveUISettings();
   Object.assign(dictionaries.zh, { syncTitle:'连接本地文件夹', syncCopy:'选择设备本地、局域网或系统已挂载的网络文件夹。Acta 会在其中读写清单、归类、notes 和 todos 完整数据文件夹。', download:'下载完整数据文件夹', upload:'上传完整数据文件夹' });
   Object.assign(dictionaries.en, { syncTitle:'Connect a local folder', syncCopy:'Choose a device folder, LAN location, or mounted network folder. Acta reads and writes the complete manifest, classifications, notes, and todos data folder there.', download:'Download complete data folder', upload:'Upload complete data folder' });
   dictionaries['zh-Hant'] = {
@@ -44,7 +47,22 @@
     inboxFolder:'靈感收集', workFolder:'工作計畫', lifeFolder:'生活清單', readingFolder:'閱讀摘記', linkedItems:'關聯項目', linkTodo:'關聯待辦', linkNote:'關聯筆記',
     chooseTodo:'選擇一個待辦…', chooseNote:'選擇一則筆記…', noLinks:'還沒有關聯項目', unlink:'取消關聯', linked:'已建立雙向關聯', unlinked:'已取消關聯',
     importNote:'匯入筆記', importNoteHint:'支援 Markdown 與純文字', exportNote:'匯出這則筆記', noteImported:'筆記已匯入', noteExported:'筆記已匯出',
-    importFailed:'匯入失敗', exportFailed:'匯出失敗', fileTooLarge:'檔案不能超過 5 MB', invalidNoteFile:'無法讀取這份筆記'
+    importFailed:'匯入失敗', exportFailed:'匯出失敗', fileTooLarge:'檔案不能超過 5 MB', invalidNoteFile:'無法讀取這份筆記',
+    stats:'統計', showCompletedTodos:'顯示已完成', statOpen:'進行中', confirm:'確定', cancel:'取消',
+    statsEmpty:'這裡還沒有內容可以統計', statsEmptyHint:'建立筆記或待辦後，這裡會展示記錄情況。',
+    trash:'回收站', trashItems:'件回收',
+    trashEmptyTitle:'回收站還是空的', trashEmptyHint:'刪除的待辦和筆記會先躺在這裡，不會自動清空，隨時回來翻翻，也許就有新的靈感。',
+    trashFooterNote:'回收站不會自動傾倒', restore:'恢復', destroy:'徹底刪除', restored:'已恢復到原位', destroyed:'已徹底刪除',
+    emptyTrash:'清空回收站', emptyTrashConfirmTitle:'清空回收站', emptyTrashConfirmMessage:'回收站中的 {0} 件內容將被徹底刪除，無法恢復。', trashEmptied:'回收站已清空',
+    deletedAt:'刪除於', restoreHint:'恢復到原來的歸類', trashOpenHint:'回收站中的內容不會出現在列表、日曆與統計裡',
+    deleteTitle:'刪除項目', deleteSubtitle:'選擇如何處理「{0}」', deleteTrashLabel:'移入回收站', deleteTrashHint:'保留在回收站中，隨時可以恢復', deleteDestroyLabel:'直接刪除', deleteDestroyHint:'不進入回收站，立即徹底刪除', moveToTrash:'移入回收站', deletedToTrash:'已移入回收站',
+    statsListTitle:'待辦筆記清單', statsListHint:'收集指定時間段建立的待辦與筆記，勾選後可製作圖片',
+    statsRangeAll:'全部時間', statsRangeToday:'今天', statsRange7:'最近 7 天', statsRange30:'最近 30 天', statsRange90:'最近 90 天', statsRangeCustom:'自訂',
+    statsCustomStart:'開始日期', statsCustomEnd:'截止日期', statsMakeImage:'產生圖片', statsSelectedCount:'已選 {0} 件', statsSelectAll:'全選', statsClearSelection:'清除選擇',
+    statsNeedSelection:'請先勾選要產生圖片的條目', statsImageDone:'清單圖片已產生', statsImageFailed:'圖片產生失敗', statsEmptyRange:'這個時間段還沒有內容',
+    statsGroupToday:'今天', statsGroupYesterday:'昨天', statsCheckItem:'加入圖片',
+    metaQuickActions:'快捷操作', metaCopyTitle:'複製標題', metaCopyBody:'複製全文', metaCopyNotes:'複製說明', metaCopyMarkdown:'複製 Markdown', metaMarkComplete:'標記完成', metaReopen:'重新開啟', metaViewCalendar:'在日曆查看', metaTrash:'移入回收站',
+    copied:'已複製到剪貼簿', copyFailed:'複製失敗'
   };
   Object.assign(dictionaries.zh, { high:'优先处理', medium:'稍后处理', low:'延缓处理' });
   Object.assign(dictionaries.en, { high:'Do first', medium:'Do later', low:'Delay' });
@@ -128,7 +146,7 @@
     '缓存与页面':'Cache and page',
     '清除应用缓存并重新加载最新页面，不会删除笔记、待办或设置。':'Clear the app cache and reload the latest page. Notes, tasks, and settings are not deleted.',
     '清除缓存重新加载':'Clear cache and reload',
-    '森林晨雾':'Forest mist', '海盐晚霞':'Sea-salt sunset', '糖果气泡':'Candy pop', '深海霓虹':'Neon ocean', '极光夜色':'Aurora night', '多彩浅色':'Colorful light', '深色发光':'Dark glow',
+    '森林晨雾':'Forest mist', '海盐晚霞':'Sea-salt sunset', '糖果气泡':'Candy pop', '深夜霓虹':'Midnight neon', '极光夜色':'Aurora night', '多彩浅色':'Colorful light', '深色发光':'Dark glow', '特殊主题':'Special theme',
     '基础界面':'Base interface', '内容类型':'Content types', '待办主题色':'Task accent', '待办浅色背景':'Task soft background', '笔记主题色':'Note accent', '笔记浅色背景':'Note soft background', '日历主题色':'Calendar accent', '日历浅色背景':'Calendar soft background',
     '应用图标':'App icon', '应用于 Tauri 桌面客户端和 Capacitor 移动客户端；网页标签页图标保持默认。':'Used by the Tauri desktop client and Capacitor mobile client; the browser tab icon stays unchanged.',
     '默认书页':'Default page', '正·书页':'True · Page', '勾勒·书页':'Outline · Page', '初版简洁':'Original minimal', '自定义图标':'Custom icon', '选择自定义图标':'Choose custom icon', '恢复默认图标':'Restore default icon',
@@ -143,13 +161,15 @@
     '经典衬线':'Classic serif', '现代无衬线':'Modern sans serif', '简约强调':'Minimal accent',
     '工具栏位置':'Toolbar position', '固定在笔记编辑器的上方或下方':'Pin the toolbar above or below the note editor',
     '上方':'Top', '下方':'Bottom', '显示工具名称':'Show tool names', '在图标旁显示工具名称，空间不足时自动换行':'Show names beside icons; wrap automatically when space is limited',
-    '标题预览':'Heading preview', '一级标题':'Heading 1', '二级标题':'Heading 2', '三级标题':'Heading 3'
+    '标题预览':'Heading preview', '一级标题':'Heading 1', '二级标题':'Heading 2', '三级标题':'Heading 3',
+    '正文行间距':'Body line spacing', 'Markdown 渲染后的正文与源码行距':'Line spacing for the rendered Markdown body and source',
+    '统计':'Statistics'
   });
   Object.assign(interfaceTranslations['zh-Hant'], {
     '缓存与页面':'快取與頁面',
     '清除应用缓存并重新加载最新页面，不会删除笔记、待办或设置。':'清除應用程式快取並重新載入最新頁面，不會刪除筆記、待辦或設定。',
     '清除缓存重新加载':'清除快取並重新載入',
-    '森林晨雾':'森林晨霧', '海盐晚霞':'海鹽晚霞', '糖果气泡':'糖果氣泡', '深海霓虹':'深海霓虹', '极光夜色':'極光夜色', '多彩浅色':'多彩淺色', '深色发光':'深色發光',
+    '森林晨雾':'森林晨霧', '海盐晚霞':'海鹽晚霞', '糖果气泡':'糖果氣泡', '深夜霓虹':'深夜霓虹', '极光夜色':'極光夜色', '多彩浅色':'多彩淺色', '深色发光':'深色發光', '特殊主题':'特殊主題',
     '基础界面':'基礎介面', '内容类型':'內容類型', '待办主题色':'待辦主題色', '待办浅色背景':'待辦淺色背景', '笔记主题色':'筆記主題色', '笔记浅色背景':'筆記淺色背景', '日历主题色':'日曆主題色', '日历浅色背景':'日曆淺色背景',
     '应用图标':'應用程式圖示', '应用于 Tauri 桌面客户端和 Capacitor 移动客户端；网页标签页图标保持默认。':'套用於 Tauri 桌面用戶端與 Capacitor 行動用戶端；瀏覽器分頁圖示維持預設。',
     '默认书页':'預設書頁', '正·书页':'正·書頁', '勾勒·书页':'勾勒·書頁', '初版简洁':'初版簡潔', '自定义图标':'自訂圖示', '选择自定义图标':'選擇自訂圖示', '恢复默认图标':'恢復預設圖示',
@@ -164,7 +184,9 @@
     '经典衬线':'經典襯線', '现代无衬线':'現代無襯線', '简约强调':'簡約強調',
     '工具栏位置':'工具列位置', '固定在笔记编辑器的上方或下方':'固定在筆記編輯器的上方或下方',
     '上方':'上方', '下方':'下方', '显示工具名称':'顯示工具名稱', '在图标旁显示工具名称，空间不足时自动换行':'在圖示旁顯示工具名稱，空間不足時自動換行',
-    '标题预览':'標題預覽', '一级标题':'一級標題', '二级标题':'二級標題', '三级标题':'三級標題'
+    '标题预览':'標題預覽', '一级标题':'一級標題', '二级标题':'二級標題', '三级标题':'三級標題',
+    '正文行间距':'正文行距', 'Markdown 渲染后的正文与源码行距':'Markdown 轉譯後的正文與原始碼行距',
+    '统计':'統計'
   });
 
   const settingsTextEntries = [];
@@ -571,7 +593,7 @@
     byId('mobileClassificationList').setAttribute('aria-label', copy.mobileTitle);
     byId('closeMobileClassifications').setAttribute('aria-label', copy.close);
     byId('mobileClassificationList').innerHTML = library.folders.map(folder => {
-      const count = library.items.filter(item => item.folderId === folder.id).length;
+      const count = library.items.filter(item => item.folderId === folder.id && !isTrashed(item)).length;
       const shortName = folderShortName(folder);
       const shortNameClasses = ['folder-short-name', folderShortNameUsesEmoji(shortName) ? 'is-emoji' : '', folderShortSegments(shortName).length > 2 ? 'is-long' : ''].filter(Boolean).join(' ');
       const name = folderName(folder);
@@ -683,7 +705,7 @@
       classificationManagerFolderId = folder?.id || '';
     }
     if (!folder) return;
-    const folderItems = library.items.filter(item => item.folderId === folder.id);
+    const folderItems = library.items.filter(item => item.folderId === folder.id && !isTrashed(item));
     const notes = folderItems.filter(item => item.type === 'note');
     const todos = folderItems.filter(item => item.type === 'todo');
     const fallback = library.folders.find(entry => entry.id !== folder.id);
@@ -711,7 +733,7 @@
     byId('cancelClassificationManager').textContent = copy.close;
     byId('saveClassificationManager').querySelector('span').textContent = copy.save;
     byId('classificationManagerList').innerHTML = library.folders.map(entry => {
-      const itemCount = library.items.filter(item => item.folderId === entry.id).length;
+      const itemCount = library.items.filter(item => item.folderId === entry.id && !isTrashed(item)).length;
       return `<button type="button" data-classification-folder="${escapeHTML(entry.id)}" class="${entry.id === folder.id ? 'active' : ''}" style="--folder-color:${escapeHTML(normalizedClassificationColor(entry.color))}">
         <i class="folder-dot"></i><span><strong>${escapeHTML(folderName(entry))}</strong><small>${escapeHTML(formatClassificationMessage(copy.itemCount, itemCount))}</small></span><svg><use href="#i-chevron"/></svg>
       </button>`;
@@ -936,7 +958,7 @@
     const fallback = library.folders.find(entry => entry.id !== folder?.id);
     if (!folder || !fallback) return;
     const copy = classificationText();
-    const itemCount = library.items.filter(item => item.folderId === folder.id).length;
+    const itemCount = library.items.filter(item => item.folderId === folder.id && !isTrashed(item)).length;
     if (!confirm(formatClassificationMessage(copy.deleteConfirm, folderName(folder), itemCount, folderName(fallback)))) return;
     const movedAt = new Date().toISOString();
     library.items.forEach(item => { if (item.folderId === folder.id) { item.folderId = fallback.id; item.updatedAt = movedAt; } });
@@ -1004,10 +1026,31 @@
   };
   const itemMetaText = () => itemMetaMessages[uiSettings.language] || itemMetaMessages.zh;
 
+  function itemQuickActionsField(item) {
+    const actions = item.type === 'todo' ? [
+      { action:'toggle-complete', icon:'i-check', label: isTodoComplete(item) ? t('metaReopen') : t('metaMarkComplete') },
+      { action:'copy-title', icon:'i-copy', label: t('metaCopyTitle') },
+      { action:'copy-content', icon:'i-note', label: t('metaCopyNotes') },
+      ...(todoIsScheduled(item) ? [{ action:'view-calendar', icon:'i-calendar', label: t('metaViewCalendar') }] : []),
+      { action:'trash', icon:'i-trash', label: t('metaTrash'), danger:true }
+    ] : [
+      { action:'copy-title', icon:'i-copy', label: t('metaCopyTitle') },
+      { action:'copy-content', icon:'i-note', label: t('metaCopyBody') },
+      { action:'copy-markdown', icon:'i-markdown', label: t('metaCopyMarkdown') },
+      { action:'trash', icon:'i-trash', label: t('metaTrash'), danger:true }
+    ];
+    return `<div class="meta-field quick-actions-field">
+      <div class="meta-field-heading"><label><svg><use href="#i-spark"/></svg>${escapeHTML(t('metaQuickActions'))}</label></div>
+      <div class="meta-quick-actions">
+        ${actions.map(action => `<button type="button" data-meta-action="${action.action}" class="${action.danger ? 'is-danger' : ''}"><svg><use href="#${action.icon}"/></svg><span>${escapeHTML(action.label)}</span></button>`).join('')}
+      </div>
+    </div>`;
+  }
+
   function itemMetaPopover(item) {
     const copy = itemMetaText();
     if (item.type === 'note') {
-      return `<div class="item-meta-popover note-meta-popover" id="itemMetaPopover" role="group" aria-label="${escapeHTML(copy.panel)}" hidden>${classificationField(item)}</div>`;
+      return `<div class="item-meta-popover note-meta-popover" id="itemMetaPopover" role="group" aria-label="${escapeHTML(copy.panel)}" hidden>${itemQuickActionsField(item)}${classificationField(item)}</div>`;
     }
     const metaCopy = todoMetaText();
     const startLabel = item.startAt ? formatDateTimeSeconds(item.startAt) : metaCopy.notSet;
@@ -1027,8 +1070,8 @@
           <small>${escapeHTML(metaCopy.immutable)}</small>
         </div>
         <div class="schedule-display" id="scheduleDisplay">
-          <span><b>${escapeHTML(metaCopy.start)}</b><time id="scheduleStartValue" datetime="${escapeHTML(item.startAt || '')}">${escapeHTML(startLabel)}</time></span>
-          <span><b>${escapeHTML(metaCopy.due)}</b><time id="scheduleDueValue" datetime="${escapeHTML(item.dueAt || '')}">${escapeHTML(dueLabel)}</time></span>
+          <span ${item.startAt ? '' : 'hidden'}><b>${escapeHTML(metaCopy.start)}</b><time id="scheduleStartValue" datetime="${escapeHTML(item.startAt || '')}">${escapeHTML(startLabel)}</time></span>
+          <span ${item.dueAt ? '' : 'hidden'}><b>${escapeHTML(metaCopy.due)}</b><time id="scheduleDueValue" datetime="${escapeHTML(item.dueAt || '')}">${escapeHTML(dueLabel)}</time></span>
         </div>
         <div class="schedule-editor" id="scheduleEditor" hidden>
           <div class="schedule-editor-row"><label for="todoStartAt">${escapeHTML(metaCopy.start)}</label><button id="clearTodoStartAt" type="button">${escapeHTML(metaCopy.clear)}</button><input id="todoStartAt" type="datetime-local" step="1" value="${escapeHTML(dateTimeLocalValue(item.startAt))}" /></div>
@@ -1041,6 +1084,7 @@
         ${['high','medium','low'].map(value => `<button type="button" data-priority="${value}" class="${item.priority === value ? 'active' : ''}">${t(value)}</button>`).join('')}
       </div></div>
       ${classificationField(item)}
+      ${itemQuickActionsField(item)}
     </div>`;
   }
 
@@ -1121,8 +1165,8 @@
       <textarea class="editor-title" id="editorTitle" rows="1" placeholder="${t('untitledTodo')}">${escapeHTML(item.title)}</textarea>
       <div class="editor-subline todo-time-line" aria-label="${escapeHTML(metaCopy.schedule)}">
         <time id="todoCreatedAtSummary" datetime="${escapeHTML(item.createdAt)}"><svg><use href="#i-calendar"/></svg><b>${escapeHTML(metaCopy.created)}</b><span>${escapeHTML(formatDateTimeSeconds(item.createdAt))}</span></time>
-        <time id="todoStartAtSummary" datetime="${escapeHTML(item.startAt || '')}"><svg><use href="#i-clock"/></svg><b>${escapeHTML(metaCopy.start)}</b><span>${escapeHTML(startLabel)}</span></time>
-        <time id="todoDueAtSummary" datetime="${escapeHTML(item.dueAt || '')}"><svg><use href="#i-clock"/></svg><b>${escapeHTML(metaCopy.due)}</b><span>${escapeHTML(dueLabel)}</span></time>
+        <time id="todoStartAtSummary" datetime="${escapeHTML(item.startAt || '')}" ${item.startAt ? '' : 'hidden'}><svg><use href="#i-clock"/></svg><b>${escapeHTML(metaCopy.start)}</b><span>${escapeHTML(startLabel)}</span></time>
+        <time id="todoDueAtSummary" datetime="${escapeHTML(item.dueAt || '')}" ${item.dueAt ? '' : 'hidden'}><svg><use href="#i-clock"/></svg><b>${escapeHTML(metaCopy.due)}</b><span>${escapeHTML(dueLabel)}</span></time>
       </div>
       ${linkedItemsSection(item)}
       <div class="progress-head"><h2>${t('progress')}</h2><span>${completed} / ${tasks.length} · ${progress}% ${t('done')}</span></div>
@@ -1135,7 +1179,7 @@
         </div>`).join('')}
       </div>
       <button class="add-task" id="addTask"><span><svg><use href="#i-plus"/></svg></span>${t('addTask')}</button>
-      <section class="note-block"><h2>${t('description')}</h2><div class="todo-notes" id="todoNotes" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('descriptionPlaceholder')}">${escapeHTML(item.notes || '')}</div></section>
+      <section class="note-block"><h2>${t('description')}</h2><div class="todo-notes" id="todoNotes" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('descriptionPlaceholder')}">${escapeHTML(item.notes || '').replace(/\n/g, '<br>')}</div></section>
     </article>`;
   };
 
@@ -1198,15 +1242,20 @@
       delete item.durationMinutes;
       const startValue = byId('scheduleStartValue');
       const dueValue = byId('scheduleDueValue');
-      startValue.dateTime = item.startAt;
-      startValue.textContent = item.startAt ? formatDateTimeSeconds(item.startAt) : metaCopy.notSet;
-      dueValue.dateTime = item.dueAt;
-      dueValue.textContent = item.dueAt ? formatDateTimeSeconds(item.dueAt) : metaCopy.notSet;
+      const syncDisplayValue = (timeEl, value) => {
+        if (!timeEl) return;
+        timeEl.dateTime = value || '';
+        timeEl.textContent = value ? formatDateTimeSeconds(value) : metaCopy.notSet;
+        timeEl.parentElement?.toggleAttribute('hidden', !value);
+      };
+      syncDisplayValue(startValue, item.startAt);
+      syncDisplayValue(dueValue, item.dueAt);
       const syncSummaryTime = (id, value) => {
         const summary = byId(id);
         if (!summary) return;
         summary.dateTime = value || '';
         summary.querySelector('span').textContent = value ? formatDateTimeSeconds(value) : metaCopy.notSet;
+        summary.toggleAttribute('hidden', !value);
       };
       syncSummaryTime('todoStartAtSummary', item.startAt);
       syncSummaryTime('todoDueAtSummary', item.dueAt);
@@ -1252,7 +1301,13 @@
       });
     });
     byId('addTask').addEventListener('click', () => addTask(item));
-    byId('todoNotes').addEventListener('input', event => { item.notes = event.target.textContent; touchItem(item); updateCard(item); });
+    byId('todoNotes').addEventListener('input', event => {
+      // innerText (unlike textContent) keeps the line breaks the user sees, so re-rendering
+      // the editor (e.g. after adding a subtask) no longer collapses them.
+      item.notes = event.target.innerText.replace(/\r/g, '').replace(/\n+$/, '');
+      touchItem(item);
+      updateCard(item);
+    });
   };
 
   const rendererBindEditor = bindEditor;
@@ -1311,21 +1366,89 @@
     if (event.key === 'Escape' && !byId('itemMetaPopover')?.hidden) closeItemMetaPopover(true);
   });
 
+  const copyTextToClipboard = async text => {
+    try {
+      if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(text); return true; }
+    } catch { /* Fall through to the execCommand fallback. */ }
+    try {
+      const helper = document.createElement('textarea');
+      helper.value = text;
+      helper.setAttribute('readonly', '');
+      helper.style.position = 'fixed';
+      helper.style.opacity = '0';
+      document.body.appendChild(helper);
+      helper.select();
+      const ok = document.execCommand('copy');
+      helper.remove();
+      return ok;
+    } catch { return false; }
+  };
+
+  document.addEventListener('click', event => {
+    const actionButton = event.target.closest?.('[data-meta-action]');
+    if (!actionButton) return;
+    const item = getItem();
+    if (!item || isTrashed(item)) return;
+    event.preventDefault();
+    closeItemMetaPopover();
+    const action = actionButton.dataset.metaAction;
+    const copyAndReport = async text => {
+      const ok = await copyTextToClipboard(text);
+      showToast(ok ? t('copied') : t('copyFailed'));
+    };
+    if (action === 'toggle-complete') {
+      setTodoCompletion(item, !isTodoComplete(item));
+      renderAll();
+      showToast(isTodoComplete(item) ? t('done') : t('reopenTask'));
+      return;
+    }
+    if (action === 'copy-title') { copyAndReport(item.title || ''); return; }
+    if (action === 'copy-content') { copyAndReport(item.type === 'note' ? stripHTML(item.body) : (item.notes || '')); return; }
+    if (action === 'copy-markdown') { copyAndReport(item.type === 'note' ? noteHTMLToMarkdown(item.body) : (item.notes || '')); return; }
+    if (action === 'view-calendar') {
+      calendarCursor = todoStartDate(item) || calendarDate(todayISO());
+      currentView = 'calendar';
+      calendarMotion = 'enter';
+      resetListFilters();
+      renderAll();
+      return;
+    }
+    if (action === 'trash') {
+      (async () => {
+        const choice = await askItemDelete(item);
+        if (!choice) return;
+        if (choice === 'trash') {
+          item.deletedAt = new Date().toISOString();
+          unlinkForTrash(item);
+          const nextSelection = getVisibleItems().find(entry => entry.id !== item.id) || activeItems()[0];
+          selectedId = nextSelection?.id || null;
+          persist();
+          renderAll();
+          return;
+        }
+        destroyItems([item.id]);
+        showToast(t('destroyed'));
+      })();
+    }
+  });
+
   function syncMergedTodoNavigation() {
     const switchButton = byId('todoStatusSwitch');
     const todoNavigation = document.querySelector('.smart-nav [data-view="todos"]');
-    const onTodoView = currentView === 'todos' || currentView === 'completed';
+    const onTodoView = currentView === 'todos';
     const mobile = matchMedia('(max-width: 800px)').matches;
     document.body.classList.remove('hide-type-filters');
     document.body.classList.toggle('merged-todo-view', onTodoView);
-    switchButton.hidden = !onTodoView;
-    if (onTodoView) {
-      const nextLabel = currentView === 'completed' ? t('todos') : t('completed');
-      switchButton.querySelector('span').textContent = nextLabel;
-      switchButton.title = nextLabel;
-      switchButton.setAttribute('aria-label', nextLabel);
+    switchButton.hidden = !(onTodoView && mobile);
+    if (!switchButton.hidden) {
+      const showingCompleted = Boolean(settings.showCompletedTodos);
+      switchButton.classList.toggle('active', showingCompleted);
+      switchButton.setAttribute('aria-pressed', String(showingCompleted));
+      const label = t('showCompletedTodos');
+      switchButton.title = label;
+      switchButton.setAttribute('aria-label', label);
     }
-    if (todoNavigation) todoNavigation.classList.toggle('active', currentView === 'todos' || (mobile && currentView === 'completed'));
+    if (todoNavigation) todoNavigation.classList.toggle('active', currentView === 'todos');
 
     document.querySelectorAll('.item-card').forEach(card => {
       if (!card.querySelector('.type-pill.note')) return;
@@ -1341,8 +1464,9 @@
   };
 
   byId('todoStatusSwitch').addEventListener('click', () => {
-    const targetView = currentView === 'completed' ? 'todos' : 'completed';
-    document.querySelector(`.smart-nav [data-view="${targetView}"]`)?.click();
+    settings.showCompletedTodos = !settings.showCompletedTodos;
+    persist();
+    renderList();
   });
   matchMedia('(max-width: 800px)').addEventListener?.('change', syncMergedTodoNavigation);
 
@@ -1908,7 +2032,8 @@
 
   function replaceLibrary(nextLibrary) {
     library = clearLegacyTags(normalizeLibrary(nextLibrary));
-    selectedId = library.items[0]?.id || null;
+    statsSelection.clear();
+    selectedId = activeItems()[0]?.id || null;
     currentView = 'inbox';
     resetListFilters();
     searchQuery = '';
@@ -1924,8 +2049,8 @@
   const profileStats = (profile, snapshot = null) => {
     const source = snapshot?.items || [];
     if (snapshot) {
-      profile.noteCount = source.filter(item => item.type === 'note').length;
-      profile.todoCount = source.filter(item => item.type === 'todo').length;
+      profile.noteCount = source.filter(item => item.type === 'note' && !isTrashed(item)).length;
+      profile.todoCount = source.filter(item => item.type === 'todo' && !isTrashed(item)).length;
       profile.updatedAt = new Date().toISOString();
     }
     return { notes:Number(profile.noteCount) || 0, todos:Number(profile.todoCount) || 0 };
@@ -2123,6 +2248,20 @@
     }, 320);
   };
 
+  // The debounced save plus the async write queue can outlive a closed window or a
+  // backgrounded tab, so flush pending edits on pagehide. Local profiles finish
+  // synchronously inside the call; folder profiles fire the write and let it land.
+  const flushPendingSaves = () => {
+    clearTimeout(saveTimer);
+    clearTimeout(autoSyncSaveTimer);
+    autoSyncSaveTimer = null;
+    flushCurrentDataProfile().catch(() => {});
+  };
+  window.addEventListener('pagehide', flushPendingSaves);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushPendingSaves();
+  });
+
   function missingLibraryFile(error) {
     return error?.name === 'NotFoundError' || /ENOENT|not found|没有 (acta-library|acta-manifest)|不存在|Profile data not found/i.test(error?.message || '');
   }
@@ -2183,7 +2322,7 @@
       let legacyHandle = null;
       if (!savedNativeWorkspace) legacyHandle = await readDirectoryHandle('workspace').catch(() => null);
       const id = uid();
-      const profile = { id, name:uiSettings.workspaceLabel || profileText('defaultName'), storage:savedNativeWorkspace || legacyHandle ? 'folder' : 'local', label:uiSettings.workspaceLabel || localProfileLocation(), noteCount:library.items.filter(item => item.type === 'note').length, todoCount:library.items.filter(item => item.type === 'todo').length, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
+      const profile = { id, name:uiSettings.workspaceLabel || profileText('defaultName'), storage:savedNativeWorkspace || legacyHandle ? 'folder' : 'local', label:uiSettings.workspaceLabel || localProfileLocation(), noteCount:library.items.filter(item => item.type === 'note' && !isTrashed(item)).length, todoCount:library.items.filter(item => item.type === 'todo' && !isTrashed(item)).length, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
       if (savedNativeWorkspace) profile.folder = savedNativeWorkspace;
       else if (legacyHandle) { profile.handleKey = 'workspace'; profile.label = legacyHandle.name || profileText('folder'); }
       dataProfiles.push(profile);
@@ -2198,7 +2337,7 @@
       await activateDataProfile(uiSettings.activeDataProfileId, { createIfMissing:true, notify:false });
       setStatus(byId('workspaceStatus'), profileText('ready'), 'success');
     } catch (error) {
-      const recovery = { id:uid(), name:uniqueProfileName(profileText('defaultName')), storage:'local', label:localProfileLocation(), createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), noteCount:library.items.filter(item => item.type === 'note').length, todoCount:library.items.filter(item => item.type === 'todo').length };
+      const recovery = { id:uid(), name:uniqueProfileName(profileText('defaultName')), storage:'local', label:localProfileLocation(), createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), noteCount:library.items.filter(item => item.type === 'note' && !isTrashed(item)).length, todoCount:library.items.filter(item => item.type === 'todo' && !isTrashed(item)).length };
       dataProfiles.push(recovery);
       await createLocalProfileAdapter(recovery).save(library);
       await activateDataProfile(recovery.id, { notify:false });
@@ -2424,9 +2563,16 @@
     el.classList.remove('ok', 'error');
     if (aboutUpdateState === 'error') el.classList.add('error');
     else if (aboutUpdateState === 'available' || aboutUpdateState === 'latest') el.classList.add('ok');
-    const linkHtml = (url, key) => `<a href="${url}" target="_blank" rel="noopener">${updateText(key)}</a>`;
+    // The url/remote values come from the GitHub API; whitelist the host and escape
+    // before they reach an href or the innerHTML template.
+    const safeReleaseHref = value => (
+      typeof value === 'string' && /^https:\/\/(github\.com|api\.github\.com)\//i.test(value)
+        ? escapeHTML(value)
+        : escapeHTML(ACTA_RELEASES_URL)
+    );
+    const linkHtml = (url, key) => `<a href="${safeReleaseHref(url)}" target="_blank" rel="noopener">${updateText(key)}</a>`;
     if (aboutUpdateState === 'available') {
-      const remote = extractActaVersion(aboutUpdateVars.remote) || aboutUpdateVars.remote || '';
+      const remote = escapeHTML(extractActaVersion(aboutUpdateVars.remote) || aboutUpdateVars.remote || '');
       el.innerHTML = updateText('available', { remote, link: linkHtml(aboutUpdateVars.url || ACTA_RELEASES_URL, 'downloadLink') });
     } else if (aboutUpdateState === 'noRelease') {
       el.innerHTML = updateText('noRelease', { link: linkHtml(ACTA_RELEASES_URL, 'releasesLink') });
@@ -2543,10 +2689,11 @@
     });
     saveState.textContent = source === 'sync' ? copy.syncLoading : copy.localLoading;
     saveState.classList.add('saving');
-    clearTimeout(saveTimer);
     clearTimeout(autoSyncSaveTimer);
     autoSyncSaveTimer = null;
     try {
+      // Load the remote snapshot only after pending edits have been written.
+      await flushCurrentDataProfile().catch(() => {});
       await workspaceWriteQueue.catch(() => {});
       let snapshot;
       if (syncAdapter) {
@@ -2868,6 +3015,7 @@
   const noteHeadingH2Size = byId('noteHeadingH2Size');
   const noteHeadingH3Size = byId('noteHeadingH3Size');
   const noteHeadingStyle = byId('noteHeadingStyle');
+  const noteLineHeight = byId('noteLineHeight');
   const noteToolbarPosition = byId('noteToolbarPosition');
   const noteToolbarShowLabels = byId('noteToolbarShowLabels');
   const noteHeadingSizes = {
@@ -2875,6 +3023,7 @@
     noteHeadingH2Size: new Set([20, 22, 24, 26, 28, 32]),
     noteHeadingH3Size: new Set([16, 17, 18, 19, 20, 22, 24])
   };
+  const noteLineHeightValues = new Set([1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2]);
 
   function applyNoteEditorSettings() {
     const root = document.documentElement;
@@ -2883,12 +3032,14 @@
       const value = Number(uiSettings[key]);
       uiSettings[key] = allowed.has(value) ? value : fallback;
     });
+    uiSettings.noteLineHeight = noteLineHeightValues.has(Number(uiSettings.noteLineHeight)) ? Number(uiSettings.noteLineHeight) : defaultUISettings.noteLineHeight;
     if (!['classic', 'modern', 'accent'].includes(uiSettings.noteHeadingStyle)) uiSettings.noteHeadingStyle = defaultUISettings.noteHeadingStyle;
     if (!['top', 'bottom'].includes(uiSettings.noteToolbarPosition)) uiSettings.noteToolbarPosition = defaultUISettings.noteToolbarPosition;
     uiSettings.noteToolbarShowLabels = Boolean(uiSettings.noteToolbarShowLabels);
     root.style.setProperty('--note-heading-h1-size', `${uiSettings.noteHeadingH1Size}px`);
     root.style.setProperty('--note-heading-h2-size', `${uiSettings.noteHeadingH2Size}px`);
     root.style.setProperty('--note-heading-h3-size', `${uiSettings.noteHeadingH3Size}px`);
+    root.style.setProperty('--note-line-height', String(uiSettings.noteLineHeight));
     root.dataset.noteHeadingStyle = uiSettings.noteHeadingStyle;
     root.dataset.noteToolbarPosition = uiSettings.noteToolbarPosition;
     root.dataset.noteToolbarLabels = uiSettings.noteToolbarShowLabels ? 'show' : 'hide';
@@ -2896,6 +3047,7 @@
     noteHeadingH2Size.value = String(uiSettings.noteHeadingH2Size);
     noteHeadingH3Size.value = String(uiSettings.noteHeadingH3Size);
     noteHeadingStyle.value = uiSettings.noteHeadingStyle;
+    noteLineHeight.value = String(uiSettings.noteLineHeight);
     noteToolbarPosition.value = uiSettings.noteToolbarPosition;
     noteToolbarShowLabels.checked = uiSettings.noteToolbarShowLabels;
   }
@@ -2911,6 +3063,11 @@
   }));
   noteHeadingStyle.addEventListener('change', () => {
     uiSettings.noteHeadingStyle = noteHeadingStyle.value;
+    applyNoteEditorSettings();
+    saveUISettings();
+  });
+  noteLineHeight.addEventListener('change', () => {
+    uiSettings.noteLineHeight = Number(noteLineHeight.value);
     applyNoteEditorSettings();
     saveUISettings();
   });
@@ -3615,7 +3772,7 @@
     burst.className = `todo-burst${undo ? ' undo' : ''}`;
     burst.style.left = `${rect.left + rect.width / 2}px`;
     burst.style.top = `${rect.top + rect.height / 2}px`;
-    burst.innerHTML = `${undo ? '<b>↶</b>' : '<svg><use href="#i-check"/></svg>'}<i></i><i></i><i></i><i></i><i></i><i></i>`;
+    burst.innerHTML = `${undo ? '<svg class="undo-icon"><use href="#i-undo"/></svg>' : '<svg><use href="#i-check"/></svg>'}<i></i><i></i><i></i><i></i><i></i><i></i>`;
     document.body.appendChild(burst);
     setTimeout(() => burst.remove(), 780);
   }
@@ -3628,7 +3785,7 @@
     const calendarItem = target.dataset.calendarToggle ? library.items.find(item => item.id === target.dataset.calendarToggle) : null;
     const calendarSubtaskItem = target.dataset.calendarSubtaskToggle ? library.items.find(item => item.id === target.dataset.calendarSubtaskToggle) : null;
     const calendarSubtask = calendarSubtaskItem?.tasks?.find(task => task.id === target.dataset.calendarSubtaskId);
-    const undo = row ? row.classList.contains('done') : calendarSubtask ? Boolean(calendarSubtask.done) : calendarItem ? isTodoComplete(calendarItem) : isTodoComplete(getItem(selectedId));
+    const undo = row ? row.classList.contains('done') : calendarSubtask ? Boolean(calendarSubtask.done) : calendarItem ? isTodoComplete(calendarItem) : isTodoComplete(getItem());
     showTodoBurst(target, undo);
     document.body.classList.add('acta-steady');
     document.body.classList.add('suppress-task-refresh');
