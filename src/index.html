@@ -102,7 +102,7 @@
                   </g>
               </g>
           </svg>
-          <span class="brand-version" aria-label="当前版本 2.1.0">2.1.0</span>
+          <span class="brand-version" aria-label="当前版本 2.2.0">2.2.0</span>
           <span class="logo-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
           <img class="brand-mini-logo" src="./icons/Acta_weblogo.png" alt="" aria-hidden="true" />
         </div>
@@ -139,6 +139,7 @@
             <button data-view="calendar"><span><svg><use href="#i-calendar"/></svg><span data-i18n="calendar">日历</span></span><em id="calendarCount">0</em></button>
             <button data-view="todos"><span><svg><use href="#i-check"/></svg><span data-i18n="todos">待办</span></span><em id="todoCount">0</em></button>
             <button data-view="notes"><span><svg><use href="#i-note"/></svg><span data-i18n="notes">笔记</span></span><em id="noteCount">0</em></button>
+            <button data-view="trash"><span><svg><use href="#i-trash"/></svg><span data-i18n="trash">回收站</span></span><em id="trashCount">0</em></button>
             <button data-view="stats"><span><svg><use href="#i-chart"/></svg><span data-i18n="stats">统计</span></span></button>
           </nav>
 
@@ -434,8 +435,8 @@
               <div class="about-mark"><img src="./images/Acta Poster.jpg" alt="Acta 行记" /></div>
               <div class="about-meta">
                 <div><small>产品</small><b>Acta · 行记</b></div>
-              <div><small>版本</small><b id="aboutVersion">2.1.0</b></div>
-              <div><small>本版更新日期</small><b>2026-08-31</b></div>
+              <div><small>版本</small><b id="aboutVersion">2.2.0</b></div>
+              <div><small>本版更新日期</small><b>2026-09-05</b></div>
                 <div><small>桌面框架</small><b>Tauri（Windows/macOS），Capacitor（Android）</b></div>
               </div>
               <div class="about-update">
@@ -449,6 +450,18 @@
         </div>
       </section>
     </div>
+
+    <dialog class="relation-dialog delete-confirm-dialog" id="deleteConfirmDialog" aria-labelledby="deleteConfirmTitle">
+      <header class="relation-dialog-head delete-confirm-head"><span class="is-danger"><svg><use href="#i-trash"/></svg></span><div><h3 id="deleteConfirmTitle">删除项目</h3><small id="deleteConfirmItem">选择如何处理这一项</small></div></header>
+      <div class="delete-confirm-body">
+        <p class="delete-confirm-message" id="deleteConfirmMessage">确定要删除这一项吗？</p>
+        <div class="delete-confirm-choices">
+          <button type="button" class="delete-choice is-trash" id="deleteChoiceTrash"><span><svg><use href="#i-trash"/></svg></span><span class="delete-choice-copy"><b id="deleteChoiceTrashLabel">移入回收站</b><small id="deleteChoiceTrashHint">保留在回收站中，随时可以恢复</small></span><svg class="delete-choice-go"><use href="#i-chevron"/></svg></button>
+          <button type="button" class="delete-choice is-destroy" id="deleteChoiceDestroy"><span><svg><use href="#i-close"/></svg></span><span class="delete-choice-copy"><b id="deleteChoiceDestroyLabel">直接删除</b><small id="deleteChoiceDestroyHint">不进入回收站，立即彻底删除</small></span><svg class="delete-choice-go"><use href="#i-chevron"/></svg></button>
+        </div>
+      </div>
+      <footer class="delete-confirm-actions"><button class="settings-button danger" id="confirmDestroyAll" type="button" hidden><svg><use href="#i-trash"/></svg><span id="confirmDestroyAllLabel">彻底删除</span></button><button class="settings-button secondary" id="cancelDeleteConfirm" type="button">取消</button></footer>
+    </dialog>
 
     <dialog class="relation-dialog quick-capture-dialog" id="quickCaptureDialog" aria-labelledby="quickCaptureTitle">
       <header class="relation-dialog-head quick-capture-head"><span><svg><use href="#i-lightning"/></svg></span><div><h3 id="quickCaptureTitle">速记</h3><small id="quickCaptureSubtitle">快速创建后自动保存</small></div><button class="relation-dialog-close" id="closeQuickCapture" type="button" aria-label="关闭"><svg><use href="#i-close"/></svg></button></header>

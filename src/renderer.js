@@ -40,9 +40,20 @@ const dictionaries = {
     noCalendarItems:'这段时间没有日历内容', noCalendarItemsHint:'有排期的待办和当天创建的笔记会显示在这里。', calendarItems:'项日历内容', createdNotes:'当日创建笔记',
     moreTodos:'另有 {0} 项', linkedNotes:'关联笔记', calendarLegendLinked:'带笔记关联', calendarOpenTodo:'打开待办', calendarOpenNote:'打开笔记', calendarOpenDay:'查看当日', weekNumber:'周数', swipeWeekHint:'左右滑动查看其他日期',
     stats:'统计', showCompletedTodos:'显示已完成', statOpen:'进行中', confirm:'确定', cancel:'取消',
-    statsCompletion:'待办完成情况', statsCompletionHint:'已完成占比', statsActivity:'最近 30 天记录', statsActivityHint:'按天统计新建的待办与笔记',
-    statsPriority:'优先级分布', statsPriorityHint:'进行中待办', statsFolders:'归类分布', statsFoldersHint:'全部项目',
-    statsEmpty:'这里还没有内容可以统计', statsEmptyHint:'创建笔记或待办后，这里会展示记录情况。'
+    statsEmpty:'这里还没有内容可以统计', statsEmptyHint:'创建笔记或待办后，这里会展示记录情况。',
+    trash:'回收站', trashItems:'件回收',
+    trashEmptyTitle:'回收站还是空的', trashEmptyHint:'删除的待办和笔记会先躺在这里，不会自动清空，随时回来翻翻，也许就有新的灵感。',
+    trashFooterNote:'回收站不会自动倾倒', restore:'恢复', destroy:'彻底删除', restored:'已恢复到原位', destroyed:'已彻底删除',
+    emptyTrash:'清空回收站', emptyTrashConfirmTitle:'清空回收站', emptyTrashConfirmMessage:'回收站中的 {0} 件内容将被彻底删除，无法恢复。', trashEmptied:'回收站已清空',
+    deletedAt:'删除于', restoreHint:'恢复到原来的归类', trashOpenHint:'回收站中的内容不会出现在列表、日历与统计里',
+    deleteTitle:'删除项目', deleteSubtitle:'选择如何处理「{0}」', deleteTrashLabel:'移入回收站', deleteTrashHint:'保留在回收站中，随时可以恢复', deleteDestroyLabel:'直接删除', deleteDestroyHint:'不进入回收站，立即彻底删除', moveToTrash:'移入回收站', deletedToTrash:'已移入回收站',
+    statsListTitle:'待办笔记清单', statsListHint:'收集指定时间段创建的待办与笔记，勾选后可制作图片',
+    statsRangeAll:'全部时间', statsRangeToday:'今天', statsRange7:'最近 7 天', statsRange30:'最近 30 天', statsRange90:'最近 90 天', statsRangeCustom:'自定义',
+    statsCustomStart:'开始日期', statsCustomEnd:'截止日期', statsMakeImage:'生成图片', statsSelectedCount:'已选 {0} 件', statsSelectAll:'全选', statsClearSelection:'清除选择',
+    statsNeedSelection:'请先勾选要生成图片的条目', statsImageDone:'清单图片已生成', statsImageFailed:'图片生成失败', statsEmptyRange:'这个时间段还没有内容',
+    statsGroupToday:'今天', statsGroupYesterday:'昨天', statsCheckItem:'加入图片',
+    metaQuickActions:'快捷操作', metaCopyTitle:'复制标题', metaCopyBody:'复制全文', metaCopyNotes:'复制说明', metaCopyMarkdown:'复制 Markdown', metaMarkComplete:'标记完成', metaReopen:'重新打开', metaViewCalendar:'在日历查看', metaTrash:'移入回收站',
+    copied:'已复制到剪贴板', copyFailed:'复制失败'
   },
   en: {
     saved: 'Saved', saving: 'Saving…', new: 'New', quickCapture: 'Quick capture', quickCaptureHint: 'Create a task or note fast', newNote: 'New note', newNoteHint: 'Capture ideas and sparks',
@@ -71,9 +82,20 @@ const dictionaries = {
     noCalendarItems:'Nothing on this calendar yet', noCalendarItemsHint:'Scheduled tasks and notes created that day appear here.', calendarItems:'calendar items', createdNotes:'Notes created that day',
     moreTodos:'{0} more', linkedNotes:'Linked notes', calendarLegendLinked:'Linked to notes', calendarOpenTodo:'Open task', calendarOpenNote:'Open note', calendarOpenDay:'Open day', weekNumber:'Week', swipeWeekHint:'Swipe left or right for other days',
     stats:'Statistics', showCompletedTodos:'Show completed', statOpen:'In progress', confirm:'Confirm', cancel:'Cancel',
-    statsCompletion:'Task completion', statsCompletionHint:'Completed share', statsActivity:'Last 30 days', statsActivityHint:'Tasks and notes created each day',
-    statsPriority:'Priority mix', statsPriorityHint:'Open tasks', statsFolders:'Classification mix', statsFoldersHint:'All items',
-    statsEmpty:'Nothing to report yet', statsEmptyHint:'Once you add notes or tasks, your activity shows up here.'
+    statsEmpty:'Nothing to report yet', statsEmptyHint:'Once you add notes or tasks, your activity shows up here.',
+    trash:'Trash', trashItems:'items',
+    trashEmptyTitle:'The trash is empty', trashEmptyHint:'Deleted notes and tasks rest here. Nothing is emptied automatically — come back and rummage whenever you like.',
+    trashFooterNote:'Trash is never emptied automatically', restore:'Restore', destroy:'Delete forever', restored:'Restored to its place', destroyed:'Deleted forever',
+    emptyTrash:'Empty trash', emptyTrashConfirmTitle:'Empty trash', emptyTrashConfirmMessage:'{0} items in the trash will be deleted forever and cannot be recovered.', trashEmptied:'Trash emptied',
+    deletedAt:'Deleted', restoreHint:'Restore to its original classification', trashOpenHint:'Trashed items stay out of lists, calendar, and statistics',
+    deleteTitle:'Delete item', deleteSubtitle:'Choose what to do with “{0}”', deleteTrashLabel:'Move to trash', deleteTrashHint:'Kept in the trash, restore anytime', deleteDestroyLabel:'Delete now', deleteDestroyHint:'Skips the trash and is deleted forever', moveToTrash:'Move to trash', deletedToTrash:'Moved to trash',
+    statsListTitle:'Notes and tasks list', statsListHint:'Gather notes and tasks created in a chosen period, tick some, and make a picture',
+    statsRangeAll:'All time', statsRangeToday:'Today', statsRange7:'Last 7 days', statsRange30:'Last 30 days', statsRange90:'Last 90 days', statsRangeCustom:'Custom',
+    statsCustomStart:'Start date', statsCustomEnd:'End date', statsMakeImage:'Make picture', statsSelectedCount:'{0} selected', statsSelectAll:'Select all', statsClearSelection:'Clear',
+    statsNeedSelection:'Tick some items before making a picture', statsImageDone:'List picture saved', statsImageFailed:'Picture export failed', statsEmptyRange:'Nothing was created in this period',
+    statsGroupToday:'Today', statsGroupYesterday:'Yesterday', statsCheckItem:'Include in picture',
+    metaQuickActions:'Quick actions', metaCopyTitle:'Copy title', metaCopyBody:'Copy content', metaCopyNotes:'Copy notes', metaCopyMarkdown:'Copy Markdown', metaMarkComplete:'Mark complete', metaReopen:'Reopen', metaViewCalendar:'Show on calendar', metaTrash:'Move to trash',
+    copied:'Copied to clipboard', copyFailed:'Copy failed'
   }
 };
 
@@ -176,7 +198,7 @@ let calendarViewMode = 'month';
 let calendarCursor = new Date(`${todayISO()}T12:00:00`);
 let calendarMotion = '';
 let calendarMotionTimer = null;
-let selectedId = library.items[0]?.id || null;
+let selectedId = library.items.find(item => !item.deletedAt)?.id || null;
 let searchQuery = '';
 let mobileEditorOpen = false;
 let saveTimer;
@@ -461,6 +483,9 @@ const folderShortName = (folder) => {
   return folderShortSegments(name.replace(/\s+/g, '')).slice(0, 2).join('').toLocaleUpperCase();
 };
 const isTodoComplete = (item) => item?.type === 'todo' && (Boolean(item.completed) || ((item.tasks || []).length > 0 && item.tasks.every(task => task.done)));
+const isTrashed = (item) => Boolean(item?.deletedAt);
+const activeItems = () => library.items.filter(item => !isTrashed(item));
+const trashedItems = () => library.items.filter(isTrashed).sort((a, b) => String(b.deletedAt).localeCompare(String(a.deletedAt)));
 const priorityRank = (priority) => ({ high: 0, medium: 1, low: 2 })[priority] ?? 1;
 const getLinkedItems = (item) => (item.linkedIds || []).map(id => library.items.find(entry => entry.id === id)).filter(Boolean);
 
@@ -591,7 +616,7 @@ function calendarTodoTime(item) {
 
 function calendarTodos() {
   return library.items
-    .filter(item => item.type === 'todo' && todoIsScheduled(item))
+    .filter(item => !isTrashed(item) && item.type === 'todo' && todoIsScheduled(item))
     .sort((first, second) => {
       const startDifference = String(first.startAt).localeCompare(String(second.startAt));
       if (startDifference) return startDifference;
@@ -605,7 +630,7 @@ function calendarTodos() {
 
 function calendarNotes() {
   return library.items
-    .filter(item => item.type === 'note' && calendarDateISO(new Date(item.createdAt)))
+    .filter(item => !isTrashed(item) && item.type === 'note' && calendarDateISO(new Date(item.createdAt)))
     .sort((first, second) => new Date(first.createdAt) - new Date(second.createdAt));
 }
 
@@ -938,6 +963,7 @@ function syncCalendarShell() {
   document.body.classList.toggle('calendar-week-active', active && calendarViewMode === 'week');
   document.body.classList.toggle('inbox-view', currentView === 'inbox');
   document.body.classList.toggle('stats-view', currentView === 'stats');
+  document.body.classList.toggle('trash-view', currentView === 'trash');
   const toolbar = $('#calendarToolbar');
   if (toolbar) {
     toolbar.hidden = !active;
@@ -969,12 +995,12 @@ function translateStaticUI() {
 
 function viewTitle() {
   if (currentView.startsWith('folder:')) return folderName(getFolder(currentView.split(':')[1]));
-  return ({ inbox: t('inbox'), today: t('viewToday'), todos: t('viewTodos'), notes: t('viewNotes'), calendar: t('calendar'), stats: t('stats') })[currentView];
+  return ({ inbox: t('inbox'), today: t('viewToday'), todos: t('viewTodos'), notes: t('viewNotes'), calendar: t('calendar'), trash: t('trash'), stats: t('stats') })[currentView];
 }
 
 function listViewContext() {
   if (currentView === 'calendar') return 'calendar';
-  if (currentView === 'stats') return 'stats';
+  if (currentView === 'stats' || currentView === 'trash') return currentView;
   if (['today', 'todos'].includes(currentView)) return 'todo';
   if (currentView === 'notes') return 'note';
   return 'mixed';
@@ -1000,7 +1026,7 @@ function resetListFilters(context = 'all') {
 }
 
 function hasActiveListFilters(context = listFilterContext()) {
-  if (context === 'calendar' || context === 'stats') return false;
+  if (['calendar', 'stats', 'trash'].includes(context)) return false;
   if (context === 'mixed') return currentFilter !== 'all';
   if (context === 'todo') return [todoPriorityFilter, todoDueFilter, todoFolderFilter].some(value => value !== 'all');
   return [noteFolderFilter, noteRelationFilter, noteUpdatedFilter].some(value => value !== 'all');
@@ -1080,7 +1106,7 @@ function syncListFilterUI() {
 }
 
 function getVisibleItems() {
-  let items = [...library.items];
+  let items = currentView === 'trash' ? trashedItems() : activeItems();
   if (currentView === 'calendar') items = items.filter(item => (item.type === 'todo' && todoIsScheduled(item)) || item.type === 'note');
   if (currentView === 'inbox') items = items.filter(item => !isTodoComplete(item));
   if (currentView === 'today') items = items.filter(item => item.type === 'todo' && todoScheduleDate(item) === todayISO() && !isTodoComplete(item));
@@ -1165,6 +1191,7 @@ function getVisibleItems() {
     title: (a, b) => String(a.title || '').localeCompare(String(b.title || ''), undefined, { numeric: true })
   };
   const compareBySortMode = listSortComparers[listSortMode] || ((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  if (currentView === 'trash') return items;
   return items.sort((a, b) => {
     if (taskFocused && a.type === 'todo' && b.type === 'todo') {
       const completionDifference = Number(isTodoComplete(a)) - Number(isTodoComplete(b));
@@ -1175,14 +1202,15 @@ function getVisibleItems() {
 }
 
 function renderSidebar() {
-  $('#inboxCount').textContent = library.items.filter(item => !isTodoComplete(item)).length;
-  $('#todoCount').textContent = library.items.filter(item => item.type === 'todo' && !isTodoComplete(item)).length;
-  $('#noteCount').textContent = library.items.filter(item => item.type === 'note').length;
+  $('#inboxCount').textContent = activeItems().filter(item => !isTodoComplete(item)).length;
+  $('#todoCount').textContent = activeItems().filter(item => item.type === 'todo' && !isTodoComplete(item)).length;
+  $('#noteCount').textContent = activeItems().filter(item => item.type === 'note').length;
   $('#calendarCount').textContent = calendarTodos().length + calendarNotes().length;
+  $('#trashCount').textContent = trashedItems().length;
 
   $$('#smartNav button').forEach(button => button.classList.toggle('active', button.dataset.view === currentView));
   $('#folderNav').innerHTML = library.folders.map(folder => {
-    const count = library.items.filter(item => item.folderId === folder.id).length;
+    const count = activeItems().filter(item => item.folderId === folder.id).length;
     const shortName = folderShortName(folder);
     const shortNameClasses = ['folder-short-name', folderShortNameUsesEmoji(shortName) ? 'is-emoji' : '', folderShortSegments(shortName).length > 2 ? 'is-long' : ''].filter(Boolean).join(' ');
     return `<button data-view="folder:${escapeHTML(folder.id)}" class="${currentView === `folder:${folder.id}` ? 'active' : ''}" title="${escapeHTML(folderName(folder))}" aria-label="${escapeHTML(folderName(folder))}">
@@ -1198,127 +1226,488 @@ function itemPreview(item) {
   return open[0] || item.notes || (isTodoComplete(item) ? t('done') : t('taskPlaceholder'));
 }
 
-function statsLocalDateKey(offsetDays = 0) {
-  const date = new Date();
-  date.setDate(date.getDate() - offsetDays);
-  const offset = date.getTimezoneOffset() * 60000;
-  return new Date(date - offset).toISOString().slice(0, 10);
+const statsRangePresets = ['all', 'today', '7', '30', '90', 'custom'];
+const statsSelection = new Set();
+
+function statsRangeWindow() {
+  const range = statsRangePresets.includes(settings.statsRange) ? settings.statsRange : 'all';
+  const today = todayISO();
+  if (range === 'today') return [today, today];
+  if (range === '7' || range === '30' || range === '90') return [daysFromToday(-(Number(range) - 1)), today];
+  if (range === 'custom') {
+    const start = validDate(settings.statsRangeStart) ? settings.statsRangeStart.slice(0, 10) : '';
+    const end = validDate(settings.statsRangeEnd) ? settings.statsRangeEnd.slice(0, 10) : '';
+    if (start || end) return [start, end];
+  }
+  return [null, null];
+}
+
+function statsRangeLabel() {
+  const [start, end] = statsRangeWindow();
+  const range = statsRangePresets.includes(settings.statsRange) ? settings.statsRange : 'all';
+  if (range === 'today') return t('statsRangeToday');
+  if (range === '7' || range === '30' || range === '90') return t(`statsRange${range}`);
+  if (range === 'custom') return `${start || '…'} — ${end || '…'}`;
+  return t('statsRangeAll');
+}
+
+function statsCollectionItems() {
+  const [start, end] = statsRangeWindow();
+  return activeItems().filter(item => {
+    const key = String(validDate(item.createdAt) || item.createdAt || '').slice(0, 10);
+    if (!key) return false;
+    if (start && key < start) return false;
+    if (end && key > end) return false;
+    return true;
+  }).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+}
+
+function statsGroupLabel(dateKey) {
+  if (dateKey === todayISO()) return t('statsGroupToday');
+  if (dateKey === daysFromToday(-1)) return t('yesterday');
+  return new Intl.DateTimeFormat(calendarLocale(), { month:'long', day:'numeric', weekday:'short' }).format(new Date(`${dateKey}T12:00:00`));
+}
+
+function statsItemRow(item, index) {
+  const folder = getFolder(item.folderId);
+  const checked = statsSelection.has(item.id);
+  const done = item.type === 'todo' && isTodoComplete(item);
+  const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
+  return `<div class="stats-item-row ${checked ? 'is-checked' : ''}" data-stats-row="${escapeHTML(item.id)}" style="animation-delay:${Math.min(index * 16, 90)}ms">
+    <label class="stats-item-check" title="${escapeHTML(t('statsCheckItem'))}">
+      <input type="checkbox" data-stats-check="${escapeHTML(item.id)}" ${checked ? 'checked' : ''}/>
+      <i aria-hidden="true"><svg><use href="#i-check"/></svg></i>
+    </label>
+    <button type="button" class="stats-item-open" data-stats-open="${escapeHTML(item.id)}">
+      <span class="stats-item-topline"><span class="type-pill ${item.type}"><svg><use href="#i-${item.type === 'todo' ? 'check' : 'note'}"/></svg>${t(item.type)}${item.type === 'todo' ? ` · ${done ? t('done') : t('statOpen')}` : ''}</span><time datetime="${escapeHTML(item.createdAt)}">${escapeHTML(formatListDateTime(item.createdAt))}</time></span>
+      <b>${escapeHTML(title)}</b>
+      <small><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span>${escapeHTML(itemPreview(item)).slice(0, 80)}</small>
+    </button>
+  </div>`;
 }
 
 function renderStats() {
-  const notes = library.items.filter(item => item.type === 'note');
-  const todos = library.items.filter(item => item.type === 'todo');
-  const completedTodos = todos.filter(isTodoComplete);
-  const openTodos = todos.filter(item => !isTodoComplete(item));
-  if (!library.items.length) {
-    return `<div class="stats-empty"><div><span><svg><use href="#i-chart"/></svg></span><h3>${escapeHTML(t('statsEmpty'))}</h3><p>${escapeHTML(t('statsEmptyHint'))}</p></div></div>`;
+  const items = statsCollectionItems();
+  if (!items.length) {
+    return `<div class="stats-empty"><div><span><svg><use href="#i-chart"/></svg></span><h3>${escapeHTML(t('statsListTitle'))}</h3><p>${escapeHTML(t('statsEmptyRange'))}</p></div></div>`;
+  }
+  const groups = new Map();
+  items.forEach(item => {
+    const key = String(item.createdAt).slice(0, 10);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  });
+  let rowIndex = 0;
+  const groupsMarkup = [...groups.entries()].map(([key, groupItems]) => `
+    <section class="stats-day-group">
+      <header class="stats-day-head"><b>${escapeHTML(statsGroupLabel(key))}</b><span>${escapeHTML(key)} · ${groupItems.length} ${t('item')}</span></header>
+      ${groupItems.map(item => statsItemRow(item, rowIndex++)).join('')}
+    </section>`).join('');
+  const selectedCount = items.filter(item => statsSelection.has(item.id)).length;
+  return `<div class="stats-collection-wrap">
+    <section class="stats-toolbar">
+      <label class="filter-select stats-range-field">
+        <svg><use href="#i-clock"/></svg>
+        <select id="statsRange" aria-label="${escapeHTML(t('statsListTitle'))}">
+          <option value="all">${escapeHTML(t('statsRangeAll'))}</option>
+          <option value="today">${escapeHTML(t('statsRangeToday'))}</option>
+          <option value="7">${escapeHTML(t('statsRange7'))}</option>
+          <option value="30">${escapeHTML(t('statsRange30'))}</option>
+          <option value="90">${escapeHTML(t('statsRange90'))}</option>
+          <option value="custom">${escapeHTML(t('statsRangeCustom'))}</option>
+        </select>
+      </label>
+      <div class="stats-custom-range" id="statsCustomRange" ${settings.statsRange === 'custom' ? '' : 'hidden'}>
+        <input type="date" id="statsRangeStart" value="${escapeHTML(settings.statsRangeStart || '')}" aria-label="${escapeHTML(t('statsCustomStart'))}"/>
+        <i aria-hidden="true">—</i>
+        <input type="date" id="statsRangeEnd" value="${escapeHTML(settings.statsRangeEnd || '')}" aria-label="${escapeHTML(t('statsCustomEnd'))}"/>
+      </div>
+      <div class="stats-toolbar-actions">
+        <span class="stats-selection-count" id="statsSelectionCount">${escapeHTML(t('statsSelectedCount').replace('{0}', selectedCount))}</span>
+        <button type="button" class="stats-tool-button" id="statsSelectAll">${escapeHTML(t('statsSelectAll'))}</button>
+        <button type="button" class="stats-tool-button" id="statsClearSelection">${escapeHTML(t('statsClearSelection'))}</button>
+        <button type="button" class="stats-tool-button is-primary" id="statsMakeImage"><svg><use href="#i-image"/></svg>${escapeHTML(t('statsMakeImage'))}</button>
+      </div>
+    </section>
+    <div class="stats-collection">${groupsMarkup}</div>
+    <p class="stats-collection-hint">${escapeHTML(t('statsListHint'))}</p>
+  </div>`;
+}
+
+function syncStatsSelectionCount() {
+  const counter = $('#statsSelectionCount');
+  if (counter) counter.textContent = t('statsSelectedCount').replace('{0}', statsSelection.size);
+}
+
+function bindStatsView() {
+  const range = $('#statsRange');
+  if (!range) return;
+  range.value = statsRangePresets.includes(settings.statsRange) ? settings.statsRange : 'all';
+  range.addEventListener('change', () => {
+    settings.statsRange = statsRangePresets.includes(range.value) ? range.value : 'all';
+    persist();
+    renderList();
+  });
+  [['statsRangeStart', 'statsRangeStart'], ['statsRangeEnd', 'statsRangeEnd']].forEach(([id, key]) => {
+    $(`#${id}`)?.addEventListener('change', event => {
+      settings[key] = event.target.value;
+      persist();
+      renderList();
+    });
+  });
+  $('#statsSelectAll')?.addEventListener('click', () => {
+    statsCollectionItems().forEach(item => statsSelection.add(item.id));
+    $$('.stats-item-row').forEach(row => row.classList.add('is-checked'));
+    $$('.stats-item-check input').forEach(box => { box.checked = true; });
+    syncStatsSelectionCount();
+  });
+  $('#statsClearSelection')?.addEventListener('click', () => {
+    statsSelection.clear();
+    $$('.stats-item-row').forEach(row => row.classList.remove('is-checked'));
+    $$('.stats-item-check input').forEach(box => { box.checked = false; });
+    syncStatsSelectionCount();
+  });
+  $('#statsMakeImage')?.addEventListener('click', () => exportStatsImage());
+  $$('.stats-item-check input').forEach(box => box.addEventListener('change', () => {
+    if (box.checked) statsSelection.add(box.dataset.statsCheck);
+    else statsSelection.delete(box.dataset.statsCheck);
+    box.closest('.stats-item-row')?.classList.toggle('is-checked', box.checked);
+    syncStatsSelectionCount();
+  }));
+  $$('.stats-item-open').forEach(button => button.addEventListener('click', () => openItem(button.dataset.statsOpen)));
+}
+
+function themeCanvasColors() {
+  const style = getComputedStyle(document.documentElement);
+  const pick = (name, fallback) => style.getPropertyValue(name).trim() || fallback;
+  return {
+    paper: pick('--paper', '#fbfaf6'),
+    ink: pick('--ink', '#242823'),
+    muted: pick('--muted', '#6b6f66'),
+    faint: pick('--faint', '#9aa094'),
+    line: pick('--line', '#e3e2da'),
+    card: pick('--white', '#ffffff'),
+    todoAccent: pick('--todo-accent', '#4f86a8'),
+    todoSoft: pick('--todo-soft', '#dceef8'),
+    noteAccent: pick('--note-accent', '#987329'),
+    noteSoft: pick('--note-soft', '#fff0bd')
+  };
+}
+
+const STATS_CANVAS_MAX_HEIGHT = 14000;
+
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    const radius = Math.min(r, w / 2, h / 2);
+    this.moveTo(x + radius, y);
+    this.arcTo(x + w, y, x + w, y + h, radius);
+    this.arcTo(x + w, y + h, x, y + h, radius);
+    this.arcTo(x, y + h, x, y, radius);
+    this.arcTo(x, y, x + w, y, radius);
+    this.closePath();
+    return this;
+  };
+}
+
+function canvasTruncateText(ctx, text, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let truncated = String(text);
+  while (truncated.length > 1 && ctx.measureText(`${truncated}…`).width > maxWidth) truncated = truncated.slice(0, -1);
+  return `${truncated}…`;
+}
+
+function renderStatsCanvas(items) {
+  const colors = themeCanvasColors();
+  const width = 1080;
+  const margin = 84;
+  const fontFamily = '"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif';
+  const measure = document.createElement('canvas').getContext('2d');
+  measure.font = `650 30px ${fontFamily}`;
+
+  const groups = new Map();
+  items.forEach(item => {
+    const key = String(item.createdAt).slice(0, 10);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  });
+
+  const layout = [];
+  let height = margin + 96 + 44 + 36;
+  const limit = STATS_CANVAS_MAX_HEIGHT - margin - 120;
+  let omitted = 0;
+  groups.forEach((groupItems, key) => {
+    if (height >= limit) { omitted += groupItems.length; return; }
+    height += 30 + 52;
+    layout.push({ type:'group', key, count:groupItems.length });
+    groupItems.forEach(item => {
+      if (height >= limit) { omitted += 1; return; }
+      const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
+      const folder = getFolder(item.folderId);
+      const meta = [folderName(folder), formatListDateTime(item.createdAt)].filter(Boolean).join(' · ');
+      const preview = stripHTML(item.type === 'note' ? item.body : item.notes || '') || '';
+      measure.font = `650 30px ${fontFamily}`;
+      const titleWidth = width - margin * 2 - 118 - 24;
+      const titleLines = canvasTruncateText(measure, title, titleWidth);
+      measure.font = `400 22px ${fontFamily}`;
+      const metaWidth = width - margin * 2 - 118 - 24;
+      const metaLines = meta ? [canvasTruncateText(measure, meta, metaWidth)] : [];
+      const previewLines = preview ? [canvasTruncateText(measure, preview.replace(/\s+/g, ' ').trim(), metaWidth)] : [];
+      const rowHeight = 34 + (titleLines ? 42 : 0) + (metaLines.length ? 32 : 0) + (previewLines.length ? 30 : 0) + 26;
+      height += rowHeight;
+      layout.push({ type:'item', item, title:titleLines, meta, metaLines, previewLines, height:rowHeight });
+    });
+  });
+  height = Math.min(height + 150, STATS_CANVAS_MAX_HEIGHT);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = Math.round(height);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = colors.paper;
+  ctx.fillRect(0, 0, width, canvas.height);
+  ctx.textBaseline = 'alphabetic';
+
+  let y = margin;
+  ctx.fillStyle = colors.ink;
+  ctx.font = `700 56px ${fontFamily}`;
+  ctx.fillText('Acta · 行记', margin, y + 56);
+  ctx.fillStyle = colors.faint;
+  ctx.font = `600 26px ${fontFamily}`;
+  const todoCount = items.filter(item => item.type === 'todo').length;
+  const summary = `${statsRangeLabel()} · ${items.length} ${t('item')}（${todoCount} ${t('todo')} · ${items.length - todoCount} ${t('note')}）`;
+  ctx.fillText(canvasTruncateText(ctx, summary, width - margin * 2), margin, y + 104);
+  y += 140;
+  ctx.strokeStyle = colors.line;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(margin, y);
+  ctx.lineTo(width - margin, y);
+  ctx.stroke();
+  y += 30;
+
+  layout.forEach(entry => {
+    if (entry.type === 'group') {
+      ctx.fillStyle = colors.faint;
+      ctx.font = `700 26px ${fontFamily}`;
+      ctx.fillText(`${statsGroupLabel(entry.key)} · ${entry.key}`, margin, y + 34);
+      y += 52;
+      return;
+    }
+    const item = entry.item;
+    const isTodo = item.type === 'todo';
+    const done = isTodo && isTodoComplete(item);
+    const badge = { x:margin, y:y + 6, w:118, h:40 };
+    ctx.fillStyle = isTodo ? colors.todoSoft : colors.noteSoft;
+    ctx.beginPath();
+    ctx.roundRect(badge.x, badge.y, badge.w, badge.h, 12);
+    ctx.fill();
+    ctx.fillStyle = isTodo ? colors.todoAccent : colors.noteAccent;
+    ctx.font = `700 21px ${fontFamily}`;
+    const badgeText = isTodo ? (done ? `✓ ${t('done')}` : t('todo')) : t('note');
+    const badgeWidth = ctx.measureText(badgeText).width;
+    ctx.fillText(badgeText, badge.x + (badge.w - badgeWidth) / 2, badge.y + 27);
+    const textX = margin + 118 + 24;
+    let textY = y + 30;
+    ctx.fillStyle = done ? colors.faint : colors.ink;
+    ctx.font = `650 30px ${fontFamily}`;
+    ctx.fillText(entry.title, textX, textY);
+    if (done) {
+      const titleWidth = ctx.measureText(entry.title).width;
+      ctx.strokeStyle = colors.faint;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(textX, textY - 10);
+      ctx.lineTo(textX + titleWidth, textY - 10);
+      ctx.stroke();
+    }
+    textY += 42;
+    ctx.font = `400 22px ${fontFamily}`;
+    ctx.fillStyle = colors.muted;
+    if (entry.metaLines.length) {
+      ctx.fillText(entry.metaLines[0], textX, textY);
+      textY += 32;
+    }
+    if (entry.previewLines.length) {
+      ctx.fillStyle = colors.faint;
+      ctx.fillText(entry.previewLines[0], textX, textY);
+      textY += 30;
+    }
+    y += entry.height;
+  });
+
+  if (omitted > 0) {
+    ctx.fillStyle = colors.faint;
+    ctx.font = `600 22px ${fontFamily}`;
+    ctx.fillText(t('moreTodos').replace('{0}', omitted), margin, y + 30);
+    y += 46;
   }
 
-  const completionRate = todos.length ? Math.round(completedTodos.length / todos.length * 100) : 0;
-  const donutRadius = 54;
-  const donutCircumference = 2 * Math.PI * donutRadius;
-  const donutDash = donutCircumference * completionRate / 100;
+  ctx.fillStyle = colors.faint;
+  ctx.font = `500 22px ${fontFamily}`;
+  ctx.fillText(`${formatDateTimeSeconds(new Date().toISOString())} · Acta 行记`, margin, canvas.height - margin / 1.6);
+  return canvas;
+}
 
-  const dayBuckets = new Map();
-  library.items.forEach(item => {
-    const stamp = Date.parse(item.createdAt || item.updatedAt || '');
-    if (!Number.isFinite(stamp)) return;
-    const date = new Date(stamp);
-    const key = new Date(stamp - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-    if (!dayBuckets.has(key)) dayBuckets.set(key, { todo: 0, note: 0 });
-    dayBuckets.get(key)[item.type === 'todo' ? 'todo' : 'note'] += 1;
+async function saveExportAssets(assets) {
+  if (window.actaDesktop?.exportAssets) return window.actaDesktop.exportAssets(assets);
+  const nativeExport = window.Capacitor?.Plugins?.ActaSync?.exportAsset;
+  if (nativeExport) {
+    const results = [];
+    for (const asset of assets) results.push(await nativeExport(asset));
+    return results;
+  }
+  assets.forEach((asset, index) => {
+    const [header, data] = asset.dataUrl.split(',');
+    const mimeType = /data:([^;]+)/.exec(header)?.[1] || asset.mimeType;
+    const binary = atob(data);
+    const bytes = new Uint8Array(binary.length);
+    for (let offset = 0; offset < binary.length; offset += 1) bytes[offset] = binary.charCodeAt(offset);
+    const url = URL.createObjectURL(new Blob([bytes], { type:mimeType }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = asset.fileName;
+    anchor.hidden = true;
+    document.body.appendChild(anchor);
+    setTimeout(() => {
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1200);
+    }, index * 140);
   });
-  const days = Array.from({ length: 30 }, (_, index) => statsLocalDateKey(29 - index));
-  const maxDayTotal = Math.max(1, ...days.map(key => {
-    const bucket = dayBuckets.get(key);
-    return bucket ? bucket.todo + bucket.note : 0;
-  }));
-  const dayBars = days.map(key => {
-    const bucket = dayBuckets.get(key) || { todo: 0, note: 0 };
-    const todoHeight = Math.round(bucket.todo / maxDayTotal * 100);
-    const noteHeight = Math.round(bucket.note / maxDayTotal * 100);
-    return `<span class="stats-bar" title="${escapeHTML(`${key} · ${t('todo')} ${bucket.todo} · ${t('note')} ${bucket.note}`)}">${noteHeight ? `<i class="seg-note" style="height:${noteHeight}%"></i>` : ''}<i class="seg-todo" style="height:${todoHeight}%"></i></span>`;
-  }).join('');
-  const axisLabels = days.map((key, index) => {
-    if (index % 5 !== 0) return '<span></span>';
-    const day = Number(key.slice(8));
-    const label = index === 0 ? `${Number(key.slice(5, 7))}/${day}` : String(day);
-    return `<span>${escapeHTML(label)}</span>`;
-  }).join('');
+  return assets;
+}
 
-  const priorityCounts = { high: 0, medium: 0, low: 0 };
-  openTodos.forEach(item => { priorityCounts[item.priority || 'medium'] += 1; });
-  const priorityColors = { high: '#cf5f52', medium: '#c9973f', low: '#58a06c' };
-  const maxPriority = Math.max(1, ...Object.values(priorityCounts));
-  const priorityRows = ['high', 'medium', 'low'].map(key => `
-    <div class="stats-hbar">
-      <span class="stats-hbar-label">${escapeHTML(t(key))}</span>
-      <span class="stats-hbar-track"><i style="width:${Math.round(priorityCounts[key] / maxPriority * 100)}%;background:${priorityColors[key]}"></i></span>
-      <b>${priorityCounts[key]}</b>
-    </div>`).join('');
+async function exportStatsImage() {
+  const items = statsCollectionItems().filter(item => statsSelection.has(item.id));
+  if (!items.length) {
+    showToast(t('statsNeedSelection'));
+    return;
+  }
+  try {
+    const canvas = renderStatsCanvas(items);
+    const stamp = todayISO();
+    const asset = { fileName:`Acta ${t('statsListTitle')} ${stamp}.png`, mimeType:'image/png', dataUrl:canvas.toDataURL('image/png') };
+    const saved = await saveExportAssets([asset]);
+    if (saved) showToast(t('statsImageDone'));
+  } catch (error) {
+    showToast(`${t('statsImageFailed')}: ${error?.message || error}`);
+  }
+}
 
-  const folderRowsData = library.folders.map(folder => ({
-    label: folderName(folder),
-    color: folder.color,
-    count: library.items.filter(item => item.folderId === folder.id).length
-  }));
-  const unclassifiedCount = library.items.filter(item => !item.folderId || !getFolder(item.folderId)).length;
-  if (unclassifiedCount) folderRowsData.push({ label: t('unclassified'), color: '', count: unclassifiedCount });
-  const maxFolderCount = Math.max(1, ...folderRowsData.map(row => row.count));
-  const folderRows = folderRowsData.map(row => `
-    <div class="stats-hbar">
-      <span class="stats-hbar-label" title="${escapeHTML(row.label)}">${escapeHTML(row.label)}</span>
-      <span class="stats-hbar-track"><i style="width:${Math.round(row.count / maxFolderCount * 100)}%;background:${row.count ? escapeHTML(row.color || 'var(--faint)') : 'transparent'}"></i></span>
-      <b>${row.count}</b>
-    </div>`).join('');
-
-  return `<div class="stats-dashboard">
-    <div class="stats-summary">
-      <div class="stats-card is-note"><span class="stats-card-icon"><svg><use href="#i-note"/></svg></span><b data-stat="notes">${notes.length}</b><span>${escapeHTML(t('notes'))}</span></div>
-      <div class="stats-card is-todo"><span class="stats-card-icon"><svg><use href="#i-check"/></svg></span><b data-stat="todos">${todos.length}</b><span>${escapeHTML(t('todos'))}</span></div>
-      <div class="stats-card is-open"><span class="stats-card-icon"><svg><use href="#i-spark"/></svg></span><b data-stat="open">${openTodos.length}</b><span>${escapeHTML(t('statOpen'))}</span></div>
-      <div class="stats-card is-done"><span class="stats-card-icon"><svg><use href="#i-chart"/></svg></span><b data-stat="completed">${completedTodos.length}</b><span>${escapeHTML(t('completed'))}</span></div>
+function renderTrashList(items) {
+  return `<div class="trash-tools">
+      <span class="trash-note">${escapeHTML(t('trashFooterNote'))}</span>
+      <button type="button" class="stats-tool-button" id="emptyTrashButton"><svg><use href="#i-trash"/></svg>${escapeHTML(t('emptyTrash'))}</button>
     </div>
-    <div class="stats-grid">
-      <section class="stats-panel stats-panel-donut">
-        <header><b>${escapeHTML(t('statsCompletion'))}</b><span>${escapeHTML(t('statsCompletionHint'))}</span></header>
-        <div class="stats-donut-row">
-          <div class="stats-donut-wrap">
-            <svg class="stats-donut" viewBox="0 0 140 140" aria-hidden="true">
-              <circle class="stats-donut-track" cx="70" cy="70" r="${donutRadius}"/>
-              <circle class="stats-donut-value" cx="70" cy="70" r="${donutRadius}" stroke-dasharray="${donutDash} ${donutCircumference - donutDash}"/>
-            </svg>
-            <b class="stats-donut-center">${todos.length ? `${completionRate}%` : '—'}</b>
-          </div>
-          <div class="stats-donut-legend">
-            <span><i></i>${escapeHTML(t('completed'))} <b>${completedTodos.length}</b></span>
-            <span><i class="legend-open"></i>${escapeHTML(t('statOpen'))} <b>${openTodos.length}</b></span>
-          </div>
+    ${items.map((item, index) => {
+      const folder = getFolder(item.folderId);
+      return `<div class="trash-card ${item.type === 'todo' ? 'is-todo' : 'is-note'}" data-trash-card="${escapeHTML(item.id)}" style="animation-delay:${Math.min(index * 18, 100)}ms">
+        <span class="type-pill ${item.type}"><svg><use href="#i-${item.type === 'todo' ? 'check' : 'note'}"/></svg>${t(item.type)}</span>
+        <div class="trash-card-body">
+          <b>${escapeHTML(item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote')))}</b>
+          <small><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span><time datetime="${escapeHTML(item.deletedAt)}">${escapeHTML(t('deletedAt'))} ${escapeHTML(formatListDateTime(item.deletedAt))}</time></small>
         </div>
-      </section>
-      <section class="stats-panel">
-        <header><b>${escapeHTML(t('statsActivity'))}</b><span>${escapeHTML(t('statsActivityHint'))}</span></header>
-        <div class="stats-activity">
-          <div class="stats-bars">${dayBars}</div>
-          <div class="stats-bars-axis">${axisLabels}</div>
-          <div class="stats-legend">
-            <span><i class="legend-todo"></i>${escapeHTML(t('todo'))}</span>
-            <span><i class="legend-note"></i>${escapeHTML(t('note'))}</span>
-          </div>
+        <div class="trash-card-actions">
+          <button type="button" class="trash-action is-restore" data-trash-restore="${escapeHTML(item.id)}" title="${escapeHTML(t('restoreHint'))}"><svg><use href="#i-undo"/></svg><span>${escapeHTML(t('restore'))}</span></button>
+          <button type="button" class="trash-action is-destroy" data-trash-destroy="${escapeHTML(item.id)}" title="${escapeHTML(t('destroy'))}"><svg><use href="#i-trash"/></svg><span>${escapeHTML(t('destroy'))}</span></button>
         </div>
-      </section>
-    </div>
-    <div class="stats-grid stats-grid-secondary">
-      <section class="stats-panel">
-        <header><b>${escapeHTML(t('statsPriority'))}</b><span>${escapeHTML(t('statsPriorityHint'))}</span></header>
-        <div class="stats-hbars">${priorityRows}</div>
-      </section>
-      <section class="stats-panel">
-        <header><b>${escapeHTML(t('statsFolders'))}</b><span>${escapeHTML(t('statsFoldersHint'))}</span></header>
-        <div class="stats-hbars">${folderRows}</div>
-      </section>
-    </div>
-  </div>`;
+      </div>`;
+    }).join('')}`;
+}
+
+function bindTrashList() {
+  $('#emptyTrashButton')?.addEventListener('click', async () => {
+    const items = trashedItems();
+    if (!items.length) return;
+    if (!await askDestroyConfirm(t('emptyTrashConfirmMessage').replace('{0}', items.length))) return;
+    destroyItems(items.map(item => item.id));
+    showToast(t('trashEmptied'));
+  });
+  $$('[data-trash-restore]').forEach(button => button.addEventListener('click', () => {
+    const item = library.items.find(entry => entry.id === button.dataset.trashRestore);
+    if (!item) return;
+    delete item.deletedAt;
+    touchItem(item);
+    renderAll();
+    showToast(t('restored'));
+  }));
+  $$('[data-trash-destroy]').forEach(button => button.addEventListener('click', async () => {
+    const item = library.items.find(entry => entry.id === button.dataset.trashDestroy);
+    if (!item) return;
+    const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
+    if (!await askDestroyConfirm(t('deleteSubtitle').replace('{0}', title))) return;
+    destroyItems([item.id]);
+    showToast(t('destroyed'));
+  }));
+}
+
+function destroyItems(ids) {
+  const idSet = new Set(ids);
+  library.items.forEach(entry => { entry.linkedIds = (entry.linkedIds || []).filter(id => !idSet.has(id)); });
+  library.items = library.items.filter(entry => !idSet.has(entry.id));
+  if (selectedId && idSet.has(selectedId)) selectedId = activeItems()[0]?.id || null;
+  persist();
+  renderAll();
+}
+
+const deleteConfirmState = { dialog: null, resolve: null, mode: '' };
+
+function deleteConfirmDialogEl() {
+  if (!deleteConfirmState.dialog) deleteConfirmState.dialog = $('#deleteConfirmDialog');
+  return deleteConfirmState.dialog;
+}
+
+function finishDeleteConfirm(result) {
+  const dialog = deleteConfirmDialogEl();
+  if (!dialog?.open) return;
+  const resolve = deleteConfirmState.resolve;
+  deleteConfirmState.resolve = null;
+  dialog.close();
+  resolve?.(result);
+}
+
+function openDeleteConfirm({ itemLabel, message, mode }) {
+  const dialog = deleteConfirmDialogEl();
+  if (!dialog) return null;
+  if (deleteConfirmState.resolve) finishDeleteConfirm(null);
+  deleteConfirmState.mode = mode;
+  $('#deleteConfirmItem').textContent = itemLabel || '';
+  $('#deleteConfirmMessage').textContent = message || '';
+  $('.delete-confirm-choices', dialog).hidden = mode !== 'item';
+  $('#confirmDestroyAll').hidden = mode === 'item';
+  dialog.showModal();
+  return new Promise(resolve => { deleteConfirmState.resolve = resolve; });
+}
+
+function askItemDelete(item) {
+  const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
+  const label = `${t(item.type)} · ${title}`;
+  return openDeleteConfirm({
+    itemLabel: label,
+    message: t('deleteTrashHint'),
+    mode: 'item'
+  }).then(choice => {
+    if (choice !== 'trash') return choice;
+    showToast(t('deletedToTrash'));
+    return choice;
+  });
+}
+
+function askDestroyConfirm(message) {
+  return openDeleteConfirm({ itemLabel: t('deleteTitle'), message, mode: 'destroy' }).then(result => result === 'destroy');
+}
+
+function bindDeleteConfirmDialog() {
+  const dialog = deleteConfirmDialogEl();
+  if (!dialog) return;
+  $('#deleteChoiceTrash')?.addEventListener('click', () => finishDeleteConfirm('trash'));
+  $('#deleteChoiceDestroy')?.addEventListener('click', () => finishDeleteConfirm('destroy'));
+  $('#confirmDestroyAll')?.addEventListener('click', () => finishDeleteConfirm('destroy'));
+  $('#cancelDeleteConfirm')?.addEventListener('click', () => finishDeleteConfirm(null));
+  dialog.addEventListener('cancel', event => {
+    event.preventDefault();
+    finishDeleteConfirm(null);
+  });
 }
 
 function renderList() {
@@ -1337,12 +1726,25 @@ function renderList() {
     return;
   }
   if (currentView === 'stats') {
-    const total = library.items.length;
+    const total = statsCollectionItems().length;
     $('#viewTitle').textContent = viewTitle();
     $('#viewEyebrow').textContent = window.actaDataName || t('actaData');
     $('#itemCountLabel').textContent = `${total} ${t('item')}`;
     list.className = 'item-list stats-list';
     list.innerHTML = renderStats();
+    bindStatsView();
+    return;
+  }
+  if (currentView === 'trash') {
+    const items = getVisibleItems();
+    $('#viewTitle').textContent = viewTitle();
+    $('#viewEyebrow').textContent = t('trashOpenHint');
+    $('#itemCountLabel').textContent = `${items.length} ${t('trashItems')}`;
+    list.className = 'item-list trash-list';
+    list.innerHTML = items.length
+      ? renderTrashList(items)
+      : `<div class="empty-list trash-empty"><div><span><svg><use href="#i-trash"/></svg></span><h3>${escapeHTML(t('trashEmptyTitle'))}</h3><p>${escapeHTML(t('trashEmptyHint'))}</p></div></div>`;
+    bindTrashList();
     return;
   }
   const items = getVisibleItems();
@@ -1395,6 +1797,7 @@ function editorTop(item) {
 function linkedItemsSection(item) {
   const linkedItems = getLinkedItems(item);
   const availableItems = library.items.filter(entry => entry.id !== item.id
+    && !isTrashed(entry)
     && (item.type === 'todo' || entry.type === 'todo')
     && !linkedItems.some(linked => linked.id === entry.id));
   const pickerLabel = item.type === 'note' ? t('chooseTodo') : t('linkedItems');
@@ -1424,7 +1827,8 @@ let bindTodoEditor;
 let createItem;
 
 function renderEditor() {
-  const item = getItem();
+  let item = getItem();
+  if (item && isTrashed(item)) item = null;
   const pane = $('#editorPane');
   const previousEditorId = $('.editor-wrap', pane)?.dataset.editorId;
   document.body.classList.remove('note-focus-mode', 'note-focus-leaving');
@@ -1530,12 +1934,24 @@ function bindEditor(item) {
     if (focusTitle) focusTitle.textContent = item.title || t('untitledNote');
     updateCard(item);
   });
-  $('#deleteItem')?.addEventListener('click', () => {
-    if (!confirm(t('deleteConfirm'))) return;
-    library.items.forEach(entry => { entry.linkedIds = (entry.linkedIds || []).filter(id => id !== item.id); });
-    library.items = library.items.filter(entry => entry.id !== item.id);
-    selectedId = getVisibleItems()[0]?.id || library.items[0]?.id || null;
-    persist(); renderAll(); showToast(t('deleted'));
+  $('#deleteItem')?.addEventListener('click', async () => {
+    const choice = await askItemDelete(item);
+    if (!choice) return;
+    if (choice === 'trash') {
+      item.deletedAt = new Date().toISOString();
+      library.items.forEach(entry => {
+        if (entry.id === item.id) return;
+        entry.linkedIds = (entry.linkedIds || []).filter(id => id !== item.id);
+      });
+      item.linkedIds = [];
+      const nextSelection = getVisibleItems().find(entry => entry.id !== item.id) || activeItems()[0];
+      selectedId = nextSelection?.id || null;
+      persist();
+      renderAll();
+      return;
+    }
+    destroyItems([item.id]);
+    showToast(t('destroyed'));
   });
   $('#completeItem')?.addEventListener('click', () => {
     const nextState = !isTodoComplete(item);
@@ -2477,6 +2893,7 @@ function bindShell() {
     if (currentView !== 'calendar') return;
     renderList();
   });
+  bindDeleteConfirmDialog();
   document.addEventListener('keydown', event => {
     if (isImeComposing(event)) return;
     const mod = event.metaKey || event.ctrlKey;

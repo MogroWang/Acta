@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version v2.1.0</strong>
+  <strong>Current version v2.2.0</strong>
 </p>
 
 Acta is a local-first notes and tasks app that brings writing, action, and organization into one calm workspace. The project shares a single web interface across Tauri desktop apps for Windows/macOS, a Capacitor Android app, and a modern-browser PWA.
@@ -19,7 +19,8 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 - Bidirectional links between notes and tasks, with navigation and unlinking from either editor
 - High, medium, and low task priorities, plus subtasks, progress, immutable creation time, and optional start/due times
 - A year/month/week/day calendar replacing Today: week numbers in the compact month view, independently scrollable desktop/mobile week layouts, and direct task/subtask completion in week and day views
-- A statistics page with totals, completion rate, last-30-day trends, and priority/folder distribution
+- A reworked statistics page as a notes-and-tasks list: gather items created in a chosen period, tick some, and make a list picture in one click
+- Deleting offers move-to-trash or delete-now; the trash is never emptied automatically and supports restore, delete-forever, and empty-all
 - Folders, smart views, combinable task/note filters, and unified search
 - Rich-text editing and UTF-8 Markdown import/export for individual notes
 - Simplified Chinese, Traditional Chinese, and English interfaces with theme and font settings

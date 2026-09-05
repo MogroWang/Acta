@@ -49,9 +49,20 @@
     importNote:'匯入筆記', importNoteHint:'支援 Markdown 與純文字', exportNote:'匯出這則筆記', noteImported:'筆記已匯入', noteExported:'筆記已匯出',
     importFailed:'匯入失敗', exportFailed:'匯出失敗', fileTooLarge:'檔案不能超過 5 MB', invalidNoteFile:'無法讀取這份筆記',
     stats:'統計', showCompletedTodos:'顯示已完成', statOpen:'進行中', confirm:'確定', cancel:'取消',
-    statsCompletion:'待辦完成情況', statsCompletionHint:'已完成佔比', statsActivity:'最近 30 天記錄', statsActivityHint:'按天統計新增的待辦與筆記',
-    statsPriority:'優先順序分佈', statsPriorityHint:'進行中待辦', statsFolders:'歸類分佈', statsFoldersHint:'全部項目',
-    statsEmpty:'這裡還沒有內容可以統計', statsEmptyHint:'建立筆記或待辦後，這裡會展示記錄情況。'
+    statsEmpty:'這裡還沒有內容可以統計', statsEmptyHint:'建立筆記或待辦後，這裡會展示記錄情況。',
+    trash:'回收站', trashItems:'件回收',
+    trashEmptyTitle:'回收站還是空的', trashEmptyHint:'刪除的待辦和筆記會先躺在這裡，不會自動清空，隨時回來翻翻，也許就有新的靈感。',
+    trashFooterNote:'回收站不會自動傾倒', restore:'恢復', destroy:'徹底刪除', restored:'已恢復到原位', destroyed:'已徹底刪除',
+    emptyTrash:'清空回收站', emptyTrashConfirmTitle:'清空回收站', emptyTrashConfirmMessage:'回收站中的 {0} 件內容將被徹底刪除，無法恢復。', trashEmptied:'回收站已清空',
+    deletedAt:'刪除於', restoreHint:'恢復到原來的歸類', trashOpenHint:'回收站中的內容不會出現在列表、日曆與統計裡',
+    deleteTitle:'刪除項目', deleteSubtitle:'選擇如何處理「{0}」', deleteTrashLabel:'移入回收站', deleteTrashHint:'保留在回收站中，隨時可以恢復', deleteDestroyLabel:'直接刪除', deleteDestroyHint:'不進入回收站，立即徹底刪除', moveToTrash:'移入回收站', deletedToTrash:'已移入回收站',
+    statsListTitle:'待辦筆記清單', statsListHint:'收集指定時間段建立的待辦與筆記，勾選後可製作圖片',
+    statsRangeAll:'全部時間', statsRangeToday:'今天', statsRange7:'最近 7 天', statsRange30:'最近 30 天', statsRange90:'最近 90 天', statsRangeCustom:'自訂',
+    statsCustomStart:'開始日期', statsCustomEnd:'截止日期', statsMakeImage:'產生圖片', statsSelectedCount:'已選 {0} 件', statsSelectAll:'全選', statsClearSelection:'清除選擇',
+    statsNeedSelection:'請先勾選要產生圖片的條目', statsImageDone:'清單圖片已產生', statsImageFailed:'圖片產生失敗', statsEmptyRange:'這個時間段還沒有內容',
+    statsGroupToday:'今天', statsGroupYesterday:'昨天', statsCheckItem:'加入圖片',
+    metaQuickActions:'快捷操作', metaCopyTitle:'複製標題', metaCopyBody:'複製全文', metaCopyNotes:'複製說明', metaCopyMarkdown:'複製 Markdown', metaMarkComplete:'標記完成', metaReopen:'重新開啟', metaViewCalendar:'在日曆查看', metaTrash:'移入回收站',
+    copied:'已複製到剪貼簿', copyFailed:'複製失敗'
   };
   Object.assign(dictionaries.zh, { high:'优先处理', medium:'稍后处理', low:'延缓处理' });
   Object.assign(dictionaries.en, { high:'Do first', medium:'Do later', low:'Delay' });
@@ -582,7 +593,7 @@
     byId('mobileClassificationList').setAttribute('aria-label', copy.mobileTitle);
     byId('closeMobileClassifications').setAttribute('aria-label', copy.close);
     byId('mobileClassificationList').innerHTML = library.folders.map(folder => {
-      const count = library.items.filter(item => item.folderId === folder.id).length;
+      const count = library.items.filter(item => item.folderId === folder.id && !isTrashed(item)).length;
       const shortName = folderShortName(folder);
       const shortNameClasses = ['folder-short-name', folderShortNameUsesEmoji(shortName) ? 'is-emoji' : '', folderShortSegments(shortName).length > 2 ? 'is-long' : ''].filter(Boolean).join(' ');
       const name = folderName(folder);
@@ -694,7 +705,7 @@
       classificationManagerFolderId = folder?.id || '';
     }
     if (!folder) return;
-    const folderItems = library.items.filter(item => item.folderId === folder.id);
+    const folderItems = library.items.filter(item => item.folderId === folder.id && !isTrashed(item));
     const notes = folderItems.filter(item => item.type === 'note');
     const todos = folderItems.filter(item => item.type === 'todo');
     const fallback = library.folders.find(entry => entry.id !== folder.id);
@@ -722,7 +733,7 @@
     byId('cancelClassificationManager').textContent = copy.close;
     byId('saveClassificationManager').querySelector('span').textContent = copy.save;
     byId('classificationManagerList').innerHTML = library.folders.map(entry => {
-      const itemCount = library.items.filter(item => item.folderId === entry.id).length;
+      const itemCount = library.items.filter(item => item.folderId === entry.id && !isTrashed(item)).length;
       return `<button type="button" data-classification-folder="${escapeHTML(entry.id)}" class="${entry.id === folder.id ? 'active' : ''}" style="--folder-color:${escapeHTML(normalizedClassificationColor(entry.color))}">
         <i class="folder-dot"></i><span><strong>${escapeHTML(folderName(entry))}</strong><small>${escapeHTML(formatClassificationMessage(copy.itemCount, itemCount))}</small></span><svg><use href="#i-chevron"/></svg>
       </button>`;
@@ -947,7 +958,7 @@
     const fallback = library.folders.find(entry => entry.id !== folder?.id);
     if (!folder || !fallback) return;
     const copy = classificationText();
-    const itemCount = library.items.filter(item => item.folderId === folder.id).length;
+    const itemCount = library.items.filter(item => item.folderId === folder.id && !isTrashed(item)).length;
     if (!confirm(formatClassificationMessage(copy.deleteConfirm, folderName(folder), itemCount, folderName(fallback)))) return;
     const movedAt = new Date().toISOString();
     library.items.forEach(item => { if (item.folderId === folder.id) { item.folderId = fallback.id; item.updatedAt = movedAt; } });
@@ -1015,10 +1026,31 @@
   };
   const itemMetaText = () => itemMetaMessages[uiSettings.language] || itemMetaMessages.zh;
 
+  function itemQuickActionsField(item) {
+    const actions = item.type === 'todo' ? [
+      { action:'toggle-complete', icon:'i-check', label: isTodoComplete(item) ? t('metaReopen') : t('metaMarkComplete') },
+      { action:'copy-title', icon:'i-copy', label: t('metaCopyTitle') },
+      { action:'copy-content', icon:'i-note', label: t('metaCopyNotes') },
+      ...(todoIsScheduled(item) ? [{ action:'view-calendar', icon:'i-calendar', label: t('metaViewCalendar') }] : []),
+      { action:'trash', icon:'i-trash', label: t('metaTrash'), danger:true }
+    ] : [
+      { action:'copy-title', icon:'i-copy', label: t('metaCopyTitle') },
+      { action:'copy-content', icon:'i-note', label: t('metaCopyBody') },
+      { action:'copy-markdown', icon:'i-markdown', label: t('metaCopyMarkdown') },
+      { action:'trash', icon:'i-trash', label: t('metaTrash'), danger:true }
+    ];
+    return `<div class="meta-field quick-actions-field">
+      <div class="meta-field-heading"><label><svg><use href="#i-spark"/></svg>${escapeHTML(t('metaQuickActions'))}</label></div>
+      <div class="meta-quick-actions">
+        ${actions.map(action => `<button type="button" data-meta-action="${action.action}" class="${action.danger ? 'is-danger' : ''}"><svg><use href="#${action.icon}"/></svg><span>${escapeHTML(action.label)}</span></button>`).join('')}
+      </div>
+    </div>`;
+  }
+
   function itemMetaPopover(item) {
     const copy = itemMetaText();
     if (item.type === 'note') {
-      return `<div class="item-meta-popover note-meta-popover" id="itemMetaPopover" role="group" aria-label="${escapeHTML(copy.panel)}" hidden>${classificationField(item)}</div>`;
+      return `<div class="item-meta-popover note-meta-popover" id="itemMetaPopover" role="group" aria-label="${escapeHTML(copy.panel)}" hidden>${itemQuickActionsField(item)}${classificationField(item)}</div>`;
     }
     const metaCopy = todoMetaText();
     const startLabel = item.startAt ? formatDateTimeSeconds(item.startAt) : metaCopy.notSet;
@@ -1038,8 +1070,8 @@
           <small>${escapeHTML(metaCopy.immutable)}</small>
         </div>
         <div class="schedule-display" id="scheduleDisplay">
-          <span><b>${escapeHTML(metaCopy.start)}</b><time id="scheduleStartValue" datetime="${escapeHTML(item.startAt || '')}">${escapeHTML(startLabel)}</time></span>
-          <span><b>${escapeHTML(metaCopy.due)}</b><time id="scheduleDueValue" datetime="${escapeHTML(item.dueAt || '')}">${escapeHTML(dueLabel)}</time></span>
+          <span ${item.startAt ? '' : 'hidden'}><b>${escapeHTML(metaCopy.start)}</b><time id="scheduleStartValue" datetime="${escapeHTML(item.startAt || '')}">${escapeHTML(startLabel)}</time></span>
+          <span ${item.dueAt ? '' : 'hidden'}><b>${escapeHTML(metaCopy.due)}</b><time id="scheduleDueValue" datetime="${escapeHTML(item.dueAt || '')}">${escapeHTML(dueLabel)}</time></span>
         </div>
         <div class="schedule-editor" id="scheduleEditor" hidden>
           <div class="schedule-editor-row"><label for="todoStartAt">${escapeHTML(metaCopy.start)}</label><button id="clearTodoStartAt" type="button">${escapeHTML(metaCopy.clear)}</button><input id="todoStartAt" type="datetime-local" step="1" value="${escapeHTML(dateTimeLocalValue(item.startAt))}" /></div>
@@ -1052,6 +1084,7 @@
         ${['high','medium','low'].map(value => `<button type="button" data-priority="${value}" class="${item.priority === value ? 'active' : ''}">${t(value)}</button>`).join('')}
       </div></div>
       ${classificationField(item)}
+      ${itemQuickActionsField(item)}
     </div>`;
   }
 
@@ -1132,8 +1165,8 @@
       <textarea class="editor-title" id="editorTitle" rows="1" placeholder="${t('untitledTodo')}">${escapeHTML(item.title)}</textarea>
       <div class="editor-subline todo-time-line" aria-label="${escapeHTML(metaCopy.schedule)}">
         <time id="todoCreatedAtSummary" datetime="${escapeHTML(item.createdAt)}"><svg><use href="#i-calendar"/></svg><b>${escapeHTML(metaCopy.created)}</b><span>${escapeHTML(formatDateTimeSeconds(item.createdAt))}</span></time>
-        <time id="todoStartAtSummary" datetime="${escapeHTML(item.startAt || '')}"><svg><use href="#i-clock"/></svg><b>${escapeHTML(metaCopy.start)}</b><span>${escapeHTML(startLabel)}</span></time>
-        <time id="todoDueAtSummary" datetime="${escapeHTML(item.dueAt || '')}"><svg><use href="#i-clock"/></svg><b>${escapeHTML(metaCopy.due)}</b><span>${escapeHTML(dueLabel)}</span></time>
+        <time id="todoStartAtSummary" datetime="${escapeHTML(item.startAt || '')}" ${item.startAt ? '' : 'hidden'}><svg><use href="#i-clock"/></svg><b>${escapeHTML(metaCopy.start)}</b><span>${escapeHTML(startLabel)}</span></time>
+        <time id="todoDueAtSummary" datetime="${escapeHTML(item.dueAt || '')}" ${item.dueAt ? '' : 'hidden'}><svg><use href="#i-clock"/></svg><b>${escapeHTML(metaCopy.due)}</b><span>${escapeHTML(dueLabel)}</span></time>
       </div>
       ${linkedItemsSection(item)}
       <div class="progress-head"><h2>${t('progress')}</h2><span>${completed} / ${tasks.length} · ${progress}% ${t('done')}</span></div>
@@ -1146,7 +1179,7 @@
         </div>`).join('')}
       </div>
       <button class="add-task" id="addTask"><span><svg><use href="#i-plus"/></svg></span>${t('addTask')}</button>
-      <section class="note-block"><h2>${t('description')}</h2><div class="todo-notes" id="todoNotes" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('descriptionPlaceholder')}">${escapeHTML(item.notes || '')}</div></section>
+      <section class="note-block"><h2>${t('description')}</h2><div class="todo-notes" id="todoNotes" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('descriptionPlaceholder')}">${escapeHTML(item.notes || '').replace(/\n/g, '<br>')}</div></section>
     </article>`;
   };
 
@@ -1209,15 +1242,20 @@
       delete item.durationMinutes;
       const startValue = byId('scheduleStartValue');
       const dueValue = byId('scheduleDueValue');
-      startValue.dateTime = item.startAt;
-      startValue.textContent = item.startAt ? formatDateTimeSeconds(item.startAt) : metaCopy.notSet;
-      dueValue.dateTime = item.dueAt;
-      dueValue.textContent = item.dueAt ? formatDateTimeSeconds(item.dueAt) : metaCopy.notSet;
+      const syncDisplayValue = (timeEl, value) => {
+        if (!timeEl) return;
+        timeEl.dateTime = value || '';
+        timeEl.textContent = value ? formatDateTimeSeconds(value) : metaCopy.notSet;
+        timeEl.parentElement?.toggleAttribute('hidden', !value);
+      };
+      syncDisplayValue(startValue, item.startAt);
+      syncDisplayValue(dueValue, item.dueAt);
       const syncSummaryTime = (id, value) => {
         const summary = byId(id);
         if (!summary) return;
         summary.dateTime = value || '';
         summary.querySelector('span').textContent = value ? formatDateTimeSeconds(value) : metaCopy.notSet;
+        summary.toggleAttribute('hidden', !value);
       };
       syncSummaryTime('todoStartAtSummary', item.startAt);
       syncSummaryTime('todoDueAtSummary', item.dueAt);
@@ -1263,7 +1301,13 @@
       });
     });
     byId('addTask').addEventListener('click', () => addTask(item));
-    byId('todoNotes').addEventListener('input', event => { item.notes = event.target.textContent; touchItem(item); updateCard(item); });
+    byId('todoNotes').addEventListener('input', event => {
+      // innerText (unlike textContent) keeps the line breaks the user sees, so re-rendering
+      // the editor (e.g. after adding a subtask) no longer collapses them.
+      item.notes = event.target.innerText.replace(/\r/g, '').replace(/\n+$/, '');
+      touchItem(item);
+      updateCard(item);
+    });
   };
 
   const rendererBindEditor = bindEditor;
@@ -1320,6 +1364,76 @@
   document.addEventListener('keydown', event => {
     if (isImeComposing(event)) return;
     if (event.key === 'Escape' && !byId('itemMetaPopover')?.hidden) closeItemMetaPopover(true);
+  });
+
+  const copyTextToClipboard = async text => {
+    try {
+      if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(text); return true; }
+    } catch { /* Fall through to the execCommand fallback. */ }
+    try {
+      const helper = document.createElement('textarea');
+      helper.value = text;
+      helper.setAttribute('readonly', '');
+      helper.style.position = 'fixed';
+      helper.style.opacity = '0';
+      document.body.appendChild(helper);
+      helper.select();
+      const ok = document.execCommand('copy');
+      helper.remove();
+      return ok;
+    } catch { return false; }
+  };
+
+  document.addEventListener('click', event => {
+    const actionButton = event.target.closest?.('[data-meta-action]');
+    if (!actionButton) return;
+    const item = getItem();
+    if (!item || isTrashed(item)) return;
+    event.preventDefault();
+    closeItemMetaPopover();
+    const action = actionButton.dataset.metaAction;
+    const copyAndReport = async text => {
+      const ok = await copyTextToClipboard(text);
+      showToast(ok ? t('copied') : t('copyFailed'));
+    };
+    if (action === 'toggle-complete') {
+      setTodoCompletion(item, !isTodoComplete(item));
+      renderAll();
+      showToast(isTodoComplete(item) ? t('done') : t('reopenTask'));
+      return;
+    }
+    if (action === 'copy-title') { copyAndReport(item.title || ''); return; }
+    if (action === 'copy-content') { copyAndReport(item.type === 'note' ? stripHTML(item.body) : (item.notes || '')); return; }
+    if (action === 'copy-markdown') { copyAndReport(item.type === 'note' ? noteHTMLToMarkdown(item.body) : (item.notes || '')); return; }
+    if (action === 'view-calendar') {
+      calendarCursor = todoStartDate(item) || calendarDate(todayISO());
+      currentView = 'calendar';
+      calendarMotion = 'enter';
+      resetListFilters();
+      renderAll();
+      return;
+    }
+    if (action === 'trash') {
+      (async () => {
+        const choice = await askItemDelete(item);
+        if (!choice) return;
+        if (choice === 'trash') {
+          item.deletedAt = new Date().toISOString();
+          library.items.forEach(entry => {
+            if (entry.id === item.id) return;
+            entry.linkedIds = (entry.linkedIds || []).filter(id => id !== item.id);
+          });
+          item.linkedIds = [];
+          const nextSelection = getVisibleItems().find(entry => entry.id !== item.id) || activeItems()[0];
+          selectedId = nextSelection?.id || null;
+          persist();
+          renderAll();
+          return;
+        }
+        destroyItems([item.id]);
+        showToast(t('destroyed'));
+      })();
+    }
   });
 
   function syncMergedTodoNavigation() {
@@ -1922,7 +2036,7 @@
 
   function replaceLibrary(nextLibrary) {
     library = clearLegacyTags(normalizeLibrary(nextLibrary));
-    selectedId = library.items[0]?.id || null;
+    selectedId = activeItems()[0]?.id || null;
     currentView = 'inbox';
     resetListFilters();
     searchQuery = '';
@@ -1938,8 +2052,8 @@
   const profileStats = (profile, snapshot = null) => {
     const source = snapshot?.items || [];
     if (snapshot) {
-      profile.noteCount = source.filter(item => item.type === 'note').length;
-      profile.todoCount = source.filter(item => item.type === 'todo').length;
+      profile.noteCount = source.filter(item => item.type === 'note' && !isTrashed(item)).length;
+      profile.todoCount = source.filter(item => item.type === 'todo' && !isTrashed(item)).length;
       profile.updatedAt = new Date().toISOString();
     }
     return { notes:Number(profile.noteCount) || 0, todos:Number(profile.todoCount) || 0 };
@@ -2197,7 +2311,7 @@
       let legacyHandle = null;
       if (!savedNativeWorkspace) legacyHandle = await readDirectoryHandle('workspace').catch(() => null);
       const id = uid();
-      const profile = { id, name:uiSettings.workspaceLabel || profileText('defaultName'), storage:savedNativeWorkspace || legacyHandle ? 'folder' : 'local', label:uiSettings.workspaceLabel || localProfileLocation(), noteCount:library.items.filter(item => item.type === 'note').length, todoCount:library.items.filter(item => item.type === 'todo').length, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
+      const profile = { id, name:uiSettings.workspaceLabel || profileText('defaultName'), storage:savedNativeWorkspace || legacyHandle ? 'folder' : 'local', label:uiSettings.workspaceLabel || localProfileLocation(), noteCount:library.items.filter(item => item.type === 'note' && !isTrashed(item)).length, todoCount:library.items.filter(item => item.type === 'todo' && !isTrashed(item)).length, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
       if (savedNativeWorkspace) profile.folder = savedNativeWorkspace;
       else if (legacyHandle) { profile.handleKey = 'workspace'; profile.label = legacyHandle.name || profileText('folder'); }
       dataProfiles.push(profile);
@@ -2212,7 +2326,7 @@
       await activateDataProfile(uiSettings.activeDataProfileId, { createIfMissing:true, notify:false });
       setStatus(byId('workspaceStatus'), profileText('ready'), 'success');
     } catch (error) {
-      const recovery = { id:uid(), name:uniqueProfileName(profileText('defaultName')), storage:'local', label:localProfileLocation(), createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), noteCount:library.items.filter(item => item.type === 'note').length, todoCount:library.items.filter(item => item.type === 'todo').length };
+      const recovery = { id:uid(), name:uniqueProfileName(profileText('defaultName')), storage:'local', label:localProfileLocation(), createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), noteCount:library.items.filter(item => item.type === 'note' && !isTrashed(item)).length, todoCount:library.items.filter(item => item.type === 'todo' && !isTrashed(item)).length };
       dataProfiles.push(recovery);
       await createLocalProfileAdapter(recovery).save(library);
       await activateDataProfile(recovery.id, { notify:false });

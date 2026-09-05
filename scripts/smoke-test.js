@@ -134,6 +134,14 @@ async function main() {
       const imeEnterIgnored = library.items.find(item => item.id === 'launch-plan').tasks.length === taskBeforeImeEnter;
       const task = library.items.find(item => item.id === 'launch-plan');
       document.querySelector('#itemMetaButton').click();
+      const todoQuickActionsPresent = document.querySelectorAll('#itemMetaPopover .meta-quick-actions button[data-meta-action]').length >= 4;
+      document.querySelector('#itemMetaPopover [data-meta-action="toggle-complete"]').click();
+      const metaToggleCompleteWorks = isTodoComplete(task) && task.completed === true;
+      task.completed = false;
+      task.tasks.forEach(entry => { entry.done = entry.id === 't1'; });
+      persist();
+      renderAll();
+      document.querySelector('#itemMetaButton').click();
       const todoClassificationSelect = document.querySelector('#classificationFolder');
       const scheduledTodoListShowsTimeRange = document.querySelector('.item-card[data-id="launch-plan"] .card-schedule-date')?.querySelectorAll('time').length === 2;
       const todoTimeDetailsVisible = ['todoCreatedAtSummary', 'todoStartAtSummary', 'todoDueAtSummary'].every(id => Boolean(document.querySelector('#' + id)))
@@ -167,6 +175,17 @@ async function main() {
         && document.querySelector('#todoDueAtSummary').dateTime === ''
         && !calendarTodos().some(item => item.id === task.id);
       const unscheduledTodoListShowsCreatedTime = document.querySelector('.item-card[data-id="launch-plan"] .card-created-date')?.dateTime === task.createdAt;
+      const todoNotesField = document.querySelector('#todoNotes');
+      todoNotesField.innerHTML = '第一行<br>第二行<br><br>第四行';
+      todoNotesField.dispatchEvent(new Event('input', { bubbles:true }));
+      const todoNotesKeepsLineBreaks = task.notes === '第一行\\n第二行\\n\\n第四行';
+      document.querySelector('#addTask').click();
+      const todoNotesSurvivesSubtask = document.querySelector('#todoNotes')?.innerHTML.includes('第一行<br>')
+        && library.items.find(item => item.id === 'launch-plan').tasks.length === taskBeforeImeEnter + 1;
+      [...document.querySelectorAll('.task-row .remove-task')].at(-1).click();
+      task.notes = '测试待办';
+      persist();
+      document.querySelector('#itemMetaButton').click();
       document.querySelector('#editSchedule').click();
       document.querySelector('#todoDueAt').value = dateTimeLocalValue(editedDue);
       document.querySelector('#todoDueAt').dispatchEvent(new Event('input', { bubbles:true }));
@@ -458,6 +477,7 @@ async function main() {
       document.querySelector('#itemMetaButton').click();
       const noteClassificationSelectOnly = Boolean(document.querySelector('#classificationFolder'))
         && !document.querySelector('#classificationName, #editClassificationName, #confirmClassificationName, #manageClassification');
+      const noteQuickActionsPresent = document.querySelectorAll('#itemMetaPopover .meta-quick-actions button[data-meta-action]').length >= 4;
       document.querySelector('#itemMetaButton').click();
       const noteMetaCloseAnimation = document.querySelector('#itemMetaPopover').classList.contains('is-closing')
         && getComputedStyle(document.querySelector('#itemMetaPopover')).animationName === 'itemMetaPopoverOut';
@@ -739,11 +759,76 @@ async function main() {
       document.querySelector('#todoShowCompleted').click();
       const completedHiddenAgainAfterToggle = !document.querySelector('[data-id="launch-plan"]');
       document.querySelector('[data-view="stats"]').click();
-      const statsDashboardVisible = Boolean(document.querySelector('.stats-dashboard')) && document.body.classList.contains('stats-view');
-      const statsCountsCorrect = document.querySelector('[data-stat="notes"]')?.textContent === '2'
-        && document.querySelector('[data-stat="todos"]')?.textContent === String(library.items.filter(item => item.type === 'todo').length)
-        && document.querySelector('[data-stat="completed"]')?.textContent === '1';
-      const statsDonutVisible = Boolean(document.querySelector('.stats-donut-value')) && Boolean(document.querySelector('.stats-bars'));
+      const statsCollectionViewVisible = Boolean(document.querySelector('.stats-collection-wrap')) && document.body.classList.contains('stats-view');
+      const statsListShowsAllItems = document.querySelectorAll('.stats-item-row').length === library.items.length;
+      const statsRangeSelect = document.querySelector('#statsRange');
+      statsRangeSelect.value = '30';
+      statsRangeSelect.dispatchEvent(new Event('change', { bubbles:true }));
+      const statsRangeFilterWorks = document.querySelectorAll('.stats-item-row').length === library.items.filter(item => new Date(item.createdAt).getTime() > Date.now() - 30 * 86400000).length;
+      document.querySelector('.stats-item-check input')?.click();
+      const statsSelectionWorks = document.querySelector('#statsSelectionCount')?.textContent.includes('1') && Boolean(document.querySelector('.stats-item-row.is-checked'));
+      document.querySelector('#statsClearSelection').click();
+      const statsSelectionClears = document.querySelector('#statsSelectionCount')?.textContent.includes('0') && !document.querySelector('.stats-item-row.is-checked');
+      document.querySelector('#statsMakeImage').click();
+      const statsImageNeedsSelection = document.querySelector('#toast').classList.contains('show') && document.querySelector('#toast p').textContent.length > 0;
+      const statsRangeSelectReset = document.querySelector('#statsRange');
+      statsRangeSelectReset.value = 'all';
+      statsRangeSelectReset.dispatchEvent(new Event('change', { bubbles:true }));
+      document.querySelector('[data-view="todos"]').click();
+      // 回收站流程：二级删除提示 → 移入回收站 → 恢复
+      document.querySelector('.item-card[data-id="weekend-list"]').click();
+      document.querySelector('#deleteItem').click();
+      const deleteDialogOpens = await waitFor(() => document.querySelector('#deleteConfirmDialog').open)
+        && !document.querySelector('#deleteChoiceTrash').closest('.delete-confirm-choices').hidden
+        && document.querySelector('#confirmDestroyAll').hidden;
+      document.querySelector('#deleteChoiceTrash').click();
+      const weekendTrashed = await waitFor(() => Boolean(library.items.find(item => item.id === 'weekend-list')?.deletedAt));
+      const trashCountShows = document.querySelector('#trashCount')?.textContent === '1';
+      const weekendHiddenFromLists = !document.querySelector('.item-card[data-id="weekend-list"]')
+        && !calendarNotes().some(item => item.id === 'weekend-list');
+      document.querySelector('[data-view="trash"]').click();
+      const trashViewVisible = Boolean(document.querySelector('.trash-card[data-trash-card="weekend-list"]'))
+        && document.body.classList.contains('trash-view')
+        && document.querySelector('#emptyTrashButton') !== null;
+      document.querySelector('[data-trash-restore="weekend-list"]').click();
+      const weekendRestored = await waitFor(() => !library.items.find(item => item.id === 'weekend-list')?.deletedAt)
+        && document.querySelector('#trashCount')?.textContent === '0';
+      document.querySelector('[data-view="todos"]').click();
+      // 回收站流程：直接删除（不进入回收站）
+      const destroyTarget = { id:'smoke-destroy-me', type:'note', folderId:'ideas', title:'临时销毁测试', body:'<p>temp</p>', linkedIds:[], createdAt:smokeNow, updatedAt:smokeNow };
+      library.items.unshift(destroyTarget);
+      persist();
+      renderAll();
+      document.querySelector('[data-view="notes"]').click();
+      document.querySelector('.item-card[data-id="smoke-destroy-me"]').click();
+      document.querySelector('#deleteItem').click();
+      await waitFor(() => document.querySelector('#deleteConfirmDialog').open);
+      document.querySelector('#deleteChoiceDestroy').click();
+      const directDeleteWorks = await waitFor(() => !library.items.some(item => item.id === 'smoke-destroy-me'));
+      // 回收站流程：清空回收站（回收站内的内容先移入，再一键清空）
+      const discardTargets = [
+        { id:'smoke-trash-a', type:'note', folderId:'ideas', title:'回收站测试甲', body:'<p>a</p>', linkedIds:[], createdAt:smokeNow, updatedAt:smokeNow },
+        { id:'smoke-trash-b', type:'note', folderId:'ideas', title:'回收站测试乙', body:'<p>b</p>', linkedIds:[], createdAt:smokeNow, updatedAt:smokeNow }
+      ];
+      library.items.unshift(...discardTargets);
+      persist();
+      renderAll();
+      for (const target of discardTargets) {
+        document.querySelector('.item-card[data-id="' + target.id + '"]').click();
+        document.querySelector('#deleteItem').click();
+        await waitFor(() => document.querySelector('#deleteConfirmDialog').open);
+        document.querySelector('#deleteChoiceTrash').click();
+        await waitFor(() => Boolean(library.items.find(item => item.id === target.id)?.deletedAt));
+      }
+      document.querySelector('[data-view="trash"]').click();
+      document.querySelector('#emptyTrashButton').click();
+      const emptyTrashDialogShows = await waitFor(() => document.querySelector('#deleteConfirmDialog').open)
+        && !document.querySelector('#confirmDestroyAll').hidden
+        && document.querySelector('#deleteChoiceTrash').closest('.delete-confirm-choices').hidden;
+      document.querySelector('#confirmDestroyAll').click();
+      const trashEmptiedWorks = await waitFor(() => !library.items.some(item => item.id === 'smoke-trash-a' || item.id === 'smoke-trash-b'))
+        && document.querySelector('#trashCount')?.textContent === '0'
+        && !document.querySelector('#deleteConfirmDialog').open;
       document.querySelector('[data-view="todos"]').click();
       const nativeStatusBarCalls = [];
       const nativeSystemBarCalls = [];
@@ -1070,7 +1155,7 @@ async function main() {
       await waitFor(() => innerWidth > 1200 && innerHeight > 700);
       window.__actaSmokeStep = 'classification-item-opened';
       const brandVersion = document.querySelector('.brand-version');
-      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '2.1.0'
+      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '2.2.0'
         && parseFloat(getComputedStyle(brandVersion).opacity) > .9
         && brandVersion.getBoundingClientRect().width > 0;
       const miniLogoBeforeCollapseRect = document.querySelector('.brand-mini-logo').getBoundingClientRect();
@@ -1260,9 +1345,21 @@ async function main() {
         showCompletedToggleVisible,
         completedShownInTodos,
         completedHiddenAgainAfterToggle,
-        statsDashboardVisible,
-        statsCountsCorrect,
-        statsDonutVisible,
+        statsCollectionViewVisible,
+        statsListShowsAllItems,
+        statsRangeFilterWorks,
+        statsSelectionWorks,
+        statsSelectionClears,
+        statsImageNeedsSelection,
+        deleteDialogOpens,
+        weekendTrashed,
+        trashCountShows,
+        weekendHiddenFromLists,
+        trashViewVisible,
+        weekendRestored,
+        directDeleteWorks,
+        emptyTrashDialogShows,
+        trashEmptiedWorks,
         darkCreateMenuBackground,
         darkThemeColor,
         detailedThemeColorsWork,
@@ -1293,6 +1390,11 @@ async function main() {
         todoDurationRemoved,
         todoScheduleEditable,
         todoScheduleCancellationWarns,
+        todoQuickActionsPresent,
+        metaToggleCompleteWorks,
+        todoNotesKeepsLineBreaks,
+        todoNotesSurvivesSubtask,
+        noteQuickActionsPresent,
         scheduledTodoListShowsTimeRange,
         unscheduledTodoListShowsCreatedTime,
         calendarReplacesToday,
@@ -1561,9 +1663,21 @@ async function main() {
     assert.equal(result.showCompletedToggleVisible, true);
     assert.equal(result.completedShownInTodos, true);
     assert.equal(result.completedHiddenAgainAfterToggle, true);
-    assert.equal(result.statsDashboardVisible, true);
-    assert.equal(result.statsCountsCorrect, true);
-    assert.equal(result.statsDonutVisible, true);
+    assert.equal(result.statsCollectionViewVisible, true);
+    assert.equal(result.statsListShowsAllItems, true);
+    assert.equal(result.statsRangeFilterWorks, true);
+    assert.equal(result.statsSelectionWorks, true);
+    assert.equal(result.statsSelectionClears, true);
+    assert.equal(result.statsImageNeedsSelection, true);
+    assert.equal(result.deleteDialogOpens, true);
+    assert.equal(result.weekendTrashed, true);
+    assert.equal(result.trashCountShows, true);
+    assert.equal(result.weekendHiddenFromLists, true);
+    assert.equal(result.trashViewVisible, true);
+    assert.equal(result.weekendRestored, true);
+    assert.equal(result.directDeleteWorks, true);
+    assert.equal(result.emptyTrashDialogShows, true);
+    assert.equal(result.trashEmptiedWorks, true);
     assert.match(result.darkCreateMenuBackground, /^rgb\(/);
     assert.equal(result.darkThemeColor, '#111111');
     assert.equal(result.detailedThemeColorsWork, true);
@@ -1590,6 +1704,11 @@ async function main() {
     assert.equal(result.todoDurationRemoved, true);
     assert.equal(result.todoScheduleEditable, true);
     assert.equal(result.todoScheduleCancellationWarns, true);
+    assert.equal(result.todoQuickActionsPresent, true);
+    assert.equal(result.metaToggleCompleteWorks, true);
+    assert.equal(result.todoNotesKeepsLineBreaks, true);
+    assert.equal(result.todoNotesSurvivesSubtask, true);
+    assert.equal(result.noteQuickActionsPresent, true);
     assert.equal(result.scheduledTodoListShowsTimeRange, true);
     assert.equal(result.unscheduledTodoListShowsCreatedTime, true);
     assert.equal(result.calendarReplacesToday, true);
@@ -1789,6 +1908,9 @@ async function main() {
     await bridgePage.evaluateOnNewDocument(() => {
       const calls = [];
       window.__tauriSmokeCalls = calls;
+      // The bridge page mocks a Windows Tauri environment, so the UA must match,
+      // otherwise tauri-bridge.js reports 'darwin' on macOS hosts.
+      Object.defineProperty(Navigator.prototype, 'userAgent', { value:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36', configurable:true });
       const windowCommand = name => () => {
         calls.push({ type:'window', name });
         return Promise.resolve();
