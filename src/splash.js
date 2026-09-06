@@ -2,9 +2,11 @@
 // splash leaves only once BOTH conditions are met - the page finished loading
 // (window load) and the logo's entrance animation has played out - so a fast
 // local load can never cut the wordmark off before it was seen. Leaving is
-// two-phase: the logo scales up and fades out while the layer still covers
-// the workspace, then the layer cross-fades with the workspace reveal
-// (acta-app-reveal on <html> starts the shell's fade-in at the same moment).
+// staged: the logo scales up and fades out while the layer still covers the
+// workspace, divider lines mirroring the workspace's real borders then draw
+// themselves across the paper, and finally the layer cross-fades with the
+// workspace reveal (acta-app-reveal on <html> starts the shell's fade-in at
+// the same moment).
 // The splash is purely visual - it never intercepts pointer events, so early
 // automation (e.g. smoke tests) is unaffected. Failsafes guarantee it can
 // never block the UI: load and animationend each get a timeout fallback here,
@@ -21,7 +23,7 @@
     splash.classList.add('is-leaving');
     document.documentElement.classList.add('acta-app-reveal');
     splash.addEventListener('transitionend', event => { if (event.target === splash) splash.remove(); }, { once: true });
-    setTimeout(() => splash.remove(), 1600);
+    setTimeout(() => splash.remove(), 2300);
   };
   const maybeLeave = () => { if (!leaving && loaded && shown) { leaving = true; leave(); } };
   const markLoaded = () => { loaded = true; maybeLeave(); };

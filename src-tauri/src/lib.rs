@@ -26,6 +26,8 @@ const WEBDAV_SIZE_LIMIT: usize = 16 * 1024 * 1024;
 const EXPORT_FILE_LIMIT: usize = 64 * 1024 * 1024;
 const EXPORT_TOTAL_LIMIT: usize = 192 * 1024 * 1024;
 const APP_ICON_FILE: &str = "app-icon.png";
+const THEME_COLOR_FILE: &str = "theme-color.txt";
+const DEFAULT_PAPER_COLOR: &str = "#fbfaf6";
 
 fn timestamp() -> String {
     Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true)
@@ -707,6 +709,22 @@ fn persisted_app_icon_path(app: &AppHandle) -> Result<PathBuf, String> {
         .map_err(|error| error.to_string())
 }
 
+fn persisted_theme_color_path(app: &AppHandle) -> Result<PathBuf, String> {
+    app.path()
+        .app_data_dir()
+        .map(|directory| directory.join(THEME_COLOR_FILE))
+        .map_err(|error| error.to_string())
+}
+
+fn parse_theme_color(raw: &str) -> Option<tauri::window::Color> {
+    let hex = raw.trim().strip_prefix('#')?;
+    if hex.len() != 6 || !hex.chars().all(|character| character.is_ascii_hexdigit()) {
+        return None;
+    }
+    let channel = |range: std::ops::Range<usize>| u8::from_str_radix(&hex[range], 16).ok();
+    Some(tauri::window::Color(channel(0..2)?, channel(2..4)?, channel(4..6)?, 255))
+}
+
 fn persist_app_icon(app: &AppHandle, data_url: &str, bytes: &[u8]) -> Result<(), String> {
     let path = persisted_app_icon_path(app)?;
     if data_url.is_empty() {
@@ -776,6 +794,20 @@ async fn set_app_icon(
 }
 
 #[tauri::command]
+fn save_theme_color(app: AppHandle, color: String) -> Result<(), String> {
+    if parse_theme_color(&color).is_none() {
+        return Err("主题颜色格式无效".to_string());
+    }
+    let path = persisted_theme_color_path(&app)?;
+    let directory = path
+        .parent()
+        .ok_or_else(|| "无法确定主题颜色保存位置".to_string())?;
+    fs::create_dir_all(directory).map_err(|error| error.to_string())?;
+    fs::write(path, format!("{}\n", color.trim().to_lowercase()))
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn clear_app_cache(window: WebviewWindow) -> Result<bool, String> {
     window
         .clear_all_browsing_data()
@@ -833,6 +865,19 @@ pub fn run() {
                     }
                 }
             }
+            // The window is created hidden (visible: false). Paint its native
+            // background with the theme color saved by the previous session,
+            // so the boot splash opens in-theme with no default beige flash,
+            // and only then reveal it.
+            if let Some(window) = app.get_webview_window("main") {
+                let theme_color = persisted_theme_color_path(app_handle)
+                    .ok()
+                    .and_then(|path| fs::read_to_string(path).ok())
+                    .and_then(|raw| parse_theme_color(&raw))
+                    .or_else(|| parse_theme_color(DEFAULT_PAPER_COLOR));
+                let _ = window.set_background_color(theme_color);
+                let _ = window.show();
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -844,7 +889,8 @@ pub fn run() {
             export_note,
             export_assets,
             clear_app_cache,
-            set_app_icon
+            set_app_icon,
+            save_theme_color
         ])
         .run(tauri::generate_context!())
         .expect("error while running Acta");

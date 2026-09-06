@@ -36,6 +36,10 @@
     root.style.setProperty('--calendar-theme-accent', pick(stored.customCalendar, '#4f7656'));
     root.style.setProperty('--calendar-theme-soft', pick(stored.customCalendarSoft, '#dcebdd'));
   }
+  // Prime the list pane width too, so the splash divider lines land exactly on
+  // the workspace's column boundaries before interface.js gets a chance to run.
+  const listWidth = Math.max(330, Math.min(620, Number(stored.listPaneWidth) || 330));
+  root.style.setProperty('--list-pane-width', `${listWidth}px`);
   const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
   if (colorSchemeMeta) colorSchemeMeta.content = isDark ? 'dark' : 'light';
   const themeColorMeta = document.querySelector('meta[name="theme-color"]');
