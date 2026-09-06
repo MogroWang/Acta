@@ -201,10 +201,13 @@ html[data-desktop-platform="darwin"] .brand { padding-left: 84px; }
 .search-box input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: calc(11px * var(--acta-font-scale)); }
 .search-box input::placeholder { color: var(--faint); }
 .search-box kbd { font: calc(9px * var(--acta-font-scale))/1 system-ui; padding: 4px 5px; border-radius: 5px; background: var(--sidebar); color: var(--faint); }
-.filter-row { min-height: 38px; padding: 0 18px 9px; display: flex; align-items: center; gap: 5px; border-bottom: 1px solid var(--line); }
+.filter-row { min-height: 38px; padding: 0 18px 9px; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; border-bottom: 1px solid var(--line); }
 .filter-group { min-width: 0; flex: 1; display: flex; align-items: center; gap: 5px; }
 .filter-group[hidden] { display: none; }
-.contextual-filter-group { display: flex; flex-wrap: wrap; }
+/* flex-basis auto: the group claims room for its selects, so a narrow list pane
+   wraps the toggle/sort to the next line instead of crushing the group to zero
+   and letting the wrapped selects pile up underneath them. */
+.contextual-filter-group { flex: 1 1 auto; display: flex; flex-wrap: wrap; }
 .contextual-filter-group .filter-select { flex: 1 1 122px; min-width: 122px; }
 .filter-row button { height: 27px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: calc(10px * var(--acta-font-scale)); cursor: pointer; transition: background .15s ease, color .15s ease, transform .18s var(--ease-out); }
 .filter-row button:hover { transform: translateY(-1px); color: var(--ink); background: rgba(255,255,255,.5); }

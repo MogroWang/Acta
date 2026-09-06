@@ -1,6 +1,6 @@
 [package]
 name = "acta"
-version = "2.2.2"
+version = "2.3.0"
 description = "Acta · 行记"
 authors = ["MogroWang Studio"]
 edition = "2021"

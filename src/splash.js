@@ -8,10 +8,12 @@
 // themselves across the paper in parallel, and finally the layer cross-fades
 // with the workspace reveal (acta-app-reveal on <html> starts the shell's
 // fade-in at the same moment).
-// Desktop (Tauri): the window is created hidden; after the splash has painted
-// two frames we reveal it, so the first frame the user ever sees is the themed
-// splash and never the native window background. Rust reveals it itself after
-// a 3s grace period if this script never gets the chance to run.
+// Desktop (Tauri): the window is created hidden; only after the page has
+// fully loaded and the splash has painted two frames do we reveal it, so the
+// first frame the user ever sees is the themed splash and never the native
+// window background (revealing earlier would flash the bare background while
+// the webview is still spinning up its first frame). Rust reveals it itself
+// after a 3s grace period if this script never gets the chance to run.
 // The splash is purely visual - it never intercepts pointer events, so early
 // automation (e.g. smoke tests) is unaffected. Failsafes guarantee it can
 // never block the UI: load and animationend each get a timeout fallback here,
@@ -23,9 +25,20 @@
   const logo = splash.querySelector('.splash-logo');
   const tauriInvoke = window.__TAURI__?.core?.invoke?.bind(window.__TAURI__.core);
   if (tauriInvoke) {
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      tauriInvoke('reveal_window').catch(() => {});
-    }));
+    let revealed = false;
+    const revealWindow = () => {
+      if (revealed) return;
+      revealed = true;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        tauriInvoke('reveal_window').catch(() => {});
+      }));
+    };
+    // Wait for `load` so the webview has rendered the themed splash before the
+    // native window shows; revealing any earlier would flash the bare window
+    // background while the webview is still composing its first frame.
+    if (document.readyState === 'complete') revealWindow();
+    else addEventListener('load', revealWindow, { once: true });
+    setTimeout(revealWindow, 2500);
   }
   let leaving = false, loaded = false, shown = false;
   const leave = () => {
