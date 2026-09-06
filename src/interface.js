@@ -3165,10 +3165,10 @@
     const statusColor = currentSystemBarColor();
     document.querySelector('meta[name="theme-color"]').content = statusColor;
     syncNativeSystemBar(statusColor);
-    // Persist the splash background color (the paper tone) so the desktop
-    // client can paint the native window background with it before the
-    // webview loads on the next launch (see setup() in src-tauri).
-    window.__TAURI__?.core?.invoke('save_theme_color', { color: getComputedStyle(root).getPropertyValue('--paper').trim() || '#fbfaf6' }).catch(() => {});
+    // Persist the splash background color (the body's sidebar tone, which the
+    // splash layer uses) so the desktop client can paint the native window
+    // background with it before the webview loads on the next launch.
+    window.__TAURI__?.core?.invoke('save_theme_color', { color: getComputedStyle(root).getPropertyValue('--sidebar').trim() || '#ebe7dc' }).catch(() => {});
   }
 
   document.querySelectorAll('input[name="actaTheme"]').forEach(option => option.addEventListener('change', () => {

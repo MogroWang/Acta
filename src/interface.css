@@ -1,15 +1,18 @@
-/* Boot splash: full-screen theme-colored layer (primed by theme-boot.js before
-   first paint) with the centered Acta wordmark. It is pointer-events:none so it
-   can never block interaction. Leaving is staged: the logo scales up and fades
-   out while the layer still covers the workspace, then divider lines mirroring
-   the workspace's real borders (titlebar bottom, item-pane left/right) draw in
-   across the paper, and only after that the layer and the workspace cross-fade
-   (the 1.2s delays line up with splash.js). Delayed CSS keyframes force the
-   splash away and the shell visible at 5.5s even if splash.js never runs (see
-   the failsafes there). */
-.splash-screen { position: fixed; inset: 0; z-index: 999; display: grid; place-items: center; background: var(--paper); pointer-events: none; animation: actaSplashFailsafe .5s ease 5.5s forwards; }
+/* Boot splash: full-screen layer in the body's own background color (primed by
+   theme-boot.js before first paint; --sidebar instead of --paper so the fade
+   can never clash with themes whose sidebar is far from the paper tone). It is
+   pointer-events:none so it can never block interaction. Leaving is staged:
+   the logo flies non-linearly onto the titlebar brand logo's exact position
+   and size while fading, divider lines mirroring the workspace's real borders
+   (titlebar bottom, item-pane left/right) draw themselves across the layer in
+   parallel, and only after both finish (1s) does the layer cross-fade with the
+   workspace reveal (the 1s delays line up with splash.js). Delayed CSS
+   keyframes force the splash away and the shell visible at 5.5s even if
+   splash.js never runs (see the failsafes there). */
+.splash-screen { position: fixed; inset: 0; z-index: 999; display: grid; place-items: center; background: var(--sidebar); pointer-events: none; animation: actaSplashFailsafe .5s ease 5.5s forwards; }
+.splash-lines { position: absolute; inset: 0; pointer-events: none; }
 .splash-logo { width: min(300px, 52vw); height: auto; aspect-ratio: 659 / 190; fill: var(--ink); stroke: none; animation: actaSplashLogoIn .8s var(--ease-out) both; }
-.splash-line { position: absolute; background: var(--line); transform: scaleX(0); transform-origin: 0 50%; }
+.splash-line { position: absolute; background: var(--sage); transform: scaleX(0); transform-origin: 0 50%; }
 .splash-line-top { left: 0; top: 52px; width: 100%; height: 1px; }
 .splash-line-sidebar { top: 52px; bottom: 0; left: var(--acta-sidebar-width, 248px); width: 1px; transform: scaleY(0); transform-origin: 50% 0; }
 .splash-line-list { top: 52px; bottom: 0; left: calc(var(--acta-sidebar-width, 248px) + clamp(330px, var(--list-pane-width, 330px), 620px)); width: 1px; transform: scaleY(0); transform-origin: 50% 0; }
@@ -17,18 +20,23 @@
   .splash-line-sidebar, .splash-line-list { display: none; }
   .splash-line-top { top: calc(54px + env(safe-area-inset-top)); }
 }
-.splash-screen.is-leaving { animation: none; opacity: 0; visibility: hidden; transition: opacity .4s ease 1.2s, visibility 0s linear 1.6s; }
-/* Leaving swaps the entrance animation for an exit one instead of relying on a
-   transition: removing a filled animation suppresses transitions on the values
-   it was holding, which made the logo vanish without fading out. */
-.splash-screen.is-leaving .splash-logo { animation: actaSplashLogoOut .45s var(--ease-out) forwards; }
-.splash-screen.is-leaving .splash-line-top { animation: actaSplashDrawX .5s var(--ease-out) .4s both; }
-.splash-screen.is-leaving .splash-line-sidebar { animation: actaSplashDrawY .5s var(--ease-out) .55s both; }
-.splash-screen.is-leaving .splash-line-list { animation: actaSplashDrawY .5s var(--ease-out) .7s both; }
-.splash-screen ~ .app-shell { opacity: 0; transition: opacity .4s ease 1.2s; animation: actaAppShellFailsafe 0s linear 5.5s forwards; }
+.splash-screen.is-leaving { animation: none; opacity: 0; visibility: hidden; transition: opacity .4s ease 1s, visibility 0s linear 1.4s; }
+/* Leaving swaps the entrance animation for the fly-out one instead of relying
+   on a transition: removing a filled animation suppresses transitions on the
+   values it was holding, which made the logo vanish without animating. The
+   --splash-fly-* variables are set by splash.js from the brand logo's rect. */
+.splash-screen.is-leaving .splash-logo { animation: actaSplashLogoFly .7s cubic-bezier(.6, .05, .3, 1) forwards; }
+.splash-screen.is-leaving .splash-line-top { animation: actaSplashDrawX .5s var(--ease-out) .15s both; }
+.splash-screen.is-leaving .splash-line-sidebar { animation: actaSplashDrawY .5s var(--ease-out) .3s both; }
+.splash-screen.is-leaving .splash-line-list { animation: actaSplashDrawY .5s var(--ease-out) .45s both; }
+.splash-screen ~ .app-shell { opacity: 0; transition: opacity .4s ease 1s; animation: actaAppShellFailsafe 0s linear 5.5s forwards; }
 html.acta-app-reveal .splash-screen ~ .app-shell { opacity: 1; }
 @keyframes actaSplashLogoIn { from { opacity: 0; transform: scale(.94); } }
-@keyframes actaSplashLogoOut { to { opacity: 0; transform: scale(1.14); } }
+@keyframes actaSplashLogoFly {
+  0% { opacity: 1; transform: none; }
+  55% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--splash-fly-x, 0px), var(--splash-fly-y, 0px)) scale(var(--splash-fly-scale, 1.14)); }
+}
 @keyframes actaSplashDrawX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes actaSplashDrawY { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 @keyframes actaSplashFailsafe { to { opacity: 0; visibility: hidden; } }

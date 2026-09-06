@@ -27,7 +27,7 @@ const EXPORT_FILE_LIMIT: usize = 64 * 1024 * 1024;
 const EXPORT_TOTAL_LIMIT: usize = 192 * 1024 * 1024;
 const APP_ICON_FILE: &str = "app-icon.png";
 const THEME_COLOR_FILE: &str = "theme-color.txt";
-const DEFAULT_PAPER_COLOR: &str = "#fbfaf6";
+const DEFAULT_SIDEBAR_COLOR: &str = "#ebe7dc";
 
 fn timestamp() -> String {
     Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true)
@@ -808,6 +808,11 @@ fn save_theme_color(app: AppHandle, color: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn reveal_window(window: WebviewWindow) {
+    let _ = window.show();
+}
+
+#[tauri::command]
 fn clear_app_cache(window: WebviewWindow) -> Result<bool, String> {
     window
         .clear_all_browsing_data()
@@ -865,19 +870,31 @@ pub fn run() {
                     }
                 }
             }
-            // The window is created hidden (visible: false). Paint its native
-            // background with the theme color saved by the previous session,
-            // so the boot splash opens in-theme with no default beige flash,
-            // and only then reveal it.
+            // The window is created hidden (visible: false) and stays hidden
+            // until the webview confirms the themed splash has painted
+            // (reveal_window), so the very first frame the user ever sees is
+            // the themed splash - never the native window background. Paint
+            // the native background with the saved theme color anyway so even
+            // the failsafe reveal below cannot flash a foreign color.
             if let Some(window) = app.get_webview_window("main") {
                 let theme_color = persisted_theme_color_path(app_handle)
                     .ok()
                     .and_then(|path| fs::read_to_string(path).ok())
                     .and_then(|raw| parse_theme_color(&raw))
-                    .or_else(|| parse_theme_color(DEFAULT_PAPER_COLOR));
+                    .or_else(|| parse_theme_color(DEFAULT_SIDEBAR_COLOR));
                 let _ = window.set_background_color(theme_color);
-                let _ = window.show();
             }
+            // Failsafe: if the front end never comes up, reveal the window
+            // after a grace period instead of leaving the user with nothing.
+            let failsafe_handle = app_handle.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(3000));
+                if let Some(window) = failsafe_handle.get_webview_window("main") {
+                    if !window.is_visible().unwrap_or(true) {
+                        let _ = window.show();
+                    }
+                }
+            });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -890,7 +907,8 @@ pub fn run() {
             export_assets,
             clear_app_cache,
             set_app_icon,
-            save_theme_color
+            save_theme_color,
+            reveal_window
         ])
         .run(tauri::generate_context!())
         .expect("error while running Acta");
