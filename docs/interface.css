@@ -1,13 +1,25 @@
-/* Boot splash: full-screen paper layer with the centered Acta wordmark. It is
-   pointer-events:none so it can never block interaction, and a delayed CSS
-   keyframe hides it even if splash.js never runs (see splash.js failsafes). */
+/* Boot splash: full-screen theme-colored layer (primed by theme-boot.js before
+   first paint) with the centered Acta wordmark. It is pointer-events:none so it
+   can never block interaction. Leaving is two-phase: the logo scales up and
+   fades out while the layer still covers the workspace, then the layer and the
+   workspace cross-fade (.45s+delay choreography matches splash.js). Delayed CSS
+   keyframes force the splash away and the shell visible at 5.5s even if
+   splash.js never runs (see the failsafes there). */
 .splash-screen { position: fixed; inset: 0; z-index: 999; display: grid; place-items: center; background: var(--paper); pointer-events: none; animation: actaSplashFailsafe .5s ease 5.5s forwards; }
-.splash-logo { width: min(300px, 52vw); height: auto; aspect-ratio: 659 / 190; fill: var(--ink); stroke: none; animation: actaSplashLogoIn .8s var(--ease-out) both; transition: opacity .55s ease, transform .55s var(--ease-out); }
-.splash-screen.is-leaving { animation: none; opacity: 0; visibility: hidden; transition: opacity .6s ease, visibility 0s linear .6s; }
-.splash-screen.is-leaving .splash-logo { animation: none; opacity: 0; transform: scale(1.14); }
+.splash-logo { width: min(300px, 52vw); height: auto; aspect-ratio: 659 / 190; fill: var(--ink); stroke: none; animation: actaSplashLogoIn .8s var(--ease-out) both; }
+.splash-screen.is-leaving { animation: none; opacity: 0; visibility: hidden; transition: opacity .4s ease .45s, visibility 0s linear .85s; }
+/* Leaving swaps the entrance animation for an exit one instead of relying on a
+   transition: removing a filled animation suppresses transitions on the values
+   it was holding, which made the logo vanish without fading out. */
+.splash-screen.is-leaving .splash-logo { animation: actaSplashLogoOut .45s var(--ease-out) forwards; }
+.splash-screen ~ .app-shell { opacity: 0; transition: opacity .4s ease .45s; animation: actaAppShellFailsafe 0s linear 5.5s forwards; }
+html.acta-app-reveal .splash-screen ~ .app-shell { opacity: 1; }
 @keyframes actaSplashLogoIn { from { opacity: 0; transform: scale(.94); } }
+@keyframes actaSplashLogoOut { to { opacity: 0; transform: scale(1.14); } }
 @keyframes actaSplashFailsafe { to { opacity: 0; visibility: hidden; } }
+@keyframes actaAppShellFailsafe { to { opacity: 1; } }
 body.acta-reduce-motion .splash-screen { display: none; }
+body.acta-reduce-motion .splash-screen ~ .app-shell { opacity: 1; transition: none; animation: none; }
 
 .brand-logo { width: 116px; height: 34px; display: block; fill: currentColor; stroke: none !important; transform: translateZ(0); transform-origin: 18px 50%; backface-visibility: hidden; }
 .brand-logo * { stroke: none !important; }
