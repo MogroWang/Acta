@@ -28,6 +28,10 @@ const EXPORT_TOTAL_LIMIT: usize = 192 * 1024 * 1024;
 const APP_ICON_FILE: &str = "app-icon.png";
 const THEME_COLOR_FILE: &str = "theme-color.txt";
 const DEFAULT_SIDEBAR_COLOR: &str = "#ebe7dc";
+const WINDOW_STATE_FILE: &str = "window-state.json";
+/// Keep at least this much of the restored window inside a monitor, so a
+/// stale/off-screen saved rect can never strand the window out of view.
+const WINDOW_VISIBILITY_MARGIN_PX: i64 = 120;
 
 fn timestamp() -> String {
     Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true)
@@ -725,6 +729,79 @@ fn parse_theme_color(raw: &str) -> Option<tauri::window::Color> {
     Some(tauri::window::Color(channel(0..2)?, channel(2..4)?, channel(4..6)?, 255))
 }
 
+#[derive(Serialize, Deserialize, Clone, Copy)]
+struct WindowState {
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+    maximized: bool,
+}
+
+/// Last observed geometry, kept in memory so any exit path (close button,
+/// Cmd+Q, app exit) can flush the most recent position and size to disk.
+static WINDOW_STATE_CACHE: std::sync::Mutex<Option<WindowState>> = std::sync::Mutex::new(None);
+
+fn persisted_window_state_path(app: &AppHandle) -> Result<PathBuf, String> {
+    app.path()
+        .app_data_dir()
+        .map(|directory| directory.join(WINDOW_STATE_FILE))
+        .map_err(|error| error.to_string())
+}
+
+fn snapshot_window_state(window: &WebviewWindow) -> Option<WindowState> {
+    let position = window.outer_position().ok()?;
+    let size = window.outer_size().ok()?;
+    Some(WindowState {
+        x: position.x,
+        y: position.y,
+        width: size.width,
+        height: size.height,
+        maximized: window.is_maximized().unwrap_or(false),
+    })
+}
+
+fn persist_window_state(app: &AppHandle, state: Option<WindowState>) {
+    let Ok(path) = persisted_window_state_path(app) else { return };
+    let Some(state) = state else { return };
+    if let Some(directory) = path.parent() {
+        let _ = fs::create_dir_all(directory);
+    }
+    if let Ok(json) = serde_json::to_string_pretty(&state) {
+        let _ = fs::write(path, json);
+    }
+}
+
+fn flush_window_state(app: &AppHandle) {
+    let live_state = app.get_webview_window("main").and_then(|window| snapshot_window_state(&window));
+    let state = live_state.or_else(|| WINDOW_STATE_CACHE.lock().ok().and_then(|guarded| *guarded));
+    persist_window_state(app, state);
+}
+
+/// Restores the last window geometry, but only if the saved rect still keeps a
+/// healthy chunk inside one of the current monitors - otherwise fall back to
+/// the platform default placement instead of a window stranded off-screen.
+fn load_window_state(app: &AppHandle) -> Option<WindowState> {
+    let raw = fs::read_to_string(persisted_window_state_path(app).ok()?).ok()?;
+    let state: WindowState = serde_json::from_str(&raw).ok()?;
+    if state.width == 0 || state.height == 0 {
+        return None;
+    }
+    let monitors = app.available_monitors().ok()?;
+    let left = i64::from(state.x);
+    let top = i64::from(state.y);
+    let right = left + i64::from(state.width);
+    let bottom = top + i64::from(state.height);
+    monitors.into_iter().any(|monitor| {
+        let monitor_left = i64::from(monitor.position().x);
+        let monitor_top = i64::from(monitor.position().y);
+        let monitor_right = monitor_left + i64::from(monitor.size().width);
+        let monitor_bottom = monitor_top + i64::from(monitor.size().height);
+        (right.min(monitor_right) - left.max(monitor_left)) >= WINDOW_VISIBILITY_MARGIN_PX
+            && (bottom.min(monitor_bottom) - top.max(monitor_top)) >= WINDOW_VISIBILITY_MARGIN_PX
+    }).then_some(state)
+}
+
 fn persist_app_icon(app: &AppHandle, data_url: &str, bytes: &[u8]) -> Result<(), String> {
     let path = persisted_app_icon_path(app)?;
     if data_url.is_empty() {
@@ -848,7 +925,7 @@ fn purge_legacy_service_worker() {}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     purge_legacy_service_worker();
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
@@ -884,6 +961,19 @@ pub fn run() {
                     .or_else(|| parse_theme_color(DEFAULT_SIDEBAR_COLOR));
                 let _ = window.set_background_color(theme_color);
             }
+            // Restore where the user last kept the window (position, size and
+            // maximized state). Applying it while the window is still hidden
+            // means the reveal happens at the remembered spot with no jumping.
+            if let Some(state) = load_window_state(app_handle) {
+                if let Some(window) = app.get_webview_window("main") {
+                    if state.maximized {
+                        let _ = window.maximize();
+                    } else {
+                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(state.x, state.y)));
+                        let _ = window.set_size(tauri::Size::Physical(tauri::PhysicalSize::new(state.width, state.height)));
+                    }
+                }
+            }
             // Failsafe: if the front end never comes up, reveal the window
             // after a grace period instead of leaving the user with nothing.
             let failsafe_handle = app_handle.clone();
@@ -896,6 +986,21 @@ pub fn run() {
                 }
             });
             Ok(())
+        })
+        .on_window_event(|window, event| match event {
+            tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_) => {
+                if let Some(webview) = window.app_handle().get_webview_window(window.label()) {
+                    if let Some(state) = snapshot_window_state(&webview) {
+                        if let Ok(mut cache) = WINDOW_STATE_CACHE.lock() {
+                            *cache = Some(state);
+                        }
+                    }
+                }
+            }
+            // The close button is the most deliberate exit path: flush the
+            // current geometry to disk right away.
+            tauri::WindowEvent::CloseRequested { .. } => flush_window_state(window.app_handle()),
+            _ => {}
         })
         .invoke_handler(tauri::generate_handler![
             upload_library,
@@ -910,6 +1015,13 @@ pub fn run() {
             save_theme_color,
             reveal_window
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running Acta");
+        .build(tauri::generate_context!())
+        .expect("error while building Acta");
+    // Any other exit path (Cmd+Q, taskbar quit, ...) also lands the latest
+    // geometry on disk; the in-memory cache covers windows already destroyed.
+    app.run(|app_handle, event| {
+        if matches!(event, tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit) {
+            flush_window_state(app_handle);
+        }
+    });
 }

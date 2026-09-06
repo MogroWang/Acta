@@ -16,9 +16,11 @@
 .splash-line-top { left: 0; top: 52px; width: 100%; height: 1px; }
 .splash-line-sidebar { top: 52px; bottom: 0; left: var(--acta-sidebar-width, 248px); width: 1px; transform: scaleY(0); transform-origin: 50% 0; }
 .splash-line-list { top: 52px; bottom: 0; left: calc(var(--acta-sidebar-width, 248px) + clamp(330px, var(--list-pane-width, 330px), 620px)); width: 1px; transform: scaleY(0); transform-origin: 50% 0; }
+.splash-line-bottom { display: none; left: 0; bottom: calc(70px + env(safe-area-inset-bottom)); width: 100%; height: 1px; }
 @media (max-width: 800px) {
   .splash-line-sidebar, .splash-line-list { display: none; }
   .splash-line-top { top: calc(54px + env(safe-area-inset-top)); }
+  .splash-line-bottom { display: block; }
 }
 .splash-screen.is-leaving { animation: none; opacity: 0; visibility: hidden; transition: opacity .4s ease 1s, visibility 0s linear 1.4s; }
 /* Leaving swaps the entrance animation for the fly-out one instead of relying
@@ -29,13 +31,13 @@
 .splash-screen.is-leaving .splash-line-top { animation: actaSplashDrawX .5s var(--ease-out) .15s both; }
 .splash-screen.is-leaving .splash-line-sidebar { animation: actaSplashDrawY .5s var(--ease-out) .3s both; }
 .splash-screen.is-leaving .splash-line-list { animation: actaSplashDrawY .5s var(--ease-out) .45s both; }
+.splash-screen.is-leaving .splash-line-bottom { animation: actaSplashDrawX .5s var(--ease-out) .3s both; }
 .splash-screen ~ .app-shell { opacity: 0; transition: opacity .4s ease 1s; animation: actaAppShellFailsafe 0s linear 5.5s forwards; }
 html.acta-app-reveal .splash-screen ~ .app-shell { opacity: 1; }
 @keyframes actaSplashLogoIn { from { opacity: 0; transform: scale(.94); } }
 @keyframes actaSplashLogoFly {
   0% { opacity: 1; transform: none; }
-  55% { opacity: 1; }
-  100% { opacity: 0; transform: translate(var(--splash-fly-x, 0px), var(--splash-fly-y, 0px)) scale(var(--splash-fly-scale, 1.14)); }
+  100% { opacity: 1; transform: translate(var(--splash-fly-x, 0px), var(--splash-fly-y, 0px)) scale(var(--splash-fly-scale, 1.14)); }
 }
 @keyframes actaSplashDrawX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes actaSplashDrawY { from { transform: scaleY(0); } to { transform: scaleY(1); } }
