@@ -1,4 +1,4 @@
-const CACHE_NAME = 'acta-2.3.0-splash';
+const CACHE_NAME = 'acta-2.3.0-splash-settings';
 const APP_SHELL = [
   './', './index.html', './styles.css', './interface.css', './renderer.js', './note-export.js', './interface.js', './splash.js', './theme-boot.js', './lib/purify.min.js', './lib/pdf-lib.min.js', './lib/fontkit.umd.min.js', './manifest.webmanifest',
   './icons/Acta_weblogo.png', './icons/flag-cn.svg', './icons/flag-us.svg',

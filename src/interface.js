@@ -5,6 +5,7 @@
     customPaper: '#fbfaf6', customSidebar: '#ebe7dc', customAccent: '#526b55',
     customTodo: '#4f86a8', customTodoSoft: '#dceef8', customNote: '#987329', customNoteSoft: '#fff0bd', customCalendar: '#4f7656', customCalendarSoft: '#dcebdd',
     appIconPreset: 'default', customAppIcon: '',
+    splashAnimationEnabled: true, splashAnimationPreset: 'acta-lines', splashAnimationSpeed: 1,
     appFont: 'system', customFont: 'Inter', appFontSize: 14,
     noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteHeadingStyle: 'classic', noteLineHeight: 1.6,
     noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
@@ -153,6 +154,9 @@
     '四个预设可用于 Tauri（Windows/macOS）与 Android；上传的自定义图标仅用于 Tauri 桌面端。网页端不生效，移动端桌面可能需要稍候刷新。':'The four presets work in Tauri (Windows/macOS) and Android; uploaded custom icons are Tauri desktop-only. This setting has no effect on the web, and Android launchers may take a moment to refresh.',
     '桌面框架':'Desktop framework', 'Tauri（Windows/macOS），Capacitor（Android）':'Tauri (Windows/macOS), Capacitor (Android)',
     '自定义图标已应用。':'Custom icon applied.', '默认图标已恢复。':'Default icon restored.', '应用图标应用失败。':'Failed to apply the app icon.', '网页端不应用应用图标设置。':'App icon settings do not apply on the web.', '移动端仅支持四个内置图标；已恢复默认书页。':'Mobile supports the four built-in icons only; Default Page was restored.', '图标文件不能超过 1.5 MB。':'The icon file cannot exceed 1.5 MB.', '图标至少需要 64 × 64 像素。':'The icon must be at least 64 × 64 pixels.', '请选择 PNG、WebP、JPG 或 SVG 图标。':'Choose a PNG, WebP, JPG, or SVG icon.', '无法读取图标文件。':'The icon file could not be read.',
+    '启动动画':'Splash animation', '启动时的过渡画面，关闭后直接进入工作区':'The transition screen shown at launch; turn it off to enter the workspace directly.',
+    '动画预设':'Animation preset', '启动画面的演绎方式，可预览效果':'How the splash plays out; preview to compare.', 'Acta 线构（默认）':'Acta lines (default)', '静谧淡入':'Calm fade', '聚焦缩放':'Focus zoom',
+    '动画时间':'Animation speed', '启动动画的整体播放倍率':'Overall playback speed of the splash animation', '预览动画':'Preview animation',
     '笔记编辑器':'Note editor', '调整 Markdown 渲染标题与格式工具栏。':'Customize Markdown headings and the formatting toolbar.',
     '一级标题字号':'Heading 1 size', 'Markdown 渲染后的一级标题大小':'Rendered Markdown heading 1 size',
     '二级标题字号':'Heading 2 size', 'Markdown 渲染后的二级标题大小':'Rendered Markdown heading 2 size',
@@ -176,6 +180,9 @@
     '四个预设可用于 Tauri（Windows/macOS）与 Android；上传的自定义图标仅用于 Tauri 桌面端。网页端不生效，移动端桌面可能需要稍候刷新。':'四個預設可用於 Tauri（Windows/macOS）與 Android；上傳的自訂圖示僅用於 Tauri 桌面端。網頁端不生效，行動裝置桌面可能需要稍候重新整理。',
     '桌面框架':'桌面框架', 'Tauri（Windows/macOS），Capacitor（Android）':'Tauri（Windows/macOS），Capacitor（Android）',
     '自定义图标已应用。':'自訂圖示已套用。', '默认图标已恢复。':'預設圖示已恢復。', '应用图标应用失败。':'套用應用程式圖示失敗。', '网页端不应用应用图标设置。':'網頁端不套用應用程式圖示設定。', '移动端仅支持四个内置图标；已恢复默认书页。':'行動端僅支援四個內建圖示；已恢復預設書頁。', '图标文件不能超过 1.5 MB。':'圖示檔案不能超過 1.5 MB。', '图标至少需要 64 × 64 像素。':'圖示至少需要 64 × 64 像素。', '请选择 PNG、WebP、JPG 或 SVG 图标。':'請選擇 PNG、WebP、JPG 或 SVG 圖示。', '无法读取图标文件。':'無法讀取圖示檔案。',
+    '启动动画':'啟動動畫', '启动时的过渡画面，关闭后直接进入工作区':'啟動時的過渡畫面，關閉後直接進入工作區',
+    '动画预设':'動畫預設', '启动画面的演绎方式，可预览效果':'啟動畫面的演繹方式，可預覽效果', 'Acta 线构（默认）':'Acta 線構（預設）', '静谧淡入':'靜謐淡入', '聚焦缩放':'聚焦縮放',
+    '动画时间':'動畫時間', '启动动画的整体播放倍率':'啟動動畫的整體播放倍率', '预览动画':'預覽動畫',
     '笔记编辑器':'筆記編輯器', '调整 Markdown 渲染标题与格式工具栏。':'調整 Markdown 轉譯標題與格式工具列。',
     '一级标题字号':'一級標題字級', 'Markdown 渲染后的一级标题大小':'Markdown 轉譯後的一級標題大小',
     '二级标题字号':'二級標題字級', 'Markdown 渲染后的二级标题大小':'Markdown 轉譯後的二級標題大小',
@@ -195,7 +202,7 @@
     const node = settingsWalker.currentNode;
     const source = node.nodeValue.trim();
     if (!source) continue;
-    if (node.parentElement?.closest('#workspaceSettingsTitle,#workspaceFolderPath,#workspaceStatus,#generalStatus,#oneDriveFolderPath,#oneDriveStatus,#appFontSizeValue')) continue;
+    if (node.parentElement?.closest('#workspaceSettingsTitle,#workspaceFolderPath,#workspaceStatus,#generalStatus,#oneDriveFolderPath,#oneDriveStatus,#appFontSizeValue,#splashSpeedValue')) continue;
     settingsTextEntries.push({ node, source, leading: node.nodeValue.match(/^\s*/)[0], trailing: node.nodeValue.match(/\s*$/)[0] });
   }
   const settingsAttributeEntries = [];
@@ -3182,6 +3189,59 @@
   }));
   applyTheme();
 
+  const splashAnimationSetting = byId('splashAnimationSetting');
+  const splashPresetSetting = byId('splashPresetSetting');
+  const splashSpeedSetting = byId('splashSpeedSetting');
+  const splashSpeedValue = byId('splashSpeedValue');
+  const splashPresetChoices = new Set(['acta-lines', 'calm-fade', 'focus-zoom']);
+  const clampSplashSpeed = value => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.min(2, Math.max(0.5, parsed)) : 1;
+  };
+  if (!splashPresetChoices.has(uiSettings.splashAnimationPreset)) uiSettings.splashAnimationPreset = 'acta-lines';
+  uiSettings.splashAnimationSpeed = clampSplashSpeed(uiSettings.splashAnimationSpeed);
+  const formatSplashSpeed = value => `${value.toFixed(1)}×`;
+  // Mirrors the boot-time priming in theme-boot.js: the <html> attribute and
+  // --splash-speed drive the splash CSS, and the replay preview in the
+  // settings panel picks them up from there.
+  const applySplashSettings = () => {
+    const root = document.documentElement;
+    if (uiSettings.splashAnimationEnabled) delete root.dataset.actaSplashOff;
+    else root.dataset.actaSplashOff = 'true';
+    root.style.setProperty('--splash-speed', String(uiSettings.splashAnimationSpeed));
+    if (uiSettings.splashAnimationPreset === 'acta-lines') delete root.dataset.actaSplashPreset;
+    else root.dataset.actaSplashPreset = uiSettings.splashAnimationPreset;
+  };
+  splashAnimationSetting.checked = uiSettings.splashAnimationEnabled !== false;
+  splashPresetSetting.value = uiSettings.splashAnimationPreset;
+  splashSpeedSetting.value = String(uiSettings.splashAnimationSpeed);
+  splashSpeedValue.textContent = formatSplashSpeed(uiSettings.splashAnimationSpeed);
+  splashAnimationSetting.addEventListener('change', () => {
+    uiSettings.splashAnimationEnabled = splashAnimationSetting.checked;
+    applySplashSettings();
+    saveUISettings();
+  });
+  splashPresetSetting.addEventListener('change', () => {
+    if (!splashPresetChoices.has(splashPresetSetting.value)) return;
+    uiSettings.splashAnimationPreset = splashPresetSetting.value;
+    applySplashSettings();
+    saveUISettings();
+  });
+  splashSpeedSetting.addEventListener('input', () => {
+    splashSpeedValue.textContent = formatSplashSpeed(Number(splashSpeedSetting.value) || 1);
+  });
+  splashSpeedSetting.addEventListener('change', () => {
+    uiSettings.splashAnimationSpeed = clampSplashSpeed(splashSpeedSetting.value);
+    splashSpeedSetting.value = String(uiSettings.splashAnimationSpeed);
+    splashSpeedValue.textContent = formatSplashSpeed(uiSettings.splashAnimationSpeed);
+    applySplashSettings();
+    saveUISettings();
+  });
+  byId('previewSplashAnimation').addEventListener('click', () => {
+    window.actaSplash?.replay();
+  });
+  applySplashSettings();
+
   const appIconPresets = Object.freeze({
     default: './icons/icon-512.png',
     positive: './icons/app-icon-positive-page.png',
@@ -3199,6 +3259,33 @@
     image.onerror = () => reject(new Error('ICON_READ_FAILED'));
     image.src = source;
   });
+  // Runtime icons are shaped per platform to match the bundled set in
+  // src-tauri/icons (scripts/generate-desktop-icons.mjs): macOS 26+ masks
+  // full-bleed square artwork into the system squircle itself, so there the
+  // artwork covers the whole canvas; older macOS keeps the classic centred
+  // margins; Windows never masks icons, so it gets the same baked-in rounded
+  // corners the packaged .ico uses (18% radius).
+  const desktopPlatform = (() => {
+    // Prefer the bridge's own platform signal (tauri-bridge.js); fall back to
+    // the UA for pages without the bridge (pure web custom-icon validation).
+    const bridge = document.documentElement.dataset.desktopPlatform;
+    if (bridge === 'darwin') return 'macos';
+    if (bridge === 'win32') return 'windows';
+    const agent = `${navigator.platform} ${navigator.userAgent}`;
+    if (/Macintosh|MacIntel/i.test(agent)) return 'macos';
+    if (/Windows/i.test(agent)) return 'windows';
+    return 'other';
+  })();
+  const macOSMajorVersion = Number(navigator.userAgent.match(/Version\/(\d+)/)?.[1] || 0);
+  const roundRectPath = (context, x, y, size, radius) => {
+    context.beginPath();
+    context.moveTo(x + radius, y);
+    context.arcTo(x + size, y, x + size, y + size, radius);
+    context.arcTo(x + size, y + size, x, y + size, radius);
+    context.arcTo(x, y + size, x, y, radius);
+    context.arcTo(x, y, x + size, y, radius);
+    context.closePath();
+  };
   const renderSquareAppIcon = async (source, validateMinimum = false) => {
     const image = await loadIconImage(source);
     if (validateMinimum && (image.naturalWidth < 64 || image.naturalHeight < 64)) throw new Error('ICON_TOO_SMALL');
@@ -3208,10 +3295,17 @@
     const context = canvas.getContext('2d');
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
-    const scale = Math.min(464 / image.naturalWidth, 464 / image.naturalHeight);
+    context.clearRect(0, 0, 512, 512);
+    const fullBleed = desktopPlatform === 'macos' && macOSMajorVersion >= 26;
+    if (desktopPlatform === 'windows') {
+      roundRectPath(context, 0, 0, 512, 512 * 0.18);
+      context.clip();
+    }
+    const scale = fullBleed || desktopPlatform === 'windows'
+      ? Math.max(512 / image.naturalWidth, 512 / image.naturalHeight)
+      : Math.min(464 / image.naturalWidth, 464 / image.naturalHeight);
     const width = image.naturalWidth * scale;
     const height = image.naturalHeight * scale;
-    context.clearRect(0, 0, 512, 512);
     context.drawImage(image, (512 - width) / 2, (512 - height) / 2, width, height);
     return canvas.toDataURL('image/png');
   };
@@ -3247,7 +3341,11 @@
     }
     if (desktopIcon) {
       try {
-        const icon = uiSettings.appIconPreset === 'default' ? '' : await renderSquareAppIcon(source);
+        // Every preset goes through the platform-shaped canvas, including the
+        // default one - sending the processed image (instead of the Rust-side
+        // fallback) keeps Windows rounded and macOS 26+ full-bleed consistent
+        // with the bundled icons.
+        const icon = await renderSquareAppIcon(source);
         await desktopIcon(icon);
       } catch (error) {
         applied = false;

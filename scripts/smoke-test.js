@@ -996,7 +996,7 @@ async function main() {
         && document.querySelector('.brand-mini-logo').src === fixedBrandIcon
         && document.querySelector('link[rel="icon"]').href === fixedFavicon
         && nativeAppIconCalls.at(-1)?.preset === 'default'
-        && desktopAppIconCalls.at(-1) === '';
+        && desktopAppIconCalls.at(-1)?.startsWith('data:image/png');
       delete window.actaDesktop;
       delete window.Capacitor;
       darkTheme.checked = true;

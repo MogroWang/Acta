@@ -1,17 +1,21 @@
 /* Boot splash: full-screen layer in the body's own background color (primed by
    theme-boot.js before first paint; --sidebar instead of --paper so the fade
    can never clash with themes whose sidebar is far from the paper tone). It is
-   pointer-events:none so it can never block interaction. Leaving is staged:
-   the logo flies non-linearly onto the titlebar brand logo's exact position
-   and size while fading, divider lines mirroring the workspace's real borders
-   (titlebar bottom, item-pane left/right) draw themselves across the layer in
-   parallel, and only after both finish (1s) does the layer cross-fade with the
-   workspace reveal (the 1s delays line up with splash.js). Delayed CSS
-   keyframes force the splash away and the shell visible at 5.5s even if
-   splash.js never runs (see the failsafes there). */
-.splash-screen { position: fixed; inset: 0; z-index: 999; display: grid; place-items: center; background: var(--sidebar); pointer-events: none; animation: actaSplashFailsafe .5s ease 5.5s forwards; }
+   pointer-events:none so it can never block interaction. Every duration and
+   delay scales with --splash-speed (0.5-2, primed by theme-boot.js from the
+   「动画时间」setting), and the preset is chosen by the
+   data-acta-splash-preset attribute on <html> ("acta-lines" is the default
+   and applies without the attribute; html[data-acta-splash-off] turns the
+   splash off entirely). Leaving is staged: the logo flies non-linearly onto
+   the titlebar brand logo's exact position and size while fading, divider
+   lines mirroring the workspace's real borders (titlebar bottom, item-pane
+   left/right) draw themselves across the layer in parallel, and only after
+   both finish does the layer cross-fade with the workspace reveal (the 1s
+   delays line up with splash.js). Delayed CSS keyframes force the splash away
+   and the shell visible even if splash.js never runs (see the failsafes). */
+.splash-screen { position: fixed; inset: 0; z-index: 999; display: grid; place-items: center; background: var(--sidebar); pointer-events: none; animation: actaSplashFailsafe .5s ease calc(5.5s * var(--splash-speed, 1)) forwards; }
 .splash-lines { position: absolute; inset: 0; pointer-events: none; }
-.splash-logo { width: min(300px, 52vw); height: auto; aspect-ratio: 659 / 190; fill: var(--ink); stroke: none; animation: actaSplashLogoIn .8s var(--ease-out) both; }
+.splash-logo { width: min(300px, 52vw); height: auto; aspect-ratio: 659 / 190; fill: var(--ink); stroke: none; animation: actaSplashLogoIn calc(.8s * var(--splash-speed, 1)) var(--ease-out) both; }
 .splash-line { position: absolute; background: var(--sage); transform: scaleX(0); transform-origin: 0 50%; }
 .splash-line-top { left: 0; top: 52px; width: 100%; height: 1px; }
 .splash-line-sidebar { top: 52px; bottom: 0; left: var(--acta-sidebar-width, 248px); width: 1px; transform: scaleY(0); transform-origin: 50% 0; }
@@ -22,18 +26,29 @@
   .splash-line-top { top: calc(54px + env(safe-area-inset-top)); }
   .splash-line-bottom { display: block; }
 }
-.splash-screen.is-leaving { animation: none; opacity: 0; visibility: hidden; transition: opacity .4s ease 1s, visibility 0s linear 1.4s; }
+.splash-screen.is-leaving { animation: none; opacity: 0; visibility: hidden; transition: opacity calc(.4s * var(--splash-speed, 1)) ease calc(1s * var(--splash-speed, 1)), visibility 0s linear calc(1.4s * var(--splash-speed, 1)); }
 /* Leaving swaps the entrance animation for the fly-out one instead of relying
    on a transition: removing a filled animation suppresses transitions on the
    values it was holding, which made the logo vanish without animating. The
    --splash-fly-* variables are set by splash.js from the brand logo's rect. */
-.splash-screen.is-leaving .splash-logo { animation: actaSplashLogoFly .7s cubic-bezier(.6, .05, .3, 1) forwards; }
-.splash-screen.is-leaving .splash-line-top { animation: actaSplashDrawX .5s var(--ease-out) .15s both; }
-.splash-screen.is-leaving .splash-line-sidebar { animation: actaSplashDrawY .5s var(--ease-out) .3s both; }
-.splash-screen.is-leaving .splash-line-list { animation: actaSplashDrawY .5s var(--ease-out) .45s both; }
-.splash-screen.is-leaving .splash-line-bottom { animation: actaSplashDrawX .5s var(--ease-out) .3s both; }
-.splash-screen ~ .app-shell { opacity: 0; transition: opacity .4s ease 1s; animation: actaAppShellFailsafe 0s linear 5.5s forwards; }
+.splash-screen.is-leaving .splash-logo { animation: actaSplashLogoFly calc(.7s * var(--splash-speed, 1)) cubic-bezier(.6, .05, .3, 1) forwards; }
+.splash-screen.is-leaving .splash-line-top { animation: actaSplashDrawX calc(.5s * var(--splash-speed, 1)) var(--ease-out) calc(.15s * var(--splash-speed, 1)) both; }
+.splash-screen.is-leaving .splash-line-sidebar { animation: actaSplashDrawY calc(.5s * var(--splash-speed, 1)) var(--ease-out) calc(.3s * var(--splash-speed, 1)) both; }
+.splash-screen.is-leaving .splash-line-list { animation: actaSplashDrawY calc(.5s * var(--splash-speed, 1)) var(--ease-out) calc(.45s * var(--splash-speed, 1)) both; }
+.splash-screen.is-leaving .splash-line-bottom { animation: actaSplashDrawX calc(.5s * var(--splash-speed, 1)) var(--ease-out) calc(.3s * var(--splash-speed, 1)) both; }
+.splash-screen ~ .app-shell { opacity: 0; transition: opacity calc(.4s * var(--splash-speed, 1)) ease calc(1s * var(--splash-speed, 1)); animation: actaAppShellFailsafe 0s linear calc(5.5s * var(--splash-speed, 1)) forwards; }
 html.acta-app-reveal .splash-screen ~ .app-shell { opacity: 1; }
+/* 静谧淡入 (calm-fade): the wordmark rises gently into place, divider lines
+   stay hidden, and leaving is a soft cross-dissolve instead of the FLIP fly. */
+:root[data-acta-splash-preset="calm-fade"] .splash-lines { display: none; }
+:root[data-acta-splash-preset="calm-fade"] .splash-logo { animation: actaSplashCalmIn calc(1s * var(--splash-speed, 1)) cubic-bezier(.22, .61, .36, 1) both; }
+:root[data-acta-splash-preset="calm-fade"] .splash-screen.is-leaving .splash-logo { animation: actaSplashCalmOut calc(.6s * var(--splash-speed, 1)) ease both; }
+/* 聚焦缩放 (focus-zoom): the wordmark sharpens from a blur as it settles, and
+   on reveal the workspace zooms the last bit into place beneath it. */
+:root[data-acta-splash-preset="focus-zoom"] .splash-logo { animation: actaSplashFocusIn calc(1s * var(--splash-speed, 1)) var(--ease-out) both; }
+:root[data-acta-splash-preset="focus-zoom"] .splash-screen.is-leaving .splash-logo { animation: actaSplashFocusOut calc(.6s * var(--splash-speed, 1)) cubic-bezier(.6, .05, .3, 1) forwards; }
+:root[data-acta-splash-preset="focus-zoom"] .splash-screen ~ .app-shell { transform: scale(.988); transform-origin: 50% 50%; transition: opacity calc(.4s * var(--splash-speed, 1)) ease calc(1s * var(--splash-speed, 1)), transform calc(.7s * var(--splash-speed, 1)) var(--ease-out); animation: actaAppShellFailsafe 0s linear calc(5.5s * var(--splash-speed, 1)) forwards; }
+:root[data-acta-splash-preset="focus-zoom"] html.acta-app-reveal .splash-screen ~ .app-shell { opacity: 1; transform: none; }
 @keyframes actaSplashLogoIn { from { opacity: 0; transform: scale(.94); } }
 @keyframes actaSplashLogoFly {
   0% { opacity: 1; transform: none; }
@@ -41,10 +56,20 @@ html.acta-app-reveal .splash-screen ~ .app-shell { opacity: 1; }
 }
 @keyframes actaSplashDrawX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes actaSplashDrawY { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes actaSplashCalmIn { from { opacity: 0; transform: translateY(14px) scale(.985); } }
+@keyframes actaSplashCalmOut { to { opacity: 0; transform: translateY(-8px); } }
+@keyframes actaSplashFocusIn { from { opacity: 0; transform: scale(1.05); filter: blur(12px); } 55% { opacity: 1; } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes actaSplashFocusOut { to { opacity: 0; transform: translate(var(--splash-fly-x, 0px), var(--splash-fly-y, 0px)) scale(var(--splash-fly-scale, 1.14)); filter: blur(4px); } }
 @keyframes actaSplashFailsafe { to { opacity: 0; visibility: hidden; } }
 @keyframes actaAppShellFailsafe { to { opacity: 1; } }
 body.acta-reduce-motion .splash-screen { display: none; }
 body.acta-reduce-motion .splash-screen ~ .app-shell { opacity: 1; transition: none; animation: none; }
+/* 启动动画开关关闭 (splashAnimationEnabled = false): hide the layer outright
+   and keep the shell visible; splash.js also removes the node at boot.
+   .is-replaying lets the settings preview play the animation even while the
+   boot splash itself stays off. */
+html[data-acta-splash-off] .splash-screen:not(.is-replaying) { display: none; }
+html[data-acta-splash-off] .splash-screen ~ .app-shell { opacity: 1; transition: none; animation: none; }
 
 .brand-logo { width: 116px; height: 34px; display: block; fill: currentColor; stroke: none !important; transform: translateZ(0); transform-origin: 18px 50%; backface-visibility: hidden; }
 .brand-logo * { stroke: none !important; }

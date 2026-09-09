@@ -23,6 +23,7 @@ android/local.properties
 # Generated application artifacts
 dist/
 release/
+build/
 src-tauri/target/
 src-tauri/gen/
 /*.apk

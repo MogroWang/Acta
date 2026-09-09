@@ -953,6 +953,9 @@ pub fn run() {
             // the themed splash - never the native window background. Paint
             // the native background with the saved theme color anyway so even
             // the failsafe reveal below cannot flash a foreign color.
+            // macOS skips this: its window is transparent, so a pre-paint
+            // reveal shows nothing at all instead of any background color.
+            #[cfg(not(target_os = "macos"))]
             if let Some(window) = app.get_webview_window("main") {
                 let theme_color = persisted_theme_color_path(app_handle)
                     .ok()

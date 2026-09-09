@@ -10,10 +10,21 @@
     stored = JSON.parse(localStorage.getItem('acta.interface.settings.v1')) || {};
     theme = String(stored.theme || '');
   } catch { /* Fall back to the default palette. */ }
+  const root = document.documentElement;
+  const clampSplashSpeed = value => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.min(2, Math.max(0.5, parsed)) : 1;
+  };
+  // Prime the splash animation settings (speed multiplier, preset, on/off)
+  // too: like the palette they must land before the first paint, so the
+  // splash composes correctly on frame one instead of flashing the defaults
+  // and switching mid-load. interface.js re-applies them on change.
+  root.style.setProperty('--splash-speed', String(clampSplashSpeed(stored.splashAnimationSpeed)));
+  if (['calm-fade', 'focus-zoom'].includes(String(stored.splashAnimationPreset))) root.dataset.actaSplashPreset = String(stored.splashAnimationPreset);
+  if (stored.splashAnimationEnabled === false) root.dataset.actaSplashOff = 'true';
   if (!theme) return;
   const darkThemes = new Set(['mono-dark', 'neon-ocean', 'aurora-night']);
   const glowThemes = new Set(['neon-ocean', 'aurora-night']);
-  const root = document.documentElement;
   const isDark = darkThemes.has(theme);
   root.dataset.actaTheme = isDark ? 'mono-dark' : theme;
   root.dataset.actaPalette = theme;

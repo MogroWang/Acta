@@ -1,5 +1,6 @@
 {
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "label": "main",
@@ -8,7 +9,8 @@
         "height": 920,
         "minWidth": 1100,
         "minHeight": 700,
-        "backgroundColor": "#f4f1e9",
+        "visible": false,
+        "transparent": true,
         "decorations": true,
         "hiddenTitle": true,
         "titleBarStyle": "Overlay",

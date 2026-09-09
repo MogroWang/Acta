@@ -414,6 +414,12 @@
                 <p class="settings-status" id="appIconStatus">四个预设可用于 Tauri（Windows/macOS）与 Android；上传的自定义图标仅用于 Tauri 桌面端。网页端不生效，移动端桌面可能需要稍候刷新。</p>
               </div>
               <div class="settings-group" style="margin-top:18px">
+                <label class="settings-row"><span><b>启动动画</b><small>启动时的过渡画面，关闭后直接进入工作区</small></span><input id="splashAnimationSetting" type="checkbox" checked/></label>
+                <label class="settings-row"><span><b>动画预设</b><small>启动画面的演绎方式，可预览效果</small></span><select id="splashPresetSetting"><option value="acta-lines">Acta 线构（默认）</option><option value="calm-fade">静谧淡入</option><option value="focus-zoom">聚焦缩放</option></select></label>
+                <label class="settings-row"><span><b>动画时间</b><small>启动动画的整体播放倍率</small></span><span class="font-size-control"><input id="splashSpeedSetting" type="range" min="0.5" max="2" step="0.1"/><output id="splashSpeedValue">1.0×</output></span></label>
+                <div class="settings-actions"><button class="settings-button secondary" id="previewSplashAnimation" type="button"><svg><use href="#i-spark"/></svg>预览动画</button></div>
+              </div>
+              <div class="settings-group" style="margin-top:18px">
                 <label class="settings-row"><span><b>界面字体</b><small>同时应用到列表、编辑器和设置页面</small></span><select id="appFontSetting"><option value="system">系统默认</option><option value="serif">衬线字体</option><option value="rounded">圆体</option><option value="mono">等宽字体</option><option value="custom">自定义字体</option></select></label>
                 <label class="settings-row conditional-font" id="customFontRow"><span><b>字体家族</b><small>输入设备上已安装的字体，例如 Inter 或 Microsoft YaHei</small></span><input id="customFontFamily" type="text" value="Inter" placeholder="Inter, Microsoft YaHei" maxlength="120"/></label>
                 <label class="settings-row"><span><b>字体大小</b><small>统一调整界面、列表、编辑器与设置页</small></span><span class="font-size-control"><input id="appFontSizeSetting" type="range" min="12" max="18" step="1"/><output id="appFontSizeValue">14 px</output></span></label>
