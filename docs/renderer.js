@@ -1298,6 +1298,10 @@ function statsItemRow(item, index) {
   const checked = statsSelection.has(item.id);
   const done = item.type === 'todo' && isTodoComplete(item);
   const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
+  // 完整子待办：逐条列出、不截断；没有子任务时回退到原有的单行预览。
+  const tasks = item.type === 'todo' ? (item.tasks || []).filter(task => String(task.text || '').trim()) : [];
+  const subtasks = tasks.length ? `<ul class="stats-subtasks">${tasks.map(task => `<li class="${task.done ? 'is-done' : ''}"><i aria-hidden="true"><svg><use href="#i-check"/></svg></i><span>${escapeHTML(task.text)}</span></li>`).join('')}</ul>` : '';
+  const preview = tasks.length ? '' : `<small><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span>${escapeHTML(itemPreview(item).slice(0, 80))}</small>`;
   return `<div class="stats-item-row ${checked ? 'is-checked' : ''}" data-stats-row="${escapeHTML(item.id)}" style="animation-delay:${Math.min(index * 16, 90)}ms">
     <label class="stats-item-check" title="${escapeHTML(t('statsCheckItem'))}">
       <input type="checkbox" data-stats-check="${escapeHTML(item.id)}" ${checked ? 'checked' : ''}/>
@@ -1306,7 +1310,8 @@ function statsItemRow(item, index) {
     <button type="button" class="stats-item-open" data-stats-open="${escapeHTML(item.id)}">
       <span class="stats-item-topline"><span class="type-pill ${item.type}"><svg><use href="#i-${item.type === 'todo' ? 'check' : 'note'}"/></svg>${t(item.type)}${item.type === 'todo' ? ` · ${done ? t('done') : t('statOpen')}` : ''}</span><time datetime="${escapeHTML(item.createdAt)}">${escapeHTML(formatListDateTime(item.createdAt))}</time></span>
       <b>${escapeHTML(title)}</b>
-      <small><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span>${escapeHTML(itemPreview(item).slice(0, 80))}</small>
+      ${subtasks}
+      ${preview || (tasks.length ? `<small><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span></small>` : '')}
     </button>
   </div>`;
 }

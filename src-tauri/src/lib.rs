@@ -29,6 +29,9 @@ const APP_ICON_FILE: &str = "app-icon.png";
 const THEME_COLOR_FILE: &str = "theme-color.txt";
 const DEFAULT_SIDEBAR_COLOR: &str = "#ebe7dc";
 const WINDOW_STATE_FILE: &str = "window-state.json";
+const APP_DATA_DIR_FILE: &str = "app-data-dir.txt";
+const APP_DATA_SETTINGS_FILE: &str = "settings.json";
+const APP_DATA_MARKER_FILE: &str = ".acta-app-data";
 /// Keep at least this much of the restored window inside a monitor, so a
 /// stale/off-screen saved rect can never strand the window out of view.
 const WINDOW_VISIBILITY_MARGIN_PX: i64 = 120;
@@ -706,6 +709,19 @@ fn decode_app_icon(data_url: &str) -> Result<Vec<u8>, String> {
         .map_err(|_| "应用图标数据无效".to_string())
 }
 
+/// 打包进二进制的预设图标（与前端 src/icons 的预设一一对应）。桌面 webview 的
+/// 画布管线在个别环境下不可用（CSP、协议染色等），此时前端发送空 dataURL +
+/// 预设名，由 Rust 侧用这份内置资产兜底应用并持久化。
+fn app_icon_preset_bytes(preset: &str) -> Option<&'static [u8]> {
+    match preset {
+        "default" => Some(include_bytes!("../../src/icons/icon-512.png").as_slice()),
+        "positive" => Some(include_bytes!("../../src/icons/app-icon-positive-page.png").as_slice()),
+        "outline" => Some(include_bytes!("../../src/icons/app-icon-outlined-page.png").as_slice()),
+        "original" => Some(include_bytes!("../../src/icons/app-icon-original-simple.png").as_slice()),
+        _ => None,
+    }
+}
+
 fn persisted_app_icon_path(app: &AppHandle) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()
@@ -802,9 +818,9 @@ fn load_window_state(app: &AppHandle) -> Option<WindowState> {
     }).then_some(state)
 }
 
-fn persist_app_icon(app: &AppHandle, data_url: &str, bytes: &[u8]) -> Result<(), String> {
+fn persist_app_icon_bytes(app: &AppHandle, bytes: Option<&[u8]>) -> Result<(), String> {
     let path = persisted_app_icon_path(app)?;
-    if data_url.is_empty() {
+    if bytes.is_none() {
         return match fs::remove_file(path) {
             Ok(()) => Ok(()),
             Err(error) if error.kind() == ErrorKind::NotFound => Ok(()),
@@ -815,7 +831,7 @@ fn persist_app_icon(app: &AppHandle, data_url: &str, bytes: &[u8]) -> Result<(),
         .parent()
         .ok_or_else(|| "无法确定应用图标保存位置".to_string())?;
     fs::create_dir_all(directory).map_err(|error| error.to_string())?;
-    fs::write(path, bytes).map_err(|error| error.to_string())
+    fs::write(path, bytes.unwrap()).map_err(|error| error.to_string())
 }
 
 #[cfg(target_os = "macos")]
@@ -840,8 +856,25 @@ async fn set_app_icon(
     app: AppHandle,
     window: WebviewWindow,
     data_url: String,
+    preset: Option<String>,
 ) -> Result<bool, String> {
-    let bytes = decode_app_icon(&data_url)?;
+    let preset_name = preset.unwrap_or_default();
+    // 空 dataURL + 预设名 = 前端画布管线失败的兜底路径，直接使用内置预设图标；
+    // 空 dataURL 且无预设名 = 恢复出厂默认图标。其余情况照常解码前端数据。
+    let (bytes, resolved_data_url) = if data_url.is_empty() {
+        match app_icon_preset_bytes(&preset_name) {
+            Some(fallback) if !preset_name.is_empty() => (fallback.to_vec(), String::new()),
+            _ => (include_bytes!("../icons/icon.png").to_vec(), String::new()),
+        }
+    } else {
+        match decode_app_icon(&data_url) {
+            Ok(bytes) => (bytes, data_url.clone()),
+            Err(error) => match app_icon_preset_bytes(&preset_name) {
+                Some(fallback) => (fallback.to_vec(), String::new()),
+                None => return Err(error),
+            },
+        }
+    };
     tauri::image::Image::from_bytes(&bytes).map_err(|error| error.to_string())?;
     #[cfg(target_os = "macos")]
     {
@@ -866,7 +899,12 @@ async fn set_app_icon(
             tauri::image::Image::from_bytes(&bytes).map_err(|error| error.to_string())?;
         window.set_icon(image).map_err(|error| error.to_string())?;
     }
-    persist_app_icon(&app, &data_url, &bytes)?;
+    if resolved_data_url.is_empty() {
+        let is_known_preset = !preset_name.is_empty() && app_icon_preset_bytes(&preset_name).is_some();
+        persist_app_icon_bytes(&app, if is_known_preset { Some(&bytes) } else { None })?;
+    } else {
+        persist_app_icon_bytes(&app, Some(&bytes))?;
+    }
     Ok(true)
 }
 
@@ -882,6 +920,92 @@ fn save_theme_color(app: AppHandle, color: String) -> Result<(), String> {
     fs::create_dir_all(directory).map_err(|error| error.to_string())?;
     fs::write(path, format!("{}\n", color.trim().to_lowercase()))
         .map_err(|error| error.to_string())
+}
+
+/// 解析"软件数据位置"（保存 Acta 自身设置的数据文件夹，与行记数据档案无关）：
+/// 1) 已记录的自定义位置（app-data-dir.txt）；2) 便携版 exe 同级的 data 文件夹；
+/// 两者都未命中时返回 missing，由前端进入 OOBE 引导用户选择。
+fn resolve_app_data_path(app: &AppHandle) -> Result<Option<PathBuf>, String> {
+    let root = app.path().app_data_dir().map_err(|error| error.to_string())?;
+    let _ = fs::create_dir_all(&root);
+    if let Ok(recorded) = fs::read_to_string(root.join(APP_DATA_DIR_FILE)) {
+        let recorded = recorded.trim();
+        if !recorded.is_empty() {
+            let dir = PathBuf::from(recorded);
+            if dir.is_dir() {
+                return Ok(Some(dir));
+            }
+        }
+    }
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            let portable = parent.join("data");
+            if portable.is_dir() {
+                return Ok(Some(portable));
+            }
+        }
+    }
+    Ok(None)
+}
+
+#[tauri::command]
+fn resolve_app_data_dir(app: AppHandle) -> Result<Value, String> {
+    let default_path = app
+        .path()
+        .app_data_dir()
+        .map(|dir| dir.to_string_lossy().to_string())
+        .unwrap_or_default();
+    Ok(match resolve_app_data_path(&app)? {
+        Some(path) => json!({ "status": "ready", "path": path.to_string_lossy(), "defaultPath": default_path }),
+        None => json!({ "status": "missing", "path": Value::Null, "defaultPath": default_path }),
+    })
+}
+
+/// 校验并启用一个软件数据文件夹：创建目录、写入标识文件、记录位置到 app_data_dir，
+/// 并返回该文件夹中已有的 settings.json（若存在，供前端迁移合并）。
+#[tauri::command]
+fn prepare_app_data_dir(app: AppHandle, path: String) -> Result<Value, String> {
+    let trimmed = path.trim();
+    if trimmed.is_empty() {
+        return Err("软件数据文件夹路径无效".into());
+    }
+    let dir = PathBuf::from(trimmed);
+    fs::create_dir_all(&dir).map_err(|error| format!("无法创建软件数据文件夹：{error}"))?;
+    fs::write(dir.join(APP_DATA_MARKER_FILE), "Acta software data folder\n")
+        .map_err(|error| format!("文件夹不可写：{error}"))?;
+    let root = app.path().app_data_dir().map_err(|error| error.to_string())?;
+    fs::create_dir_all(&root).map_err(|error| error.to_string())?;
+    fs::write(root.join(APP_DATA_DIR_FILE), format!("{}\n", dir.to_string_lossy()))
+        .map_err(|error| error.to_string())?;
+    let settings = fs::read_to_string(dir.join(APP_DATA_SETTINGS_FILE))
+        .ok()
+        .and_then(|raw| serde_json::from_str::<Value>(&raw).ok());
+    Ok(json!({ "path": dir.to_string_lossy(), "settings": settings }))
+}
+
+#[tauri::command]
+fn load_app_data_settings(app: AppHandle) -> Result<Option<Value>, String> {
+    let Some(dir) = resolve_app_data_path(&app)? else { return Ok(None) };
+    let raw = match fs::read(dir.join(APP_DATA_SETTINGS_FILE)) {
+        Ok(raw) => raw,
+        Err(_) => return Ok(None),
+    };
+    serde_json::from_slice::<Value>(&raw)
+        .map(Some)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn save_app_data_settings(app: AppHandle, content: String) -> Result<(), String> {
+    let Some(dir) = resolve_app_data_path(&app)? else {
+        return Err("尚未设置软件数据文件夹".into());
+    };
+    let value: Value = serde_json::from_str(&content).map_err(|error| format!("设置内容无效：{error}"))?;
+    let path = dir.join(APP_DATA_SETTINGS_FILE);
+    let temp = dir.join(format!("{APP_DATA_SETTINGS_FILE}.tmp"));
+    fs::write(&temp, serde_json::to_vec_pretty(&value).map_err(|error| error.to_string())?)
+        .map_err(|error| error.to_string())?;
+    fs::rename(&temp, &path).map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -1016,7 +1140,11 @@ pub fn run() {
             clear_app_cache,
             set_app_icon,
             save_theme_color,
-            reveal_window
+            reveal_window,
+            resolve_app_data_dir,
+            prepare_app_data_dir,
+            load_app_data_settings,
+            save_app_data_settings
         ])
         .build(tauri::generate_context!())
         .expect("error while building Acta");

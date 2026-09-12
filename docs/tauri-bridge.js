@@ -83,8 +83,30 @@
     clearAppCache() {
       return invoke('clear_app_cache');
     },
-    setAppIcon(dataUrl = '') {
-      return invoke('set_app_icon', { dataUrl });
+    setAppIcon(dataUrl = '', preset = '') {
+      return invoke('set_app_icon', { dataUrl, preset });
+    },
+    resolveAppData() {
+      return invoke('resolve_app_data_dir');
+    },
+    prepareAppData(path) {
+      return invoke('prepare_app_data_dir', { path });
+    },
+    loadAppDataSettings() {
+      return invoke('load_app_data_settings');
+    },
+    saveAppDataSettings(content) {
+      return invoke('save_app_data_settings', { content });
+    },
+    async chooseAppDataFolder() {
+      return firstPath(await dialog.open({
+        title:'选择软件数据文件夹',
+        directory:true,
+        multiple:false
+      }));
+    },
+    async openPath(path) {
+      try { await opener.openPath(path); } catch { /* 忽略打开失败 */ }
     }
   });
 

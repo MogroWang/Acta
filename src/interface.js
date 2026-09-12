@@ -14,6 +14,21 @@
   };
   let uiSettings = { ...defaultUISettings };
   try { uiSettings = { ...uiSettings, ...(JSON.parse(localStorage.getItem(uiStorageKey)) || {}) }; } catch { /* Use safe defaults. */ }
+  // 软件数据位置（桌面端）：设置镜像写入所选文件夹中的 settings.json，
+  // localStorage 继续作为运行时缓存；清缓存后可从文件恢复。
+  const appDataState = { path: '', ready: false };
+  let appDataSaveTimer = 0;
+  function appDataBridge() {
+    return window.actaDesktop?.resolveAppData ? window.actaDesktop : null;
+  }
+  function scheduleAppDataSave() {
+    const bridge = appDataBridge();
+    if (!bridge || !appDataState.ready) return;
+    clearTimeout(appDataSaveTimer);
+    appDataSaveTimer = setTimeout(() => {
+      bridge.saveAppDataSettings(JSON.stringify(uiSettings, null, 2)).catch(() => {});
+    }, 600);
+  }
   const legacyAppIconPresets = { classic:'default', forest:'positive', sunset:'outline', midnight:'original' };
   const migratedAppIconPreset = Boolean(legacyAppIconPresets[uiSettings.appIconPreset]);
   if (migratedAppIconPreset) uiSettings.appIconPreset = legacyAppIconPresets[uiSettings.appIconPreset];
@@ -25,7 +40,10 @@
 
   const byId = id => document.getElementById(id);
   const settingsModal = byId('settingsModal');
-  const saveUISettings = () => localStorage.setItem(uiStorageKey, JSON.stringify(uiSettings));
+  const saveUISettings = () => {
+    localStorage.setItem(uiStorageKey, JSON.stringify(uiSettings));
+    scheduleAppDataSave();
+  };
   if (migratedTodayView || migratedAppIconPreset) saveUISettings();
   const saveRendererSettings = () => localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...settings, language: uiSettings.language === 'zh-Hant' ? 'zh' : uiSettings.language }));
   if (migratedTodayView || migratedStatsView) saveUISettings();
@@ -148,6 +166,16 @@
     '清除应用缓存并重新加载最新页面，不会删除笔记、待办或设置。':'Clear the app cache and reload the latest page. Notes, tasks, and settings are not deleted.',
     '清除缓存重新加载':'Clear cache and reload',
     '森林晨雾':'Forest mist', '海盐晚霞':'Sea-salt sunset', '糖果气泡':'Candy pop', '深夜霓虹':'Midnight neon', '极光夜色':'Aurora night', '多彩浅色':'Colorful light', '深色发光':'Dark glow', '特殊主题':'Special theme',
+    'MWS 浅色':'MWS Light', 'MWS 深色':'MWS Dark', '品牌主题':'Brand theme', '品牌深色':'Brand dark',
+    '开始使用':'Get started', '下一步':'Next', '上一步':'Back', '尚未选择':'Not chosen yet', '尚未设置':'Not set',
+    '默认位置：':'Default location: ', '便携版默认使用软件目录下的 data 文件夹；也可以自选位置。':'Portable builds use the data folder next to the app by default; you can also pick your own.',
+    '已就绪，软件设置将保存在这里。':'Ready - Acta will keep its settings here.', '无法使用该文件夹：':'Cannot use this folder: ',
+    '无法确定默认位置，请点击「选择文件夹」手动指定。':'Could not determine a default location - pick one with "Choose folder".',
+    '软件数据位置':'Software data location', '位置操作':'Location actions', '打开文件夹':'Open folder', '更改位置':'Change location',
+    '更改后会立即把当前设置迁移到新文件夹':'Current settings migrate to the new folder immediately',
+    '保存 Acta 自身的设置与偏好；笔记、待办等行记数据仍按数据档案的位置存储。便携版默认读取软件目录下的 data 文件夹。':'Stores Acta\'s own preferences; notes and tasks stay in their data profiles. Portable builds read the data folder next to the app by default.',
+    '先选择软件数据文件夹':'Choose the software data folder first', '使用默认位置':'Use default location', '选择文件夹…':'Choose folder…',
+    '选择主题、字体与大小':'Choose theme, font, and size', '选择启动动画':'Choose the launch animation', '选择应用图标':'Choose the app icon',
     '基础界面':'Base interface', '内容类型':'Content types', '待办主题色':'Task accent', '待办浅色背景':'Task soft background', '笔记主题色':'Note accent', '笔记浅色背景':'Note soft background', '日历主题色':'Calendar accent', '日历浅色背景':'Calendar soft background',
     '应用图标':'App icon', '应用于 Tauri 桌面客户端和 Capacitor 移动客户端；网页标签页图标保持默认。':'Used by the Tauri desktop client and Capacitor mobile client; the browser tab icon stays unchanged.',
     '默认书页':'Default page', '正·书页':'True · Page', '勾勒·书页':'Outline · Page', '初版简洁':'Original minimal', '自定义图标':'Custom icon', '选择自定义图标':'Choose custom icon', '恢复默认图标':'Restore default icon',
@@ -174,6 +202,14 @@
     '清除应用缓存并重新加载最新页面，不会删除笔记、待办或设置。':'清除應用程式快取並重新載入最新頁面，不會刪除筆記、待辦或設定。',
     '清除缓存重新加载':'清除快取並重新載入',
     '森林晨雾':'森林晨霧', '海盐晚霞':'海鹽晚霞', '糖果气泡':'糖果氣泡', '深夜霓虹':'深夜霓虹', '极光夜色':'極光夜色', '多彩浅色':'多彩淺色', '深色发光':'深色發光', '特殊主题':'特殊主題',
+    'MWS 浅色':'MWS 淺色', 'MWS 深色':'MWS 深色', '品牌主题':'品牌主題', '品牌深色':'品牌深色',
+    '开始使用':'開始使用', '下一步':'下一步', '上一步':'上一步', '尚未选择':'尚未選擇', '尚未设置':'尚未設定',
+    '默认位置：':'預設位置：', '便携版默认使用软件目录下的 data 文件夹；也可以自选位置。':'可攜版預設使用軟體目錄下的 data 資料夾；也可以自選位置。',
+    '已就绪，软件设置将保存在这里。':'已就緒，軟體設定將保存在這裡。', '无法使用该文件夹：':'無法使用該資料夾：',
+    '无法确定默认位置，请点击「选择文件夹」手动指定。':'無法確定預設位置，請點擊「選擇資料夾」手動指定。',
+    '软件数据位置':'軟體資料位置', '位置操作':'位置操作', '打开文件夹':'開啟資料夾', '更改位置':'更改位置',
+    '先选择软件数据文件夹':'先選擇軟體資料資料夾', '使用默认位置':'使用預設位置', '选择文件夹…':'選擇資料夾…',
+    '选择主题、字体与大小':'選擇主題、字型與大小', '选择启动动画':'選擇啟動動畫', '选择应用图标':'選擇應用程式圖示',
     '基础界面':'基礎介面', '内容类型':'內容類型', '待办主题色':'待辦主題色', '待办浅色背景':'待辦淺色背景', '笔记主题色':'筆記主題色', '笔记浅色背景':'筆記淺色背景', '日历主题色':'日曆主題色', '日历浅色背景':'日曆淺色背景',
     '应用图标':'應用程式圖示', '应用于 Tauri 桌面客户端和 Capacitor 移动客户端；网页标签页图标保持默认。':'套用於 Tauri 桌面用戶端與 Capacitor 行動用戶端；瀏覽器分頁圖示維持預設。',
     '默认书页':'預設書頁', '正·书页':'正·書頁', '勾勒·书页':'勾勒·書頁', '初版简洁':'初版簡潔', '自定义图标':'自訂圖示', '选择自定义图标':'選擇自訂圖示', '恢复默认图标':'恢復預設圖示',
@@ -2746,10 +2782,16 @@
       });
     }
   };
+  let sidebarResizeTimer = 0;
   const applySidebarCollapse = collapsed => {
     closeFolderActionMenu();
     uiSettings.sidebarCollapsed = Boolean(collapsed);
     document.body.classList.toggle('sidebar-collapsed', uiSettings.sidebarCollapsed);
+    // 折叠/展开瞬间挂上 .sidebar-resizing 驱动工作区列宽过渡，动画结束后移除，
+    // 避免视图切换的 grid 变化也被动画化。
+    document.body.classList.add('sidebar-resizing');
+    clearTimeout(sidebarResizeTimer);
+    sidebarResizeTimer = setTimeout(() => document.body.classList.remove('sidebar-resizing'), 620);
     updateSidebarToggleLabel();
   };
   applySidebarCollapse(uiSettings.sidebarCollapsed);
@@ -3100,7 +3142,7 @@
   const customNoteSoft = byId('customNoteSoftColor');
   const customCalendar = byId('customCalendarColor');
   const customCalendarSoft = byId('customCalendarSoftColor');
-  const darkThemes = new Set(['mono-dark', 'neon-ocean', 'aurora-night']);
+  const darkThemes = new Set(['mono-dark', 'neon-ocean', 'aurora-night', 'mws-dark']);
   const glowThemes = new Set(['neon-ocean', 'aurora-night']);
   const safeThemeColor = (value, fallback) => /^#[\da-f]{6}$/i.test(String(value || '')) ? String(value) : fallback;
   const customThemeFields = [
@@ -3200,7 +3242,11 @@
   };
   if (!splashPresetChoices.has(uiSettings.splashAnimationPreset)) uiSettings.splashAnimationPreset = 'acta-lines';
   uiSettings.splashAnimationSpeed = clampSplashSpeed(uiSettings.splashAnimationSpeed);
+  // 存储值 = 时长倍率（直接喂给 --splash-speed）；滑杆对外展示的是"速度倍率"= 1/时长，
+  // 数值越大播放越快，修复此前标注与实际效果相反的问题。
   const formatSplashSpeed = value => `${value.toFixed(1)}×`;
+  const splashDurationToSpeed = duration => Math.round((1 / clampSplashSpeed(duration)) * 10) / 10;
+  const splashSpeedToDuration = speed => Math.round((1 / clampSplashSpeed(speed)) * 100) / 100;
   // Mirrors the boot-time priming in theme-boot.js: the <html> attribute and
   // --splash-speed drive the splash CSS, and the replay preview in the
   // settings panel picks them up from there.
@@ -3214,8 +3260,8 @@
   };
   splashAnimationSetting.checked = uiSettings.splashAnimationEnabled !== false;
   splashPresetSetting.value = uiSettings.splashAnimationPreset;
-  splashSpeedSetting.value = String(uiSettings.splashAnimationSpeed);
-  splashSpeedValue.textContent = formatSplashSpeed(uiSettings.splashAnimationSpeed);
+  splashSpeedSetting.value = String(splashDurationToSpeed(uiSettings.splashAnimationSpeed));
+  splashSpeedValue.textContent = formatSplashSpeed(splashDurationToSpeed(uiSettings.splashAnimationSpeed));
   splashAnimationSetting.addEventListener('change', () => {
     uiSettings.splashAnimationEnabled = splashAnimationSetting.checked;
     applySplashSettings();
@@ -3231,14 +3277,17 @@
     splashSpeedValue.textContent = formatSplashSpeed(Number(splashSpeedSetting.value) || 1);
   });
   splashSpeedSetting.addEventListener('change', () => {
-    uiSettings.splashAnimationSpeed = clampSplashSpeed(splashSpeedSetting.value);
-    splashSpeedSetting.value = String(uiSettings.splashAnimationSpeed);
-    splashSpeedValue.textContent = formatSplashSpeed(uiSettings.splashAnimationSpeed);
+    uiSettings.splashAnimationSpeed = splashSpeedToDuration(Number(splashSpeedSetting.value));
+    splashSpeedSetting.value = String(splashDurationToSpeed(uiSettings.splashAnimationSpeed));
+    splashSpeedValue.textContent = formatSplashSpeed(splashDurationToSpeed(uiSettings.splashAnimationSpeed));
     applySplashSettings();
     saveUISettings();
   });
   byId('previewSplashAnimation').addEventListener('click', () => {
+    const button = byId('previewSplashAnimation');
+    button.classList.add('is-busy');
     window.actaSplash?.replay();
+    setTimeout(() => button.classList.remove('is-busy'), 1200);
   });
   applySplashSettings();
 
@@ -3286,8 +3335,26 @@
     context.arcTo(x, y, x + size, y, radius);
     context.closePath();
   };
+  // 预设图标先经 fetch→dataURL 再进画布：data URL 图像永远不会污染画布，
+  // 规避个别桌面 webview 对自定义协议图像的 CSP/染色差异；fetch 失败则回退直连。
+  const loadPresetImageDataUrl = async source => {
+    if (String(source).startsWith('data:')) return source;
+    try {
+      const response = await fetch(source);
+      if (!response.ok) throw new Error('ICON_FETCH_FAILED');
+      const blob = await response.blob();
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('ICON_READ_FAILED'));
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return source;
+    }
+  };
   const renderSquareAppIcon = async (source, validateMinimum = false) => {
-    const image = await loadIconImage(source);
+    const image = await loadIconImage(await loadPresetImageDataUrl(source));
     if (validateMinimum && (image.naturalWidth < 64 || image.naturalHeight < 64)) throw new Error('ICON_TOO_SMALL');
     const canvas = document.createElement('canvas');
     canvas.width = 512;
@@ -3348,9 +3415,16 @@
         const icon = await renderSquareAppIcon(source);
         await desktopIcon(icon);
       } catch (error) {
-        applied = false;
-        console.error('Failed to apply the Tauri app icon.', error);
-        setStatus(appIconStatus, appearanceText('应用图标应用失败。'), 'error');
+        // 画布管线不可用时（CSP/协议染色/图像加载失败），回退为"空 dataURL +
+        // 预设名"，由 Rust 端用打包内置的同一张预设图应用并持久化。
+        try {
+          if (uiSettings.appIconPreset === 'custom') throw error;
+          await desktopIcon('', uiSettings.appIconPreset);
+        } catch (fallbackError) {
+          applied = false;
+          console.error('Failed to apply the Tauri app icon.', fallbackError);
+          setStatus(appIconStatus, appearanceText('应用图标应用失败。'), 'error');
+        }
       }
     }
     if (mobileRequest) {
@@ -3973,6 +4047,269 @@
   if ('serviceWorker' in navigator && location.protocol.startsWith('http') && location.hostname !== 'tauri.localhost') {
     addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}), { once:true });
   }
+
+  /* ===================== 软件数据位置 + OOBE 首次设置 ===================== */
+  function syncSettingsControls() {
+    applyInterfaceLanguage(uiSettings.language, false);
+    applyGeneralSettings();
+    applyNoteEditorSettings();
+    applyTheme();
+    applySplashSettings();
+    applyFontSettings();
+    void applyAppIcon();
+    defaultViewSetting.value = uiSettings.defaultView;
+    compactModeSetting.checked = Boolean(uiSettings.compact);
+    reduceMotionSetting.checked = Boolean(uiSettings.reduceMotion);
+    splashAnimationSetting.checked = uiSettings.splashAnimationEnabled !== false;
+    splashPresetSetting.value = uiSettings.splashAnimationPreset;
+    splashSpeedSetting.value = String(splashDurationToSpeed(uiSettings.splashAnimationSpeed));
+    splashSpeedValue.textContent = formatSplashSpeed(splashDurationToSpeed(uiSettings.splashAnimationSpeed));
+  }
+
+  function updateAppDataSettingsRow() {
+    const group = byId('appDataSettingsGroup');
+    const pathEl = byId('appDataPath');
+    if (!group || !pathEl) return;
+    const bridge = appDataBridge();
+    group.hidden = !bridge;
+    if (!bridge) return;
+    pathEl.textContent = appDataState.path || appearanceText('尚未设置');
+  }
+
+  async function mirrorAppDataSettings() {
+    const bridge = appDataBridge();
+    if (!bridge) return;
+    try {
+      const fileSettings = await bridge.loadAppDataSettings();
+      if (fileSettings && typeof fileSettings === 'object' && !Array.isArray(fileSettings)) {
+        Object.assign(uiSettings, fileSettings);
+        localStorage.setItem(uiStorageKey, JSON.stringify(uiSettings));
+        syncSettingsControls();
+      }
+    } catch { /* 文件缺失或损坏时按 localStorage 继续 */ }
+    appDataState.ready = true;
+    updateAppDataSettingsRow();
+  }
+
+  const oobeOverlay = byId('oobeOverlay');
+  const oobeStepEls = oobeOverlay ? [...oobeOverlay.querySelectorAll('.oobe-step')] : [];
+  const oobeDotEls = oobeOverlay ? [...byId('oobeSteps').querySelectorAll('li')] : [];
+  const oobeStepCount = oobeStepEls.length;
+  let oobeIndex = 0;
+  let oobePrepared = false;
+
+  function syncOobeControls() {
+    document.querySelectorAll('input[name="oobeTheme"]').forEach(option => { option.checked = option.value === uiSettings.theme; });
+    byId('oobeAppFont').value = uiSettings.appFont;
+    byId('oobeFontSize').value = String(uiSettings.appFontSize);
+    byId('oobeFontSizeValue').textContent = `${uiSettings.appFontSize} px`;
+    byId('oobeSplashEnabled').checked = uiSettings.splashAnimationEnabled !== false;
+    byId('oobeSplashPreset').value = uiSettings.splashAnimationPreset;
+    byId('oobeSplashSpeed').value = String(splashDurationToSpeed(uiSettings.splashAnimationSpeed));
+    byId('oobeSplashSpeedValue').textContent = formatSplashSpeed(splashDurationToSpeed(uiSettings.splashAnimationSpeed));
+    document.querySelectorAll('input[name="oobeAppIcon"]').forEach(option => { option.checked = option.value === uiSettings.appIconPreset; });
+    const customPreview = byId('oobeCustomIconPreview');
+    if (customPreview && uiSettings.customAppIcon) customPreview.src = uiSettings.customAppIcon;
+  }
+
+  function showOobeStep(index, backward = false) {
+    oobeIndex = Math.max(0, Math.min(oobeStepCount - 1, index));
+    oobeStepEls.forEach((step, i) => {
+      step.classList.toggle('active', i === oobeIndex);
+      step.classList.toggle('oobe-step-back', backward && i === oobeIndex);
+    });
+    oobeDotEls.forEach((dot, i) => {
+      dot.classList.toggle('active', i === oobeIndex);
+      dot.classList.toggle('done', i < oobeIndex);
+    });
+    byId('oobeStepLabel').textContent = `${oobeIndex + 1} / ${oobeStepCount}`;
+    byId('oobeBack').hidden = oobeIndex === 0;
+    const next = byId('oobeNext');
+    next.disabled = oobeIndex === 0 && !oobePrepared;
+    byId('oobeNextLabel').textContent = oobeIndex === oobeStepCount - 1 ? appearanceText('开始使用') : appearanceText('下一步');
+  }
+
+  function openOobe(state = {}) {
+    if (!oobeOverlay || !oobeStepCount) return;
+    oobePrepared = false;
+    byId('oobePathValue').textContent = appearanceText('尚未选择');
+    byId('oobePathHint').textContent = state.defaultPath
+      ? `${appearanceText('默认位置：')}${state.defaultPath}`
+      : appearanceText('便携版默认使用软件目录下的 data 文件夹；也可以自选位置。');
+    syncOobeControls();
+    showOobeStep(0);
+    oobeOverlay.classList.add('open');
+    oobeOverlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeOobe() {
+    if (!oobeOverlay) return;
+    oobeOverlay.classList.remove('open');
+    oobeOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  async function prepareOobePath(path) {
+    const bridge = appDataBridge();
+    const errorEl = byId('oobePathError');
+    if (!bridge || !path) return false;
+    try {
+      const result = await bridge.prepareAppData(path);
+      appDataState.path = result?.path || path;
+      appDataState.ready = true;
+      oobePrepared = true;
+      if (result?.settings && typeof result.settings === 'object' && !Array.isArray(result.settings)) {
+        Object.assign(uiSettings, result.settings);
+        localStorage.setItem(uiStorageKey, JSON.stringify(uiSettings));
+        syncSettingsControls();
+        syncOobeControls();
+      }
+      await bridge.saveAppDataSettings(JSON.stringify(uiSettings, null, 2)).catch(() => {});
+      byId('oobePathValue').textContent = appDataState.path;
+      byId('oobePathHint').textContent = appearanceText('已就绪，软件设置将保存在这里。');
+      errorEl.hidden = true;
+      showOobeStep(oobeIndex);
+      updateAppDataSettingsRow();
+      return true;
+    } catch (error) {
+      errorEl.textContent = `${appearanceText('无法使用该文件夹：')}${error?.message || error}`;
+      errorEl.hidden = false;
+      return false;
+    }
+  }
+
+  async function initSoftwareData() {
+    const bridge = appDataBridge();
+    if (!bridge) return;
+    updateAppDataSettingsRow();
+    let state = null;
+    try { state = await bridge.resolveAppData(); } catch { return; }
+    if (state?.status === 'ready' && state.path) {
+      appDataState.path = state.path;
+      appDataState.ready = true;
+      await mirrorAppDataSettings();
+      updateAppDataSettingsRow();
+      return;
+    }
+    openOobe(state || {});
+  }
+
+  if (oobeOverlay && oobeStepCount) {
+    byId('oobeChooseFolder').addEventListener('click', async () => {
+      const bridge = appDataBridge();
+      if (!bridge) return;
+      const path = await bridge.chooseAppDataFolder().catch(() => null);
+      if (path) await prepareOobePath(path);
+    });
+    byId('oobeUseDefault').addEventListener('click', async () => {
+      const bridge = appDataBridge();
+      if (!bridge) return;
+      let defaultPath = '';
+      try { defaultPath = (await bridge.resolveAppData())?.defaultPath || ''; } catch { /* 忽略 */ }
+      if (defaultPath) await prepareOobePath(defaultPath);
+      else {
+        const errorEl = byId('oobePathError');
+        errorEl.textContent = appearanceText('无法确定默认位置，请点击「选择文件夹」手动指定。');
+        errorEl.hidden = false;
+      }
+    });
+    byId('oobeBack').addEventListener('click', () => showOobeStep(oobeIndex - 1, true));
+    byId('oobeNext').addEventListener('click', () => {
+      if (oobeIndex === 0 && !oobePrepared) return;
+      if (oobeIndex === oobeStepCount - 1) {
+        saveUISettings();
+        closeOobe();
+        return;
+      }
+      showOobeStep(oobeIndex + 1);
+    });
+    document.querySelectorAll('input[name="oobeTheme"]').forEach(option => option.addEventListener('change', () => {
+      if (!option.checked) return;
+      uiSettings.theme = option.value;
+      applyTheme();
+      saveUISettings();
+      syncOobeControls();
+    }));
+    byId('oobeAppFont').addEventListener('change', () => {
+      uiSettings.appFont = byId('oobeAppFont').value;
+      applyFontSettings();
+      saveUISettings();
+      appFontSetting.value = uiSettings.appFont;
+    });
+    byId('oobeFontSize').addEventListener('input', () => {
+      uiSettings.appFontSize = Number(byId('oobeFontSize').value);
+      byId('oobeFontSizeValue').textContent = `${uiSettings.appFontSize} px`;
+      applyFontSettings();
+      saveUISettings();
+    });
+    byId('oobeSplashEnabled').addEventListener('change', () => {
+      uiSettings.splashAnimationEnabled = byId('oobeSplashEnabled').checked;
+      applySplashSettings();
+      saveUISettings();
+      splashAnimationSetting.checked = uiSettings.splashAnimationEnabled !== false;
+    });
+    byId('oobeSplashPreset').addEventListener('change', () => {
+      if (!splashPresetChoices.has(byId('oobeSplashPreset').value)) return;
+      uiSettings.splashAnimationPreset = byId('oobeSplashPreset').value;
+      applySplashSettings();
+      saveUISettings();
+      splashPresetSetting.value = uiSettings.splashAnimationPreset;
+    });
+    byId('oobeSplashSpeed').addEventListener('input', () => {
+      byId('oobeSplashSpeedValue').textContent = formatSplashSpeed(Number(byId('oobeSplashSpeed').value) || 1);
+    });
+    byId('oobeSplashSpeed').addEventListener('change', () => {
+      uiSettings.splashAnimationSpeed = splashSpeedToDuration(Number(byId('oobeSplashSpeed').value));
+      const speed = splashDurationToSpeed(uiSettings.splashAnimationSpeed);
+      byId('oobeSplashSpeed').value = String(speed);
+      byId('oobeSplashSpeedValue').textContent = formatSplashSpeed(speed);
+      applySplashSettings();
+      saveUISettings();
+      splashSpeedSetting.value = String(speed);
+      splashSpeedValue.textContent = formatSplashSpeed(speed);
+    });
+    byId('oobeSplashPreview').addEventListener('click', () => {
+      const button = byId('oobeSplashPreview');
+      button.classList.add('is-busy');
+      window.actaSplash?.replay();
+      setTimeout(() => button.classList.remove('is-busy'), 1200);
+    });
+    document.querySelectorAll('input[name="oobeAppIcon"]').forEach(option => option.addEventListener('change', async () => {
+      if (!option.checked) return;
+      if (option.value === 'custom' && !uiSettings.customAppIcon) {
+        document.querySelectorAll('input[name="oobeAppIcon"]').forEach(entry => { entry.checked = entry.value === uiSettings.appIconPreset; });
+        customAppIconFile.click();
+        return;
+      }
+      uiSettings.appIconPreset = option.value;
+      saveUISettings();
+      await applyAppIcon();
+      syncOobeControls();
+    }));
+  }
+
+  byId('changeAppDataFolder')?.addEventListener('click', async () => {
+    const bridge = appDataBridge();
+    if (!bridge) return;
+    const path = await bridge.chooseAppDataFolder().catch(() => null);
+    if (!path) return;
+    const status = byId('appDataStatus');
+    try {
+      await bridge.prepareAppData(path);
+      appDataState.path = path;
+      appDataState.ready = true;
+      await bridge.saveAppDataSettings(JSON.stringify(uiSettings, null, 2)).catch(() => {});
+      updateAppDataSettingsRow();
+      setStatus(status, appearanceText('软件数据位置已更新，设置已迁移。'), 'success');
+    } catch (error) {
+      setStatus(status, `${appearanceText('无法使用该文件夹：')}${error?.message || error}`, 'error');
+    }
+  });
+  byId('openAppDataFolder')?.addEventListener('click', () => {
+    const bridge = appDataBridge();
+    if (bridge && appDataState.path) bridge.openPath?.(appDataState.path);
+  });
+
+  void initSoftwareData();
 
   requestAnimationFrame(() => {
     const startView = document.querySelector(`[data-view="${uiSettings.defaultView}"]`);

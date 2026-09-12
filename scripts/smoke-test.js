@@ -1155,7 +1155,7 @@ async function main() {
       await waitFor(() => innerWidth > 1200 && innerHeight > 700);
       window.__actaSmokeStep = 'classification-item-opened';
       const brandVersion = document.querySelector('.brand-version');
-      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '2.3.0'
+      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '2.4.0'
         && parseFloat(getComputedStyle(brandVersion).opacity) > .9
         && brandVersion.getBoundingClientRect().width > 0;
       const miniLogoBeforeCollapseRect = document.querySelector('.brand-mini-logo').getBoundingClientRect();
@@ -1279,7 +1279,7 @@ async function main() {
       await waitFor(() => innerWidth > 1200 && innerHeight > 700);
       document.querySelector('[data-settings-page="appearance"]').click();
       const appearancePanel = document.querySelector('[data-settings-panel="appearance"]');
-      const appearanceSettingsComplete = document.querySelectorAll('input[name="actaTheme"]').length === 10
+      const appearanceSettingsComplete = document.querySelectorAll('input[name="actaTheme"]').length === 12
         && document.querySelectorAll('input[name="actaAppIcon"]').length === 5
         && [...document.querySelectorAll('.app-icon-option b')].slice(0, 4).map(node => node.textContent).join('|') === '默认书页|正·书页|勾勒·书页|初版简洁'
         && Object.keys(detailedColorInputs).every(id => document.querySelector('#' + id));
@@ -1900,7 +1900,11 @@ async function main() {
     const tauriLibSource = fs.readFileSync(path.join(__dirname, '..', 'src-tauri', 'src', 'lib.rs'), 'utf8');
     assert.match(tauriMainSource, /windows_subsystem\s*=\s*"windows"/);
     assert.match(tauriLibSource, /const APP_ICON_FILE:\s*&str\s*=\s*"app-icon\.png"/);
-    assert.match(tauriLibSource, /persist_app_icon\(&app,\s*&data_url,\s*&bytes\)/);
+    assert.match(tauriLibSource, /fn set_app_icon\([\s\S]{0,120}preset:\s*Option<String>/);
+    assert.match(tauriLibSource, /fn app_icon_preset_bytes\(preset: &str\)/);
+    assert.match(tauriLibSource, /persist_app_icon_bytes\(&app,\s*if is_known_preset \{ Some\(&bytes\) \} else \{ None \}\)\?/);
+    assert.match(tauriLibSource, /fn resolve_app_data_dir\(app: AppHandle\)/);
+    assert.match(tauriLibSource, /fn prepare_app_data_dir\(app: AppHandle, path: String\)/);
     assert.match(tauriLibSource, /\.setup\(\|app\|/);
 
     const bridgePage = await browser.newPage();
@@ -1977,7 +1981,106 @@ async function main() {
     assert.ok(bridgeResult.calls.some(call => call.command === 'upload_library' && call.args.folder === 'C:\\Acta'));
     assert.ok(bridgeResult.calls.some(call => call.command === 'web_dav_request' && call.args.requestOptions.method === 'HEAD'));
     assert.ok(bridgeResult.calls.some(call => call.command === 'set_app_icon' && call.args.dataUrl.startsWith('data:image/png')));
-    console.log('Acta smoke test passed: Tauri bridge, unclassified task defaults, select-only item classification, nonlinear property-panel closing, mobile calendar views, quick capture, data profiles, and Markdown round-trip.');
+    // Feature page: OOBE flow, custom select menu, MWS themes, splash speed
+    // semantics, and the desktop app-icon preset fallback.
+    const featurePage = await browser.newPage();
+    await featurePage.setViewport({ width:1280, height:800, deviceScaleFactor:1 });
+    await featurePage.evaluateOnNewDocument(() => {
+      const calls = [];
+      window.__featureCalls = calls;
+      window.__TAURI__ = {
+        core:{
+          invoke(command, args) {
+            calls.push({ command, args });
+            if (command === 'resolve_app_data_dir') return Promise.resolve({ status:'missing', path:null, defaultPath:'C:\\ActaData' });
+            if (command === 'prepare_app_data_dir') return Promise.resolve({ path:args.path, settings:null });
+            if (command === 'load_app_data_settings') return Promise.resolve(null);
+            return Promise.resolve(true);
+          }
+        },
+        dialog:{ open:options => Promise.resolve(options?.directory ? 'C:\\ActaData' : null), save:() => Promise.resolve(null) },
+        opener:{ openUrl:() => Promise.resolve(), openPath:() => Promise.resolve() },
+        window:{ getCurrentWindow:() => null }
+      };
+    });
+    await featurePage.goto(pathToFileURL(path.join(__dirname, '..', 'src', 'index.html')).href, { waitUntil:'load' });
+    const featureResult = await featurePage.evaluate(`(async () => {
+      const waitFor = async predicate => {
+        for (let attempt = 0; attempt < 120; attempt += 1) {
+          if (predicate()) return true;
+          await new Promise(resolve => setTimeout(resolve, 25));
+        }
+        return false;
+      };
+      const overlay = document.getElementById('oobeOverlay');
+      const oobeOpens = await waitFor(() => overlay.classList.contains('open'));
+      const selectsEnhanced = document.querySelectorAll('select[data-acx-enhanced]').length > 10;
+      const sortSelect = document.querySelector('#listSortOrder');
+      sortSelect.dispatchEvent(new MouseEvent('mousedown', { bubbles:true, cancelable:true }));
+      const menuOpens = await waitFor(() => document.querySelector('.acx-menu'));
+      const menuOptionCount = document.querySelectorAll('.acx-menu .acx-option').length;
+      const target = [...document.querySelectorAll('.acx-menu .acx-option')].find(option => option.dataset.value === 'title');
+      target?.click();
+      const menuClosed = await waitFor(() => !document.querySelector('.acx-menu'));
+      const sortChanged = sortSelect.value === 'title';
+      document.querySelector('#oobeUseDefault').click();
+      const oobePrepared = await waitFor(() => !document.querySelector('#oobeNext').disabled);
+      document.querySelector('#oobeNext').click();
+      const mwsLightRadio = document.querySelector('input[name="oobeTheme"][value="mws-light"]');
+      mwsLightRadio.click();
+      const mwsAccent = getComputedStyle(document.documentElement).getPropertyValue('--sage').trim();
+      const mwsIsDark = document.querySelector('meta[name="color-scheme"]').content === 'light';
+      document.querySelector('#oobeNext').click();
+      const splashSpeed = document.querySelector('#oobeSplashSpeed');
+      splashSpeed.value = '2';
+      splashSpeed.dispatchEvent(new Event('input'));
+      splashSpeed.dispatchEvent(new Event('change'));
+      const stored = JSON.parse(localStorage.getItem('acta.interface.settings.v1') || '{}');
+      const speedInverted = stored.splashAnimationSpeed === 0.5 && document.querySelector('#oobeSplashSpeedValue').textContent === '2.0×';
+      document.querySelector('#oobeNext').click();
+      const iconCalls = [];
+      const bridgeIcon = window.actaDesktop.setAppIcon.bind(window.actaDesktop);
+      Object.defineProperty(window, 'actaDesktop', { value:Object.freeze({ ...window.actaDesktop, setAppIcon:(dataUrl, preset) => {
+        iconCalls.push({ canvas:dataUrl.startsWith('data:image/png'), preset: preset || '' });
+        if (dataUrl) return Promise.reject(new Error('SMOKE_CANVAS_FAIL'));
+        return bridgeIcon(dataUrl, preset);
+      } }), configurable:true });
+      const positiveRadio = document.querySelector('input[name="oobeAppIcon"][value="positive"]');
+      positiveRadio.click();
+      await waitFor(() => iconCalls.some(call => !call.canvas && call.preset === 'positive'));
+      const iconFallbackWorks = iconCalls[0]?.canvas === true && iconCalls[1]?.canvas === false && iconCalls[1]?.preset === 'positive';
+      document.querySelector('#oobeNext').click();
+      const welcomeShown = document.querySelector('[data-oobe-step="welcome"]').classList.contains('active');
+      document.querySelector('#oobeNext').click();
+      const oobeClosed = await waitFor(() => !overlay.classList.contains('open'));
+      const settingsMirrored = [...document.querySelectorAll('input[name="actaTheme"]')].some(radio => radio.value === 'mws-light' && radio.checked);
+      return { oobeOpens, selectsEnhanced, menuOpens, menuOptionCount, menuClosed, sortChanged, oobePrepared, mwsAccent, mwsIsDark, speedInverted, iconFallbackWorks, welcomeShown, oobeClosed, settingsMirrored,
+        prepareCalled:window.__featureCalls.some(call => call.command === 'prepare_app_data_dir' && String(call.args.path).split('\\\\').join('!') === 'C:!ActaData'),
+        settingsSaved:window.__featureCalls.some(call => call.command === 'save_app_data_settings'),
+        callsDebug:window.__featureCalls.filter(call => String(call.command).startsWith('prepare') || String(call.command).startsWith('save')).map(call => ({ c:call.command, p:call.args && call.args.path })),        settingsSavedCheck:window.__featureCalls.some(call => call.command === 'save_app_data_settings') };
+    })()`).catch(async error => {
+      const step = await featurePage.evaluate('window.__actaSmokeStep || "unknown"').catch(() => 'unavailable');
+      throw new Error(`${error.stack || error.message} at feature step: ${step}`);
+    });
+    await featurePage.close();
+    assert.equal(featureResult.oobeOpens, true);
+    assert.equal(featureResult.selectsEnhanced, true);
+    assert.equal(featureResult.menuOpens, true);
+    assert.equal(featureResult.menuOptionCount, 5);
+    assert.equal(featureResult.menuClosed, true);
+    assert.equal(featureResult.sortChanged, true);
+    assert.equal(featureResult.oobePrepared, true);
+    assert.equal(featureResult.mwsAccent, '#ff6666');
+    assert.equal(featureResult.mwsIsDark, true);
+    assert.equal(featureResult.speedInverted, true);
+    assert.equal(featureResult.iconFallbackWorks, true);
+    assert.equal(featureResult.welcomeShown, true);
+    assert.equal(featureResult.oobeClosed, true);
+    assert.equal(featureResult.settingsMirrored, true);
+    assert.equal(featureResult.prepareCalled, true);
+    assert.equal(featureResult.settingsSaved, true);
+
+    console.log('Acta smoke test passed: Tauri bridge, unclassified task defaults, select-only item classification, nonlinear property-panel closing, mobile calendar views, quick capture, data profiles, OOBE onboarding, custom select menus, and Markdown round-trip.');
   } finally {
     if (browser) await browser.close();
     try { fs.rmSync(testData, { recursive:true, force:true }); }

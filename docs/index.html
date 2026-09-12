@@ -119,7 +119,7 @@
                   </g>
               </g>
           </svg>
-          <span class="brand-version" aria-label="当前版本 2.3.0">2.3.0</span>
+          <span class="brand-version" aria-label="当前版本 2.4.0">2.4.0</span>
           <span class="logo-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
           <img class="brand-mini-logo" src="./icons/Acta_weblogo.png" alt="" aria-hidden="true" />
         </div>
@@ -351,6 +351,11 @@
                 <label class="settings-row"><span><b>减少动态效果</b><small>降低转场和弹性动画，减少视觉干扰</small></span><input id="reduceMotionSetting" type="checkbox"/></label>
                 <div class="settings-row"><span><b>缓存与页面</b><small>清除应用缓存并重新加载最新页面，不会删除笔记、待办或设置。</small></span><button class="settings-button secondary" id="clearCacheReload" type="button"><svg><use href="#i-refresh"/></svg><span>清除缓存重新加载</span></button></div>
               </div>
+              <div class="settings-group app-data-settings" id="appDataSettingsGroup" hidden>
+                <div class="settings-row"><span><b>软件数据位置</b><small>保存 Acta 自身的设置与偏好；笔记、待办等行记数据仍按数据档案的位置存储。便携版默认读取软件目录下的 data 文件夹。</small></span><code class="app-data-path" id="appDataPath">读取中…</code></div>
+                <div class="settings-row"><span><b>位置操作</b><small>更改后会立即把当前设置迁移到新文件夹</small></span><span class="app-data-actions"><button class="settings-button secondary" id="openAppDataFolder" type="button"><svg><use href="#i-folder"/></svg><span>打开文件夹</span></button><button class="settings-button secondary" id="changeAppDataFolder" type="button"><svg><use href="#i-edit"/></svg><span>更改位置</span></button></span></div>
+                <p class="settings-status" id="appDataStatus"></p>
+              </div>
               <p class="settings-status" id="generalStatus">设置会自动保存在当前设备。</p>
             </section>
 
@@ -374,6 +379,8 @@
               <header><h3>外观设置</h3><p>主题只改变显示效果，不会影响任何笔记或待办数据。</p></header>
               <div class="theme-grid">
                 <label class="theme-option"><input type="radio" name="actaTheme" value="eye-yellow"/><span><span class="theme-swatch"><i style="background:#f9f5e8"></i><i style="background:#e8e1c8"></i><i style="background:#6f6748"></i></span><b>纸色护眼</b><small>默认</small></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="mws-light"/><span><span class="theme-swatch"><i style="background:#fffbfa"></i><i style="background:#ffe5e1"></i><i style="background:#ff6666"></i></span><b>MWS 浅色</b><small>品牌主题</small></span></label>
+                <label class="theme-option"><input type="radio" name="actaTheme" value="mws-dark"/><span><span class="theme-swatch"><i style="background:#181113"></i><i style="background:#0f0a0b"></i><i style="background:#ff8080"></i></span><b>MWS 深色</b><small>品牌深色</small></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="mono-light"/><span><span class="theme-swatch"><i style="background:#ffffff"></i><i style="background:#e6e6e6"></i><i style="background:#1b1b1b"></i></span><b>黑白浅色</b></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="mono-dark"/><span><span class="theme-swatch"><i style="background:#111111"></i><i style="background:#292929"></i><i style="background:#f0f0f0"></i></span><b>黑白深色</b></span></label>
                 <label class="theme-option"><input type="radio" name="actaTheme" value="blue-yellow"/><span><span class="theme-swatch"><i style="background:#e9cd5e"></i><i style="background:#eaf0f4"></i><i style="background:#2d6487"></i></span><b>蓝黄</b></span></label>
@@ -415,9 +422,8 @@
               </div>
               <div class="settings-group" style="margin-top:18px">
                 <label class="settings-row"><span><b>启动动画</b><small>启动时的过渡画面，关闭后直接进入工作区</small></span><input id="splashAnimationSetting" type="checkbox" checked/></label>
-                <label class="settings-row"><span><b>动画预设</b><small>启动画面的演绎方式，可预览效果</small></span><select id="splashPresetSetting"><option value="acta-lines">Acta 线构（默认）</option><option value="calm-fade">静谧淡入</option><option value="focus-zoom">聚焦缩放</option></select></label>
-                <label class="settings-row"><span><b>动画时间</b><small>启动动画的整体播放倍率</small></span><span class="font-size-control"><input id="splashSpeedSetting" type="range" min="0.5" max="2" step="0.1"/><output id="splashSpeedValue">1.0×</output></span></label>
-                <div class="settings-actions"><button class="settings-button secondary" id="previewSplashAnimation" type="button"><svg><use href="#i-spark"/></svg>预览动画</button></div>
+                <div class="settings-row splash-preset-row"><span><b>动画预设</b><small>启动画面的演绎方式，点右侧按钮立即预览</small></span><span class="splash-preset-controls"><select id="splashPresetSetting"><option value="acta-lines">Acta 线构（默认）</option><option value="calm-fade">静谧淡入</option><option value="focus-zoom">聚焦缩放</option></select><button class="icon-button splash-preview-button" id="previewSplashAnimation" type="button" title="预览启动动画" aria-label="预览启动动画"><svg><use href="#i-spark"/></svg></button></span></div>
+                <label class="settings-row"><span><b>动画速度</b><small>启动动画的播放速度倍率，数值越大播放越快</small></span><span class="font-size-control"><input id="splashSpeedSetting" type="range" min="0.5" max="2" step="0.1"/><output id="splashSpeedValue">1.0×</output></span></label>
               </div>
               <div class="settings-group" style="margin-top:18px">
                 <label class="settings-row"><span><b>界面字体</b><small>同时应用到列表、编辑器和设置页面</small></span><select id="appFontSetting"><option value="system">系统默认</option><option value="serif">衬线字体</option><option value="rounded">圆体</option><option value="mono">等宽字体</option><option value="custom">自定义字体</option></select></label>
@@ -458,8 +464,8 @@
               <div class="about-mark"><img src="./images/Acta Poster.jpg" alt="Acta 行记" /></div>
               <div class="about-meta">
                 <div><small>产品</small><b>Acta · 行记</b></div>
-              <div><small>版本</small><b id="aboutVersion">2.3.0</b></div>
-              <div><small>本版更新日期</small><b>2026-09-06</b></div>
+              <div><small>版本</small><b id="aboutVersion">2.4.0</b></div>
+              <div><small>本版更新日期</small><b>2026-09-12</b></div>
                 <div><small>桌面框架</small><b>Tauri（Windows/macOS），Capacitor（Android）</b></div>
               </div>
               <div class="about-update">
@@ -696,6 +702,87 @@
       </footer>
     </dialog>
 
+    <div class="oobe-backdrop" id="oobeOverlay" aria-hidden="true">
+      <section class="oobe-window" role="dialog" aria-modal="true" aria-labelledby="oobeTitle">
+        <header class="oobe-head">
+          <span class="oobe-mark"><img src="./icons/Acta_weblogo.png" alt="" aria-hidden="true"/></span>
+          <div class="oobe-head-copy"><h2 id="oobeTitle">欢迎使用 Acta</h2><p>只需几步，完成初始设置</p></div>
+          <ol class="oobe-steps" id="oobeSteps" aria-label="设置进度">
+            <li class="active" title="数据位置"><i></i></li>
+            <li title="主题与字体"><i></i></li>
+            <li title="启动动画"><i></i></li>
+            <li title="应用图标"><i></i></li>
+            <li title="完成"><i></i></li>
+          </ol>
+        </header>
+        <div class="oobe-body" id="oobeBody">
+          <section class="oobe-step active" data-oobe-step="data">
+            <h3>先选择软件数据文件夹</h3>
+            <p>Acta 会把软件自身的设置保存在这里，之后每次启动都会记住这个位置。笔记与待办的数据档案仍按各自的位置存储，不受影响。</p>
+            <div class="oobe-path-card" id="oobePathCard">
+              <span class="oobe-path-icon"><svg><use href="#i-database"/></svg></span>
+              <div class="oobe-path-copy"><b id="oobePathValue">尚未选择</b><small id="oobePathHint">便携版默认使用软件目录下的 data 文件夹；也可以自选位置。</small></div>
+            </div>
+            <div class="settings-actions oobe-path-actions">
+              <button class="settings-button secondary" id="oobeChooseFolder" type="button"><svg><use href="#i-folder"/></svg>选择文件夹…</button>
+              <button class="settings-button secondary" id="oobeUseDefault" type="button"><svg><use href="#i-check"/></svg>使用默认位置</button>
+            </div>
+            <p class="oobe-error" id="oobePathError" hidden role="alert"></p>
+          </section>
+          <section class="oobe-step" data-oobe-step="appearance">
+            <h3>选择主题、字体与大小</h3>
+            <p>效果实时预览；之后可以在「设置 → 外观设置」中随时更改。</p>
+            <div class="oobe-theme-grid" id="oobeThemeGrid">
+              <label class="theme-option"><input type="radio" name="oobeTheme" value="eye-yellow"/><span><span class="theme-swatch"><i style="background:#f9f5e8"></i><i style="background:#e8e1c8"></i><i style="background:#6f6748"></i></span><b>纸色护眼</b><small>默认</small></span></label>
+              <label class="theme-option"><input type="radio" name="oobeTheme" value="mws-light"/><span><span class="theme-swatch"><i style="background:#fffbfa"></i><i style="background:#ffe5e1"></i><i style="background:#ff6666"></i></span><b>MWS 浅色</b><small>品牌主题</small></span></label>
+              <label class="theme-option"><input type="radio" name="oobeTheme" value="mws-dark"/><span><span class="theme-swatch"><i style="background:#181113"></i><i style="background:#0f0a0b"></i><i style="background:#ff8080"></i></span><b>MWS 深色</b><small>品牌深色</small></span></label>
+              <label class="theme-option"><input type="radio" name="oobeTheme" value="mono-light"/><span><span class="theme-swatch"><i style="background:#ffffff"></i><i style="background:#e6e6e6"></i><i style="background:#1b1b1b"></i></span><b>黑白浅色</b></span></label>
+              <label class="theme-option"><input type="radio" name="oobeTheme" value="mono-dark"/><span><span class="theme-swatch"><i style="background:#111111"></i><i style="background:#292929"></i><i style="background:#f0f0f0"></i></span><b>黑白深色</b></span></label>
+            </div>
+            <div class="oobe-font-controls">
+              <label class="oobe-font-field"><span>界面字体</span><select id="oobeAppFont"><option value="system">系统默认</option><option value="serif">衬线字体</option><option value="rounded">圆体</option><option value="mono">等宽字体</option><option value="custom">自定义字体</option></select></label>
+              <label class="oobe-font-field oobe-font-size"><span>字体大小</span><span class="font-size-control"><input id="oobeFontSize" type="range" min="12" max="18" step="1"/><output id="oobeFontSizeValue">14 px</output></span></label>
+            </div>
+            <div class="font-preview"><p>记录，然后行动。Acta 让笔记与待办自然连接。</p></div>
+          </section>
+          <section class="oobe-step" data-oobe-step="splash">
+            <h3>选择启动动画</h3>
+            <p>启动时的一段过渡画面；不喜欢可以关闭，速度也由你决定。</p>
+            <div class="settings-group oobe-splash-group">
+              <label class="settings-row"><span><b>启动动画</b><small>关闭后直接进入工作区</small></span><input id="oobeSplashEnabled" type="checkbox" checked/></label>
+              <div class="settings-row splash-preset-row"><span><b>动画预设</b><small>点右侧按钮立即预览</small></span><span class="splash-preset-controls"><select id="oobeSplashPreset"><option value="acta-lines">Acta 线构（默认）</option><option value="calm-fade">静谧淡入</option><option value="focus-zoom">聚焦缩放</option></select><button class="icon-button splash-preview-button" id="oobeSplashPreview" type="button" title="预览启动动画" aria-label="预览启动动画"><svg><use href="#i-spark"/></svg></button></span></div>
+              <label class="settings-row"><span><b>动画速度</b><small>数值越大播放越快</small></span><span class="font-size-control"><input id="oobeSplashSpeed" type="range" min="0.5" max="2" step="0.1"/><output id="oobeSplashSpeedValue">1.0×</output></span></label>
+            </div>
+          </section>
+          <section class="oobe-step" data-oobe-step="icon">
+            <h3>选择应用图标</h3>
+            <p>应用于 Tauri 桌面客户端（Windows/macOS）；之后可以在「设置 → 外观设置」中更改或上传自定义图标。</p>
+            <div class="app-icon-options" id="oobeIconGrid">
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="default"/><span><img src="./icons/icon-512.png" alt=""/><b>默认书页</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="positive"/><span><img src="./icons/app-icon-positive-page.png" alt=""/><b>正·书页</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="outline"/><span><img src="./icons/app-icon-outlined-page.png" alt=""/><b>勾勒·书页</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="original"/><span><img src="./icons/app-icon-original-simple.png" alt=""/><b>初版简洁</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="custom"/><span><img id="oobeCustomIconPreview" src="./icons/icon-512.png" alt=""/><b>自定义图标</b></span></label>
+            </div>
+          </section>
+          <section class="oobe-step oobe-welcome-step" data-oobe-step="welcome">
+            <div class="oobe-welcome">
+              <span class="oobe-welcome-mark"><svg><use href="#i-spark"/></svg></span>
+              <h3>欢迎使用 Acta</h3>
+              <p>一切准备就绪。记录想法、安排行动，Acta 会安静地陪在你身边。</p>
+            </div>
+          </section>
+        </div>
+        <footer class="oobe-foot">
+          <span class="oobe-step-label" id="oobeStepLabel">1 / 5</span>
+          <span class="oobe-foot-actions">
+            <button class="settings-button secondary" id="oobeBack" type="button">上一步</button>
+            <button class="settings-button" id="oobeNext" type="button"><span id="oobeNextLabel">下一步</span><svg><use href="#i-chevron"/></svg></button>
+          </span>
+        </footer>
+      </section>
+    </div>
+
     <div class="sync-notice" id="syncNotice" role="status" aria-live="polite"><i></i><span></span></div>
     <div class="toast" id="toast"><span><svg><use href="#i-check"/></svg></span><p></p></div>
     <script src="splash.js"></script>
@@ -706,5 +793,6 @@
     <script src="lib/fontkit.umd.min.js"></script>
     <script src="note-export.js"></script>
     <script src="interface.js"></script>
+    <script src="custom-select.js"></script>
   </body>
 </html>

@@ -23,7 +23,7 @@
   if (['calm-fade', 'focus-zoom'].includes(String(stored.splashAnimationPreset))) root.dataset.actaSplashPreset = String(stored.splashAnimationPreset);
   if (stored.splashAnimationEnabled === false) root.dataset.actaSplashOff = 'true';
   if (!theme) return;
-  const darkThemes = new Set(['mono-dark', 'neon-ocean', 'aurora-night']);
+  const darkThemes = new Set(['mono-dark', 'neon-ocean', 'aurora-night', 'mws-dark']);
   const glowThemes = new Set(['neon-ocean', 'aurora-night']);
   const isDark = darkThemes.has(theme);
   root.dataset.actaTheme = isDark ? 'mono-dark' : theme;
