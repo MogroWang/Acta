@@ -1155,7 +1155,7 @@ async function main() {
       await waitFor(() => innerWidth > 1200 && innerHeight > 700);
       window.__actaSmokeStep = 'classification-item-opened';
       const brandVersion = document.querySelector('.brand-version');
-      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '2.4.0'
+      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '3.0.0'
         && parseFloat(getComputedStyle(brandVersion).opacity) > .9
         && brandVersion.getBoundingClientRect().width > 0;
       const miniLogoBeforeCollapseRect = document.querySelector('.brand-mini-logo').getBoundingClientRect();
@@ -1164,12 +1164,12 @@ async function main() {
       const collapsedSidebarAligned = await waitFor(() => {
         const sidebar = document.querySelector('#primarySidebar').getBoundingClientRect();
         const axis = sidebar.left + sidebar.width / 2;
-        const aligned = ['#newButton', '#smartNav button', '.section-label-actions', '#folderNav', '.sidebar-control-dock'].map(selector => document.querySelector(selector)?.getBoundingClientRect()).filter(Boolean);
+        const aligned = ['#newButton', '#smartNav button', '.section-label-actions', '#folderNav', '.sidebar-dock-actions'].map(selector => document.querySelector(selector)?.getBoundingClientRect()).filter(Boolean);
         return document.body.classList.contains('sidebar-collapsed') && aligned.every(rect => Math.abs(rect.left + rect.width / 2 - axis) < 1);
       });
       const collapsedSidebarRect = document.querySelector('#primarySidebar').getBoundingClientRect();
       const collapsedSidebarAxis = collapsedSidebarRect.left + collapsedSidebarRect.width / 2;
-      const collapsedSidebarOffsets = Object.fromEntries(['#newButton', '#smartNav button', '.section-label-actions', '#folderNav', '.sidebar-control-dock'].map(selector => {
+      const collapsedSidebarOffsets = Object.fromEntries(['#newButton', '#smartNav button', '.section-label-actions', '#folderNav', '.sidebar-dock-actions'].map(selector => {
         const rect = document.querySelector(selector).getBoundingClientRect();
         return [selector, Number((rect.left + rect.width / 2 - collapsedSidebarAxis).toFixed(2))];
       }));
@@ -1182,7 +1182,7 @@ async function main() {
       void sidebarToggleButton.offsetWidth;
       const collapsedToggleStyle = getComputedStyle(sidebarToggleButton);
       const collapsedToggleRect = sidebarToggleButton.getBoundingClientRect();
-      const collapsedToggleInDock = sidebarToggleButton.closest('.sidebar-dock-actions')?.parentElement?.classList.contains('sidebar-control-dock')
+      const collapsedToggleInDock = Boolean(sidebarToggleButton.closest('.sidebar-dock-actions'))
         && collapsedToggleStyle.position === 'static'
         && Math.abs(collapsedToggleRect.left + collapsedToggleRect.width / 2 - collapsedSidebarAxis) < 1;
       sidebarToggleButton.style.removeProperty('transition');
@@ -1227,7 +1227,7 @@ async function main() {
       const saveStateStyle = getComputedStyle(document.querySelector('#saveState'));
       const saveStateRelocated = Math.abs(saveStateRect.left - expandedSidebarRect.right - 8) <= 1 && saveStateStyle.textAlign === 'left';
       const saveStateMetrics = { saveLeft:saveStateRect.left, sidebarRight:expandedSidebarRect.right, difference:saveStateRect.left - expandedSidebarRect.right, textAlign:saveStateStyle.textAlign };
-      const lowerLeftControlsTogether = ['#dataRefreshButton', '#settingsButton', '#sidebarToggle'].every(selector => document.querySelector(selector)?.closest('.sidebar-control-dock'));
+      const lowerLeftControlsTogether = ['#dataRefreshButton', '#settingsButton', '#sidebarToggle'].every(selector => document.querySelector(selector)?.closest('.sidebar-dock-actions'));
       window.__actaSmokeStep = 'sidebar-checked';
       document.querySelector('#settingsButton').click();
       const cacheReloadAvailable = Boolean(document.querySelector('#clearCacheReload'));

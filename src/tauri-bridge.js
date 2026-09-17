@@ -83,6 +83,24 @@
     clearAppCache() {
       return invoke('clear_app_cache');
     },
+    handyDetect() {
+      return invoke('handy_detect');
+    },
+    handyGrant(folder, granted) {
+      return invoke('handy_grant', { folder, granted });
+    },
+    handyStatus(folder) {
+      return invoke('handy_status', { folder });
+    },
+    handyScanChanges(folder) {
+      return invoke('handy_scan_changes', { folder });
+    },
+    handyChanges(folder) {
+      return invoke('handy_changes', { folder });
+    },
+    handyRestoreChange(folder, changeId) {
+      return invoke('handy_restore_change', { folder, changeId });
+    },
     setAppIcon(dataUrl = '', preset = '') {
       return invoke('set_app_icon', { dataUrl, preset });
     },
@@ -129,6 +147,18 @@
     document.querySelector('[data-window-action="close"]')?.addEventListener('click', () => {
       currentWindow.close().catch(() => {});
     });
+    // 最大化状态实时反映到 <html data-window-maximized>，窗口控件据此切换
+    // 最大化/还原图标。旧环境缺少事件 API 时静默跳过。
+    if (typeof currentWindow.onResized === 'function' && typeof currentWindow.isMaximized === 'function') {
+      const syncMaximizedState = async () => {
+        try {
+          document.documentElement.dataset.windowMaximized = (await currentWindow.isMaximized()) ? 'true' : 'false';
+        } catch { /* 窗口已销毁时忽略 */ }
+      };
+      currentWindow.onResized(() => { void syncMaximizedState(); });
+      if (typeof currentWindow.onMoved === 'function') currentWindow.onMoved(() => { void syncMaximizedState(); });
+      void syncMaximizedState();
+    }
   }
 
   document.addEventListener('click', event => {

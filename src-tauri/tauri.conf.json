@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Acta · 行记",
-  "version": "2.4.0",
-  "identifier": "com.mogrowangstudio.acta",
+  "version": "3.0.0",
+  "identifier": "com.mws.acta",
   "build": {
     "frontendDist": "../src"
   },

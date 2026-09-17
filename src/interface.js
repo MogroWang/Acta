@@ -7,7 +7,7 @@
     appIconPreset: 'default', customAppIcon: '',
     splashAnimationEnabled: true, splashAnimationPreset: 'acta-lines', splashAnimationSpeed: 1,
     appFont: 'system', customFont: 'Inter', appFontSize: 14,
-    noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteHeadingStyle: 'classic', noteLineHeight: 1.6,
+    noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteBaseSize: 17, noteHeadingStyle: 'classic', noteLineHeight: 1.6,
     noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
     oneDriveFolder: '', oneDriveLabel: '', workspaceLabel: '',
     dataProfiles: [], activeDataProfileId: '', cloudSyncMode: 'onedrive', webDavServer: '', webDavUsername: '', autoSync: false, autoSyncInterval: 5, listPaneWidth: 330, sidebarCollapsed: false, language: ['zh', 'zh-Hant', 'en'].includes(settings.language) ? settings.language : 'zh'
@@ -141,7 +141,7 @@
       '先支持 OneDrive 本地同步文件夹；上传与下载均使用完整资料库数据文件。':'OneDrive local sync folders are supported first. Upload and download both use the complete library file.', '尚未选择 OneDrive 同步文件夹':'No OneDrive sync folder selected', 'OneDrive 文件操作':'OneDrive file access', '由 OneDrive 客户端把 acta-library.json 同步到云端':'The OneDrive client syncs acta-library.json to the cloud', '选择文件夹':'Choose folder',
       '自动同步':'Automatic sync', '本地内容变化后自动上传，并定时检查 OneDrive 文件中的更新':'Upload local changes automatically and periodically check the OneDrive file for updates', '检查频率':'Check frequency', '仅在 Acta 保持运行时执行':'Runs only while Acta remains open', '每 1 分钟':'Every minute', '每 5 分钟':'Every 5 minutes', '每 15 分钟':'Every 15 minutes',
       '从 OneDrive 下载':'Download from OneDrive', '上传到 OneDrive':'Upload to OneDrive', '请选择电脑或网页文件选择器中的 OneDrive 同步文件夹。':'Choose your OneDrive sync folder using the desktop or web folder picker.', 'Acta 不会获取你的 OneDrive 账号或密码；文件传输由系统文件夹与 OneDrive 客户端完成。':'Acta never accesses your OneDrive account or password. The system folder and OneDrive client transfer the file.',
-      '关于 Acta':'About Acta', '检查更新':'Check for updates', '让笔记与行动在一个安静、可掌控的本地空间中自然连接。':'Connect notes and actions naturally in a calm, controllable local space.', '产品':'Product', '版本':'Version', '本版更新日期':'Version date', '桌面框架':'Desktop framework', '笔记、待办和设置默认保存在当前设备；只有在你主动操作时才会导入、导出或同步。':'Notes, tasks, and settings stay on this device by default. Import, export, and sync occur only when you choose them.', '作者：':'Author: ', '。由 Codex 驱动创作；项目开源、免费，欢迎学习、使用与共同改进。':'. Created with Codex; open source and free for learning, use, and collaboration.',
+      '关于 Acta':'About Acta', '检查更新':'Check for updates', '让笔记与行动在一个安静、可掌控的本地空间中自然连接。':'Connect notes and actions naturally in a calm, controllable local space.', '产品':'Product', '版本':'Version', '本版更新日期':'Version date', '桌面框架':'Desktop framework', '笔记、待办和设置默认保存在当前设备；只有在你主动操作时才会导入、导出或同步。':'Notes, tasks, and settings stay on this device by default. Import, export, and sync occur only when you choose them.', '作者：':'Author: ', '。项目开源、免费，欢迎学习、使用与共同改进。':'. Open source and free for learning, use, and collaboration.',
       '完整数据文件夹由 acta-manifest.json、classifications.json、notes/ 和 todos/ 组成；每则笔记与待办分别保存。':'A complete data folder contains acta-manifest.json, classifications.json, notes/, and todos/; every note and task is stored separately.', '保存完整数据文件夹':'Save complete data folder', '从数据文件夹重载':'Reload data folder', '导出数据文件夹':'Export data folder',
       'OneDrive 上传、下载和自动同步均处理完整数据文件夹，笔记与待办不会合并成单个资料库文件。':'OneDrive upload, download, and automatic sync all process the complete data folder; notes and tasks are never merged into one library file.', 'OneDrive 文件夹操作':'OneDrive folder access', '由 OneDrive 客户端同步清单、归类、notes 和 todos 整套文件夹':'The OneDrive client syncs the manifest, classifications, notes, and todos as one complete folder.', '下载完整数据文件夹':'Download complete data folder', '上传完整数据文件夹':'Upload complete data folder', '本地内容变化后自动上传，并定时检查 OneDrive 数据文件夹中的更新':'Upload local changes automatically and periodically check the OneDrive data folder for updates',
       '选择 OneDrive 本地文件夹，由系统 OneDrive 客户端负责上传和下载。':'Choose a local OneDrive folder. The system OneDrive client handles cloud transfers.', 'OneDrive 本地文件夹':'Local OneDrive folder', '尚未选择 OneDrive 本地文件夹':'No local OneDrive folder selected', '文件夹同步':'Folder sync', 'Acta 读写完整数据文件夹，云端传输由 OneDrive 客户端完成':'Acta reads and writes the complete data folder; the OneDrive client handles cloud transfers.', '选择 OneDrive 文件夹':'Choose OneDrive folder', '断开文件夹':'Disconnect folder', '请先选择电脑中的 OneDrive 本地文件夹。':'Choose a local OneDrive folder on this device first.', 'Acta 不连接 Microsoft Graph，也不获取微软账号信息；请确保系统 OneDrive 客户端正在运行。':'Acta does not connect to Microsoft Graph or read Microsoft account information. Keep the system OneDrive client running.',
@@ -195,7 +195,16 @@
     '上方':'Top', '下方':'Bottom', '显示工具名称':'Show tool names', '在图标旁显示工具名称，空间不足时自动换行':'Show names beside icons; wrap automatically when space is limited',
     '标题预览':'Heading preview', '一级标题':'Heading 1', '二级标题':'Heading 2', '三级标题':'Heading 3',
     '正文行间距':'Body line spacing', 'Markdown 渲染后的正文与源码行距':'Line spacing for the rendered Markdown body and source',
-    '统计':'Statistics'
+    '统计':'Statistics',
+    'Acta Handy 是 MogroWang Studio 提供的桌面扩展，可以在电脑上快速查看和编辑这里的待办与笔记。':'A desktop companion from MogroWang Studio that views and edits your tasks and notes right on your computer.',
+    '运行状态':'Status', '检查电脑上是否启动了 Acta Handy':'Check whether Acta Handy is running on this computer', '未检查':'Not checked', '重新检查':'Check again',
+    '允许读写待办与笔记':'Allow reading and writing tasks and notes', '开启后，当前行记数据档案向 Acta Handy 开放读写；Acta 会记录它的每一次改动。':'When on, the active data profile is open to Acta Handy; Acta records every change it makes.',
+    '数据档案':'Data profile', 'Handy 通过当前数据档案的文件夹交换数据':'Handy exchanges data through the active profile folder',
+    '读写改动记录':'Read/write history', 'Acta Handy 对待办与笔记的改动都会记录在这里，可随时回档':'Every change Acta Handy makes is recorded here and can be restored anytime', '刷新记录':'Refresh',
+    '还没有改动记录。':'No changes recorded yet.',
+    '工作方式：Acta 会在开启后于数据档案文件夹中放置授权标识，Acta Handy 依据它读写 acta-manifest 数据文件夹；Acta 检测到外部改动时保存改动前的副本，供你一键回档。':'How it works: once enabled, Acta places a grant marker in the profile folder and Acta Handy relies on it to read and write the acta-manifest data folder. Acta keeps a pre-change copy of every external edit so you can restore it with one click.',
+    '初始设置向导':'Setup guide', '重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画':'Walk through the first-run guide again to revisit data location, theme, and launch animation', '重新运行引导':'Run the guide again',
+    '基准字号':'Base font size', '拖动滑块，正文与各级标题会一起缩放':'Drag the slider; body text and headings scale together'
   });
   Object.assign(interfaceTranslations['zh-Hant'], {
     '缓存与页面':'快取與頁面',
@@ -229,7 +238,16 @@
     '上方':'上方', '下方':'下方', '显示工具名称':'顯示工具名稱', '在图标旁显示工具名称，空间不足时自动换行':'在圖示旁顯示工具名稱，空間不足時自動換行',
     '标题预览':'標題預覽', '一级标题':'一級標題', '二级标题':'二級標題', '三级标题':'三級標題',
     '正文行间距':'正文行距', 'Markdown 渲染后的正文与源码行距':'Markdown 轉譯後的正文與原始碼行距',
-    '统计':'統計'
+    '统计':'統計',
+    'Acta Handy 是 MogroWang Studio 提供的桌面扩展，可以在电脑上快速查看和编辑这里的待办与笔记。':'MogroWang Studio 推出的桌面擴充，可以在電腦上快速查看與編輯這裡的待辦與筆記。',
+    '运行状态':'執行狀態', '检查电脑上是否启动了 Acta Handy':'檢查電腦上是否啟動了 Acta Handy', '未检查':'未檢查', '重新检查':'重新檢查',
+    '允许读写待办与笔记':'允許讀寫待辦與筆記', '开启后，当前行记数据档案向 Acta Handy 开放读写；Acta 会记录它的每一次改动。':'開啟後，目前行記資料檔案向 Acta Handy 開放讀寫；Acta 會記錄它的每一次改動。',
+    '数据档案':'資料檔案', 'Handy 通过当前数据档案的文件夹交换数据':'Handy 透過目前資料檔案的資料夾交換資料',
+    '读写改动记录':'讀寫改動記錄', 'Acta Handy 对待办与笔记的改动都会记录在这里，可随时回档':'Acta Handy 對待辦與筆記的改動都會記錄在這裡，可隨時回檔', '刷新记录':'重新整理記錄',
+    '还没有改动记录。':'還沒有改動記錄。',
+    '工作方式：Acta 会在开启后于数据档案文件夹中放置授权标识，Acta Handy 依据它读写 acta-manifest 数据文件夹；Acta 检测到外部改动时保存改动前的副本，供你一键回档。':'運作方式：開啟後 Acta 會在資料檔案資料夾中放置授權標識，Acta Handy 依據它讀寫 acta-manifest 資料資料夾；Acta 偵測到外部改動時會保存改動前的副本，供你一鍵回檔。',
+    '初始设置向导':'初始設定精靈', '重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画':'重新體驗首次啟動的引導，逐步確認資料位置、主題與啟動動畫', '重新运行引导':'重新執行引導',
+    '基准字号':'基準字級', '拖动滑块，正文与各级标题会一起缩放':'拖動滑桿，正文與各級標題會一起縮放'
   });
 
   const settingsTextEntries = [];
@@ -238,7 +256,7 @@
     const node = settingsWalker.currentNode;
     const source = node.nodeValue.trim();
     if (!source) continue;
-    if (node.parentElement?.closest('#workspaceSettingsTitle,#workspaceFolderPath,#workspaceStatus,#generalStatus,#oneDriveFolderPath,#oneDriveStatus,#appFontSizeValue,#splashSpeedValue')) continue;
+    if (node.parentElement?.closest('#workspaceSettingsTitle,#workspaceFolderPath,#workspaceStatus,#generalStatus,#oneDriveFolderPath,#oneDriveStatus,#appFontSizeValue,#splashSpeedValue,#appDataPath,#handyFolderPath,#handyStatusText,#handyStatus')) continue;
     settingsTextEntries.push({ node, source, leading: node.nodeValue.match(/^\s*/)[0], trailing: node.nodeValue.match(/\s*$/)[0] });
   }
   const settingsAttributeEntries = [];
@@ -2557,6 +2575,7 @@
   function switchSettingsPage(page) {
     document.querySelectorAll('[data-settings-page]').forEach(button => button.classList.toggle('active', button.dataset.settingsPage === page));
     document.querySelectorAll('[data-settings-panel]').forEach(panel => panel.classList.toggle('active', panel.dataset.settingsPanel === page));
+    if (page === 'handy') void refreshHandyPanel();
   }
 
   byId('settingsButton').addEventListener('click', () => openSettings('language'));
@@ -3063,6 +3082,8 @@
   const noteHeadingH1Size = byId('noteHeadingH1Size');
   const noteHeadingH2Size = byId('noteHeadingH2Size');
   const noteHeadingH3Size = byId('noteHeadingH3Size');
+  const noteBaseSize = byId('noteBaseSize');
+  const noteBaseSizeValue = byId('noteBaseSizeValue');
   const noteHeadingStyle = byId('noteHeadingStyle');
   const noteLineHeight = byId('noteLineHeight');
   const noteToolbarPosition = byId('noteToolbarPosition');
@@ -3081,10 +3102,13 @@
       const value = Number(uiSettings[key]);
       uiSettings[key] = allowed.has(value) ? value : fallback;
     });
+    const baseSize = Number(uiSettings.noteBaseSize);
+    uiSettings.noteBaseSize = baseSize >= 13 && baseSize <= 22 ? baseSize : defaultUISettings.noteBaseSize;
     uiSettings.noteLineHeight = noteLineHeightValues.has(Number(uiSettings.noteLineHeight)) ? Number(uiSettings.noteLineHeight) : defaultUISettings.noteLineHeight;
     if (!['classic', 'modern', 'accent'].includes(uiSettings.noteHeadingStyle)) uiSettings.noteHeadingStyle = defaultUISettings.noteHeadingStyle;
     if (!['top', 'bottom'].includes(uiSettings.noteToolbarPosition)) uiSettings.noteToolbarPosition = defaultUISettings.noteToolbarPosition;
     uiSettings.noteToolbarShowLabels = Boolean(uiSettings.noteToolbarShowLabels);
+    root.style.setProperty('--note-body-size', `${uiSettings.noteBaseSize}px`);
     root.style.setProperty('--note-heading-h1-size', `${uiSettings.noteHeadingH1Size}px`);
     root.style.setProperty('--note-heading-h2-size', `${uiSettings.noteHeadingH2Size}px`);
     root.style.setProperty('--note-heading-h3-size', `${uiSettings.noteHeadingH3Size}px`);
@@ -3092,6 +3116,8 @@
     root.dataset.noteHeadingStyle = uiSettings.noteHeadingStyle;
     root.dataset.noteToolbarPosition = uiSettings.noteToolbarPosition;
     root.dataset.noteToolbarLabels = uiSettings.noteToolbarShowLabels ? 'show' : 'hide';
+    noteBaseSize.value = String(uiSettings.noteBaseSize);
+    noteBaseSizeValue.textContent = `${uiSettings.noteBaseSize} px`;
     noteHeadingH1Size.value = String(uiSettings.noteHeadingH1Size);
     noteHeadingH2Size.value = String(uiSettings.noteHeadingH2Size);
     noteHeadingH3Size.value = String(uiSettings.noteHeadingH3Size);
@@ -3100,6 +3126,24 @@
     noteToolbarPosition.value = uiSettings.noteToolbarPosition;
     noteToolbarShowLabels.checked = uiSettings.noteToolbarShowLabels;
   }
+
+  const nearestAllowedSize = (value, allowed) => [...allowed].reduce((best, item) => Math.abs(item - value) < Math.abs(best - value) ? item : best);
+
+  // 基准字号按比例联动三个标题：拖动滑块时正文与标题整体缩放，
+  // 各标题取字号档位中最接近换算结果的值。
+  noteBaseSize.addEventListener('input', () => {
+    const next = Number(noteBaseSize.value);
+    const previous = Number(uiSettings.noteBaseSize) || defaultUISettings.noteBaseSize;
+    if (next && previous && next !== previous) {
+      const ratio = next / previous;
+      uiSettings.noteHeadingH1Size = nearestAllowedSize(uiSettings.noteHeadingH1Size * ratio, noteHeadingSizes.noteHeadingH1Size);
+      uiSettings.noteHeadingH2Size = nearestAllowedSize(uiSettings.noteHeadingH2Size * ratio, noteHeadingSizes.noteHeadingH2Size);
+      uiSettings.noteHeadingH3Size = nearestAllowedSize(uiSettings.noteHeadingH3Size * ratio, noteHeadingSizes.noteHeadingH3Size);
+    }
+    uiSettings.noteBaseSize = next;
+    applyNoteEditorSettings();
+  });
+  noteBaseSize.addEventListener('change', () => { saveUISettings(); });
 
   [
     [noteHeadingH1Size, 'noteHeadingH1Size'],
@@ -4048,6 +4092,284 @@
     addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}), { once:true });
   }
 
+  /* ===================== 平台快捷键标注 ===================== */
+  const shortcutIsApple = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || '');
+  const shortcutNew = document.querySelector('.shortcut-new');
+  const shortcutSearch = document.querySelector('.shortcut-search');
+  if (shortcutNew) shortcutNew.textContent = shortcutIsApple ? '⌘ N' : 'Ctrl+N';
+  if (shortcutSearch) shortcutSearch.textContent = shortcutIsApple ? '⌘ K' : 'Ctrl+K';
+
+  /* ===================== 自定义右键菜单（桌面端） ===================== */
+  // 桌面端整体屏蔽原生右键菜单；可编辑区域提供剪切/复制/粘贴/全选，
+  // 普通区域选中文字时提供复制。移动端与浏览器保留系统自带的文本操作栏。
+  const contextMenu = byId('contextMenu');
+  const contextMessages = {
+    zh: { cut:'剪切', copy:'复制', paste:'粘贴', selectAll:'全选', pasteBlocked:'无法访问剪贴板，请使用 Ctrl+V 粘贴' },
+    en: { cut:'Cut', copy:'Copy', paste:'Paste', selectAll:'Select all', pasteBlocked:'Clipboard is unavailable - use Ctrl+V to paste' },
+    'zh-Hant': { cut:'剪下', copy:'複製', paste:'貼上', selectAll:'全選', pasteBlocked:'無法存取剪貼簿，請使用 Ctrl+V 貼上' }
+  };
+  const contextText = key => (contextMessages[uiSettings.language] || contextMessages.zh)[key] || key;
+  let contextMenuItems = [];
+
+  const editableContextMenuTarget = target => (
+    target.closest('input:not([type]), input[type="text"], input[type="search"], input[type="url"], input[type="password"], input[type="number"], input[type="tel"], input[type="email"], textarea, [contenteditable="true"], [contenteditable=""]')
+  );
+
+  async function contextClipboardWrite(text) {
+    let copied = false;
+    try { copied = document.execCommand('copy'); } catch { copied = false; }
+    if (copied) return;
+    await navigator.clipboard.writeText(text).catch(() => {});
+  }
+
+  async function contextPaste(target) {
+    if (!target) return;
+    target.focus?.();
+    let text = '';
+    try {
+      text = await navigator.clipboard.readText();
+    } catch {
+      let pasted = false;
+      try { pasted = document.execCommand('paste'); } catch { pasted = false; }
+      if (!pasted) showToast(contextText('pasteBlocked'));
+      return;
+    }
+    if (!text) return;
+    if (target.isContentEditable) {
+      document.execCommand('insertText', false, text);
+      return;
+    }
+    const length = target.value?.length ?? 0;
+    const start = target.selectionStart ?? length;
+    const end = target.selectionEnd ?? start;
+    target.setRangeText(text, Math.min(start, length), Math.min(end, length), 'end');
+    target.dispatchEvent(new Event('input', { bubbles: true }));
+    target.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function closeContextMenu() {
+    if (!contextMenu?.classList.contains('open')) return;
+    contextMenu.classList.remove('open');
+    contextMenu.setAttribute('aria-hidden', 'true');
+  }
+
+  function openContextMenu(x, y, items) {
+    if (!contextMenu || !items.length) return;
+    contextMenuItems = items;
+    contextMenu.innerHTML = items.map((item, index) => `
+      <button type="button" role="menuitem" data-context-index="${index}"${item.disabled ? ' disabled' : ''}>
+        <span>${escapeHTML(item.label)}</span>${item.shortcut ? `<kbd>${escapeHTML(item.shortcut)}</kbd>` : ''}
+      </button>`).join('');
+    contextMenu.classList.add('open');
+    contextMenu.setAttribute('aria-hidden', 'false');
+    contextMenu.style.left = '0px';
+    contextMenu.style.top = '0px';
+    const rect = contextMenu.getBoundingClientRect();
+    contextMenu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - rect.width - 8))}px`;
+    contextMenu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - rect.height - 8))}px`;
+  }
+
+  contextMenu?.addEventListener('click', async event => {
+    const button = event.target.closest('[data-context-index]');
+    if (!button || button.disabled) return;
+    const item = contextMenuItems[Number(button.dataset.contextIndex)];
+    closeContextMenu();
+    await item?.run?.();
+  });
+
+  if (window.actaDesktop && contextMenu) {
+    document.addEventListener('contextmenu', event => {
+      event.preventDefault();
+      closeContextMenu();
+      const editable = editableContextMenuTarget(event.target);
+      const selection = window.getSelection();
+      const selected = selection && !selection.isCollapsed ? String(selection) : '';
+      const modifier = shortcutIsApple ? '⌘' : 'Ctrl';
+      const items = [];
+      if (editable) {
+        items.push(
+          { label: contextText('cut'), shortcut: `${modifier}X`, disabled: !selected, run: () => contextClipboardWrite(selected).then(() => document.execCommand('delete')) },
+          { label: contextText('copy'), shortcut: `${modifier}C`, disabled: !selected, run: () => contextClipboardWrite(selected) },
+          { label: contextText('paste'), shortcut: `${modifier}V`, run: () => contextPaste(editable) },
+          { label: contextText('selectAll'), shortcut: `${modifier}A`, run: () => document.execCommand('selectAll') }
+        );
+      } else if (selected) {
+        items.push({ label: contextText('copy'), shortcut: `${modifier}C`, run: () => contextClipboardWrite(selected) });
+      }
+      openContextMenu(event.clientX, event.clientY, items);
+    });
+    document.addEventListener('click', closeContextMenu, true);
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeContextMenu(); });
+    window.addEventListener('blur', closeContextMenu);
+    window.addEventListener('scroll', closeContextMenu, true);
+    window.addEventListener('resize', closeContextMenu);
+  }
+
+  /* ===================== Acta Handy ===================== */
+  const handyMessages = {
+    zh: {
+      running:'Acta Handy 正在运行', notRunning:'未检测到 Acta Handy', desktopOnly:'Acta Handy 仅在 Tauri 桌面客户端可用',
+      noFolder:'当前数据档案未连接文件夹，Acta Handy 无法访问。请在「行记数据」中把档案连接到一个本地文件夹。',
+      grantOn:'已向 Acta Handy 开放当前数据档案。', grantOff:'已撤回 Acta Handy 的读写授权。', actionFailed:'操作失败：{0}',
+      kindModified:'修改', kindAdded:'新增', kindRemoved:'删除', kindRestored:'已回档',
+      restore:'回档', restored:'已回档「{0}」。', restoreFailed:'回档失败：{0}',
+      manifest:'数据清单', classifications:'归类定义', noHistory:'改动前副本已被清理，无法回档'
+    },
+    en: {
+      running:'Acta Handy is running', notRunning:'Acta Handy was not detected', desktopOnly:'Acta Handy is only available in the Tauri desktop client',
+      noFolder:'The active data profile has no folder connected, so Acta Handy cannot reach it. Connect the profile to a local folder under "Acta Data".',
+      grantOn:'The active data profile is now open to Acta Handy.', grantOff:'Acta Handy access has been revoked.', actionFailed:'Action failed: {0}',
+      kindModified:'Modified', kindAdded:'Added', kindRemoved:'Removed', kindRestored:'Restored',
+      restore:'Restore', restored:'Restored "{0}".', restoreFailed:'Restore failed: {0}',
+      manifest:'Data manifest', classifications:'Classifications', noHistory:'The pre-change copy was pruned; cannot restore'
+    },
+    'zh-Hant': {
+      running:'Acta Handy 正在執行', notRunning:'未偵測到 Acta Handy', desktopOnly:'Acta Handy 僅在 Tauri 桌面用戶端可用',
+      noFolder:'目前資料檔案未連接資料夾，Acta Handy 無法存取。請在「行記資料」中把檔案連接到一個本機資料夾。',
+      grantOn:'已向 Acta Handy 開放目前資料檔案。', grantOff:'已撤回 Acta Handy 的讀寫授權。', actionFailed:'操作失敗：{0}',
+      kindModified:'修改', kindAdded:'新增', kindRemoved:'刪除', kindRestored:'已回檔',
+      restore:'回檔', restored:'已回檔「{0}」。', restoreFailed:'回檔失敗：{0}',
+      manifest:'資料清單', classifications:'歸類定義', noHistory:'改動前副本已被清理，無法回檔'
+    }
+  };
+  const handyText = (key, ...values) => values.reduce((message, value, index) => message.replace(`{${index}}`, value), (handyMessages[uiSettings.language] || handyMessages.zh)[key] || key);
+
+  const handyBridge = () => (window.actaDesktop?.handyDetect ? window.actaDesktop : null);
+
+  function handyFolder() {
+    const profile = activeDataProfile();
+    return profile?.folder && handyBridge() ? profile.folder : '';
+  }
+
+  function handyChangeTitle(change) {
+    if (!change.summary) {
+      if (change.file === 'acta-manifest.json') return handyText('manifest');
+      if (change.file === 'classifications.json') return handyText('classifications');
+      return change.file || '';
+    }
+    return change.summary;
+  }
+
+  function handyChangeFileLabel(file = '') {
+    const names = { 'acta-manifest.json': 'manifest', 'classifications.json': 'classifications' };
+    if (names[file]) return names[file];
+    return file.replace(/^notes\//, 'notes/').replace(/^todos\//, 'todos/');
+  }
+
+  function renderHandyChanges(changes) {
+    const list = byId('handyChangeList');
+    const empty = byId('handyChangesEmpty');
+    if (!list || !empty) return;
+    empty.hidden = changes.length > 0;
+    list.innerHTML = changes.map(change => {
+      const kind = change.kind === 'modified' ? 'modified' : change.kind === 'added' ? 'added' : change.kind === 'removed' ? 'removed' : 'restored';
+      const canRestore = Boolean(change.id) && (kind === 'modified' || kind === 'added' || kind === 'removed');
+      const time = change.at ? new Date(change.at).toLocaleString() : '';
+      return `
+        <div class="handy-change-row" role="listitem" data-kind="${kind}">
+          <i class="handy-change-dot" aria-hidden="true"></i>
+          <span class="handy-change-copy">
+            <b>${escapeHTML(handyChangeTitle(change))}</b>
+            <small><em>${escapeHTML(handyText(`kind${kind[0].toUpperCase()}${kind.slice(1)}`))}</em>${time ? ` · ${escapeHTML(time)}` : ''}${change.file ? ` · ${escapeHTML(handyChangeFileLabel(change.file))}` : ''}</small>
+          </span>
+          ${canRestore ? `<button class="settings-button secondary handy-restore-button" type="button" data-handy-restore="${escapeHTML(change.id)}" data-handy-summary="${escapeHTML(handyChangeTitle(change))}" title="${escapeHTML(change.file || '')}">${escapeHTML(handyText('restore'))}</button>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  async function refreshHandyPanel() {
+    const bridge = handyBridge();
+    const toggle = byId('handyGrantToggle');
+    const dot = byId('handyStatusDot');
+    const statusText = byId('handyStatusText');
+    const hint = byId('handyProfileHint');
+    const pathEl = byId('handyFolderPath');
+    const changesBox = byId('handyChanges');
+    if (!bridge || !toggle || !dot || !statusText) return;
+    if (!bridge) {
+      dot.dataset.state = 'unknown';
+      statusText.textContent = handyText('desktopOnly');
+      hint.textContent = handyText('desktopOnly');
+      pathEl.textContent = '—';
+      toggle.disabled = true;
+      toggle.checked = false;
+      if (changesBox) changesBox.hidden = true;
+      return;
+    }
+    const folder = handyFolder();
+    if (!folder) {
+      dot.dataset.state = 'unknown';
+      statusText.textContent = handyText('noFolder');
+      hint.textContent = handyText('noFolder');
+      pathEl.textContent = '—';
+      toggle.disabled = true;
+      toggle.checked = false;
+      if (changesBox) changesBox.hidden = true;
+      return;
+    }
+    if (changesBox) changesBox.hidden = false;
+    pathEl.textContent = folder;
+    toggle.disabled = false;
+    let running = null;
+    try { running = Boolean((await bridge.handyDetect())?.running); } catch { running = null; }
+    dot.dataset.state = running === null ? 'unknown' : running ? 'on' : 'off';
+    statusText.textContent = running === null ? handyText('notRunning') : running ? handyText('running') : handyText('notRunning');
+    try {
+      const state = await bridge.handyStatus(folder);
+      toggle.checked = Boolean(state?.granted);
+    } catch { /* 档案文件夹不可读时保持现状 */ }
+    const scan = await bridge.handyScanChanges(folder).catch(() => null);
+    if (scan && scan.enabled === false) { renderHandyChanges([]); return; }
+    const log = await bridge.handyChanges(folder).catch(() => null);
+    renderHandyChanges(Array.isArray(log?.changes) ? log.changes : []);
+  }
+
+  byId('handyGrantToggle')?.addEventListener('change', async () => {
+    const bridge = handyBridge();
+    const folder = handyFolder();
+    const toggle = byId('handyGrantToggle');
+    if (!bridge || !folder) { toggle.checked = false; return; }
+    const granted = toggle.checked;
+    try {
+      await bridge.handyGrant(folder, granted);
+      setStatus(byId('handyStatus'), handyText(granted ? 'grantOn' : 'grantOff'), 'success');
+      await refreshHandyPanel();
+    } catch (error) {
+      toggle.checked = !granted;
+      setStatus(byId('handyStatus'), handyText('actionFailed', error?.message || error), 'error');
+    }
+  });
+  byId('handyDetectRefresh')?.addEventListener('click', () => { void refreshHandyPanel(); });
+  byId('handyChangesRefresh')?.addEventListener('click', () => { void refreshHandyPanel(); });
+  byId('handyChangeList')?.addEventListener('click', async event => {
+    const button = event.target.closest('[data-handy-restore]');
+    if (!button || button.disabled) return;
+    const bridge = handyBridge();
+    const folder = handyFolder();
+    if (!bridge || !folder) return;
+    button.disabled = true;
+    const summary = button.dataset.handySummary || '';
+    try {
+      await bridge.handyRestoreChange(folder, button.dataset.handyRestore);
+      // 回档改的是磁盘上的档案文件，立即重新加载让界面与磁盘一致。
+      try {
+        if (oneDriveAdapter) replaceLibrary(await oneDriveAdapter.load());
+      } catch { /* 加载失败时用户可手动「下载完整数据文件夹」 */ }
+      showToast(handyText('restored', summary));
+      setStatus(byId('handyStatus'), handyText('restored', summary), 'success');
+      await refreshHandyPanel();
+    } catch (error) {
+      showToast(handyText('restoreFailed', error?.message || error));
+      button.disabled = false;
+    }
+  });
+  // Handy 设置页可见时，每分钟自动检查一次运行状态与外部改动。
+  setInterval(() => {
+    if (!settingsModal.classList.contains('open')) return;
+    if (!document.querySelector('[data-settings-panel="handy"].active')) return;
+    void refreshHandyPanel();
+  }, 60000);
+
   /* ===================== 软件数据位置 + OOBE 首次设置 ===================== */
   function syncSettingsControls() {
     applyInterfaceLanguage(uiSettings.language, false);
@@ -4131,8 +4453,10 @@
 
   function openOobe(state = {}) {
     if (!oobeOverlay || !oobeStepCount) return;
-    oobePrepared = false;
-    byId('oobePathValue').textContent = appearanceText('尚未选择');
+    // 首次启动：等待用户确认数据位置；从设置重新体验时，当前位置已就绪，
+    // 直接放行，用户仍可在第一步改选其他文件夹。
+    oobePrepared = Boolean(appDataState.ready && appDataState.path);
+    byId('oobePathValue').textContent = oobePrepared ? appDataState.path : appearanceText('尚未选择');
     byId('oobePathHint').textContent = state.defaultPath
       ? `${appearanceText('默认位置：')}${state.defaultPath}`
       : appearanceText('便携版默认使用软件目录下的 data 文件夹；也可以自选位置。');
@@ -4307,6 +4631,10 @@
   byId('openAppDataFolder')?.addEventListener('click', () => {
     const bridge = appDataBridge();
     if (bridge && appDataState.path) bridge.openPath?.(appDataState.path);
+  });
+
+  byId('openOobeButton')?.addEventListener('click', () => {
+    openOobe({});
   });
 
   void initSoftwareData();

@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version v2.4.0</strong>
+  <strong>Current version v3.0.0</strong>
 </p>
 
 Acta is a local-first notes and tasks app that brings writing, action, and organization into one calm workspace. The project shares a single web interface across Tauri desktop apps for Windows/macOS, a Capacitor Android app, and a modern-browser PWA.
@@ -17,16 +17,19 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 ## Features
 
 - Bidirectional links between notes and tasks, with navigation and unlinking from either editor
+- [Acta Handy](https://github.com/MogroWang/Acta-Handy/) desktop companion integration: check whether it is running from Settings, grant (or revoke) read/write access to tasks and notes in the active data profile; every change Acta Handy makes is recorded with a pre-change copy and can be restored anytime
 - High, medium, and low task priorities, plus subtasks, progress, immutable creation time, and optional start/due times
 - A year/month/week/day calendar replacing Today: week numbers in the compact month view, independently scrollable desktop/mobile week layouts, and direct task/subtask completion in week and day views
 - A reworked statistics page as a notes-and-tasks list: gather items created in a chosen period, list every subtask in full, tick some, and make a list picture in one click
-- First-run OOBE onboarding: set the software data folder, theme and interface font, launch animation, and app icon step by step, ending on a welcome page; the software data location can be changed later in settings
-- MWS Light / MWS Dark brand themes (primary #FF6666, secondary #66CC66) plus three previewable launch animations with a playback-speed control
+- A note base font-size slider that scales body text and every heading level together; heading size, style, and line spacing remain independently adjustable
+- First-run OOBE onboarding: set the software data folder, theme and interface font, launch animation, and app icon step by step; it can be re-run from general settings, and the software data location can be changed later
+- MWS Light / MWS Dark brand themes (primary #FF6666, secondary #66CC66; the light theme paints the sidebar and titlebar in the brand colors) plus three previewable launch animations with a playback-speed control
 - Deleting offers move-to-trash or delete-now; the trash is never emptied automatically and supports restore, delete-forever, and empty-all
 - Folders, smart views, combinable task/note filters, and unified search
 - Rich-text editing and UTF-8 Markdown import/export for individual notes
+- A desktop context menu with cut, copy, paste, and select all for text, plus copy for any selected text
 - Simplified Chinese, Traditional Chinese, and English interfaces with theme and font settings
-- All dropdown menus and scrollbars are custom-drawn controls; hover feedback uses scale instead of shifting, keeping motion restrained and smooth
+- All dropdown menus, scrollbars, and sliders are custom-drawn controls; hover feedback uses scale instead of shifting, keeping motion restrained and smooth
 - Local data folders, OneDrive local-folder sync, and WebDAV sync
 - Android local notifications, system file pickers, and Storage Access Framework integration
 - Installable PWA support with offline caching
@@ -99,7 +102,7 @@ The macOS build targets Apple Silicon (`aarch64-apple-darwin`), set by the `maco
 
 ### Data and synchronization
 
-- Core data stays on the device by default; browser settings use `localStorage`, while directory handles use IndexedDB. On desktop, Acta additionally mirrors its own settings into `settings.json` inside the "software data location" (portable builds default to the `data` folder next to the app), so they survive cache clears.
+- Core data stays on the device by default; browser settings use `localStorage`, while directory handles use IndexedDB. Since v3.0.0 the desktop app keeps its software data next to the program by default (the `data` folder beside the exe), or in a location you choose, mirrored into `settings.json` there so it survives cache clears.
 - A data folder contains `acta-manifest.json`, `classifications.json`, `notes/`, and `todos/`, with each note and task stored separately.
 - Tauri uses restricted Rust commands for system files, WebDAV, and cache management; Android uses a custom Capacitor plugin and the Storage Access Framework for user-authorized directories.
 - OneDrive mode works through a local synchronized folder and does not access the user's Microsoft account. WebDAV credentials are used only for the server configured by the user.
