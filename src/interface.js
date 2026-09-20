@@ -1191,7 +1191,6 @@
       ${toolbarAtTop ? toolbar : ''}
       <div class="note-body" id="noteBody" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('notePlaceholder')}">${item.body || ''}</div>
       <textarea class="note-markdown-source" id="noteMarkdownSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="${t('markdownSource')}" hidden></textarea>
-      <div class="note-markdown-fx" aria-hidden="true"><div class="note-markdown-fx-clip"><div class="note-markdown-fx-inner"><span class="note-markdown-fx-pre"></span><mark class="note-markdown-fx-mark"></mark><span class="note-markdown-fx-post"></span></div></div></div>
       <div class="note-footer"><span id="noteStats">${text.split(/\s+/).filter(Boolean).length} ${t('words')} · ${text.length} ${t('chars')}</span><span id="noteFormatMode">Acta / Markdown-ready</span></div>
       ${toolbarAtTop ? '' : toolbar}
     </article>`;
