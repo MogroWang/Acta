@@ -8,7 +8,7 @@
     splashAnimationEnabled: true, splashAnimationPreset: 'acta-lines', splashAnimationSpeed: 1,
     appFont: 'system', customFont: 'Inter', appFontSize: 14,
     noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteBaseSize: 17, noteHeadingStyle: 'classic', noteLineHeight: 1.6,
-    noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
+    noteToolbarPosition: 'bottom', noteToolbarShowLabels: false, noteTypingAnimation: 'rise',
     oneDriveFolder: '', oneDriveLabel: '', workspaceLabel: '',
     dataProfiles: [], activeDataProfileId: '', cloudSyncMode: 'onedrive', webDavServer: '', webDavUsername: '', autoSync: false, autoSyncInterval: 5, listPaneWidth: 330, sidebarCollapsed: false, language: ['zh', 'zh-Hant', 'en'].includes(settings.language) ? settings.language : 'zh'
   };
@@ -67,13 +67,13 @@
     chooseTodo:'選擇一個待辦…', chooseNote:'選擇一則筆記…', noLinks:'還沒有關聯項目', unlink:'取消關聯', linked:'已建立雙向關聯', unlinked:'已取消關聯',
     importNote:'匯入筆記', importNoteHint:'支援 Markdown 與純文字', exportNote:'匯出這則筆記', noteImported:'筆記已匯入', noteExported:'筆記已匯出',
     importFailed:'匯入失敗', exportFailed:'匯出失敗', fileTooLarge:'檔案不能超過 5 MB', invalidNoteFile:'無法讀取這份筆記',
-    stats:'統計', showCompletedTodos:'顯示已完成', statOpen:'進行中', confirm:'確定', cancel:'取消',
+    stats:'總結', showCompletedTodos:'顯示已完成', statOpen:'進行中', confirm:'確定', cancel:'取消',
     statsEmpty:'這裡還沒有內容可以統計', statsEmptyHint:'建立筆記或待辦後，這裡會展示記錄情況。',
     trash:'回收站', trashItems:'件回收',
     trashEmptyTitle:'回收站還是空的', trashEmptyHint:'刪除的待辦和筆記會先躺在這裡，不會自動清空，隨時回來翻翻，也許就有新的靈感。',
     trashFooterNote:'回收站不會自動傾倒', restore:'恢復', destroy:'徹底刪除', restored:'已恢復到原位', destroyed:'已徹底刪除',
     emptyTrash:'清空回收站', emptyTrashConfirmTitle:'清空回收站', emptyTrashConfirmMessage:'回收站中的 {0} 件內容將被徹底刪除，無法恢復。', trashEmptied:'回收站已清空',
-    deletedAt:'刪除於', restoreHint:'恢復到原來的歸類', trashOpenHint:'回收站中的內容不會出現在列表、日曆與統計裡',
+    deletedAt:'刪除於', restoreHint:'恢復到原來的歸類', trashOpenHint:'回收站中的內容不會出現在列表、日曆與總結裡',
     deleteTitle:'刪除項目', deleteSubtitle:'選擇如何處理「{0}」', deleteTrashLabel:'移入回收站', deleteTrashHint:'保留在回收站中，隨時可以恢復', deleteDestroyLabel:'直接刪除', deleteDestroyHint:'不進入回收站，立即徹底刪除', moveToTrash:'移入回收站', deletedToTrash:'已移入回收站',
     statsListTitle:'待辦筆記清單', statsListHint:'收集指定時間段建立的待辦與筆記，勾選後可製作圖片',
     statsRangeAll:'全部時間', statsRangeToday:'今天', statsRange7:'最近 7 天', statsRange30:'最近 30 天', statsRange90:'最近 90 天', statsRangeCustom:'自訂',
@@ -195,14 +195,8 @@
     '上方':'Top', '下方':'Bottom', '显示工具名称':'Show tool names', '在图标旁显示工具名称，空间不足时自动换行':'Show names beside icons; wrap automatically when space is limited',
     '标题预览':'Heading preview', '一级标题':'Heading 1', '二级标题':'Heading 2', '三级标题':'Heading 3',
     '正文行间距':'Body line spacing', 'Markdown 渲染后的正文与源码行距':'Line spacing for the rendered Markdown body and source',
-    '统计':'Statistics',
-    'Acta Handy 是 MogroWang Studio 提供的桌面扩展，可以在电脑上快速查看和编辑这里的待办与笔记。':'A desktop companion from MogroWang Studio that views and edits your tasks and notes right on your computer.',
-    '运行状态':'Status', '检查电脑上是否启动了 Acta Handy':'Check whether Acta Handy is running on this computer', '未检查':'Not checked', '重新检查':'Check again',
-    '允许读写待办与笔记':'Allow reading and writing tasks and notes', '开启后，当前行记数据档案向 Acta Handy 开放读写；Acta 会记录它的每一次改动。':'When on, the active data profile is open to Acta Handy; Acta records every change it makes.',
-    '数据档案':'Data profile', 'Handy 通过当前数据档案的文件夹交换数据':'Handy exchanges data through the active profile folder',
-    '读写改动记录':'Read/write history', 'Acta Handy 对待办与笔记的改动都会记录在这里，可随时回档':'Every change Acta Handy makes is recorded here and can be restored anytime', '刷新记录':'Refresh',
-    '还没有改动记录。':'No changes recorded yet.',
-    '工作方式：Acta 会在开启后于数据档案文件夹中放置授权标识，Acta Handy 依据它读写 acta-manifest 数据文件夹；Acta 检测到外部改动时保存改动前的副本，供你一键回档。':'How it works: once enabled, Acta places a grant marker in the profile folder and Acta Handy relies on it to read and write the acta-manifest data folder. Acta keeps a pre-change copy of every external edit so you can restore it with one click.',
+    '总结':'Summary',
+    '输入动画':'Typing animation', '沉浸编辑模式下，新输入文字的出现方式':'How newly typed text appears in focus mode', '缓缓涌现':'Gentle rise', '高亮渐隐':'Highlight fade', '不启用':'Off',
     '初始设置向导':'Setup guide', '重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画':'Walk through the first-run guide again to revisit data location, theme, and launch animation', '重新运行引导':'Run the guide again',
     '基准字号':'Base font size', '拖动滑块，正文与各级标题会一起缩放':'Drag the slider; body text and headings scale together'
   });
@@ -238,14 +232,8 @@
     '上方':'上方', '下方':'下方', '显示工具名称':'顯示工具名稱', '在图标旁显示工具名称，空间不足时自动换行':'在圖示旁顯示工具名稱，空間不足時自動換行',
     '标题预览':'標題預覽', '一级标题':'一級標題', '二级标题':'二級標題', '三级标题':'三級標題',
     '正文行间距':'正文行距', 'Markdown 渲染后的正文与源码行距':'Markdown 轉譯後的正文與原始碼行距',
-    '统计':'統計',
-    'Acta Handy 是 MogroWang Studio 提供的桌面扩展，可以在电脑上快速查看和编辑这里的待办与笔记。':'MogroWang Studio 推出的桌面擴充，可以在電腦上快速查看與編輯這裡的待辦與筆記。',
-    '运行状态':'執行狀態', '检查电脑上是否启动了 Acta Handy':'檢查電腦上是否啟動了 Acta Handy', '未检查':'未檢查', '重新检查':'重新檢查',
-    '允许读写待办与笔记':'允許讀寫待辦與筆記', '开启后，当前行记数据档案向 Acta Handy 开放读写；Acta 会记录它的每一次改动。':'開啟後，目前行記資料檔案向 Acta Handy 開放讀寫；Acta 會記錄它的每一次改動。',
-    '数据档案':'資料檔案', 'Handy 通过当前数据档案的文件夹交换数据':'Handy 透過目前資料檔案的資料夾交換資料',
-    '读写改动记录':'讀寫改動記錄', 'Acta Handy 对待办与笔记的改动都会记录在这里，可随时回档':'Acta Handy 對待辦與筆記的改動都會記錄在這裡，可隨時回檔', '刷新记录':'重新整理記錄',
-    '还没有改动记录。':'還沒有改動記錄。',
-    '工作方式：Acta 会在开启后于数据档案文件夹中放置授权标识，Acta Handy 依据它读写 acta-manifest 数据文件夹；Acta 检测到外部改动时保存改动前的副本，供你一键回档。':'運作方式：開啟後 Acta 會在資料檔案資料夾中放置授權標識，Acta Handy 依據它讀寫 acta-manifest 資料資料夾；Acta 偵測到外部改動時會保存改動前的副本，供你一鍵回檔。',
+    '总结':'總結',
+    '输入动画':'輸入動畫', '沉浸编辑模式下，新输入文字的出现方式':'沉浸編輯模式下，新輸入文字的出現方式', '缓缓涌现':'緩緩湧現', '高亮渐隐':'高亮漸隱', '不启用':'不啟用',
     '初始设置向导':'初始設定精靈', '重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画':'重新體驗首次啟動的引導，逐步確認資料位置、主題與啟動動畫', '重新运行引导':'重新執行引導',
     '基准字号':'基準字級', '拖动滑块，正文与各级标题会一起缩放':'拖動滑桿，正文與各級標題會一起縮放'
   });
@@ -256,7 +244,7 @@
     const node = settingsWalker.currentNode;
     const source = node.nodeValue.trim();
     if (!source) continue;
-    if (node.parentElement?.closest('#workspaceSettingsTitle,#workspaceFolderPath,#workspaceStatus,#generalStatus,#oneDriveFolderPath,#oneDriveStatus,#appFontSizeValue,#splashSpeedValue,#appDataPath,#handyFolderPath,#handyStatusText,#handyStatus')) continue;
+    if (node.parentElement?.closest('#workspaceSettingsTitle,#workspaceFolderPath,#workspaceStatus,#generalStatus,#oneDriveFolderPath,#oneDriveStatus,#appFontSizeValue,#splashSpeedValue,#appDataPath')) continue;
     settingsTextEntries.push({ node, source, leading: node.nodeValue.match(/^\s*/)[0], trailing: node.nodeValue.match(/\s*$/)[0] });
   }
   const settingsAttributeEntries = [];
@@ -681,8 +669,6 @@
     byId('mobileClassifications').setAttribute('aria-label', mobileViewLabel);
     byId('mobileClassifications').querySelector('span').textContent = mobileViewLabel;
     const mobileDataLabel = uiSettings.language === 'en' ? 'Acta Data' : uiSettings.language === 'zh-Hant' ? '行記資料' : '行记数据';
-    byId('mobileActaData').title = mobileDataLabel;
-    byId('mobileActaData').setAttribute('aria-label', mobileDataLabel);
     byId('folderMenuAddTitle').textContent = copy.add;
     byId('folderMenuAddHint').textContent = copy.addHint;
     byId('folderMenuManageTitle').textContent = copy.manage;
@@ -696,10 +682,6 @@
     trigger.classList.add('is-launching');
     setTimeout(() => trigger.classList.remove('is-launching'), 430);
     openMobileClassifications();
-  });
-  byId('mobileActaData').addEventListener('click', event => {
-    event.preventDefault();
-    openSettings('workspace');
   });
   byId('closeMobileClassifications').addEventListener('click', () => closeAnimatedDialog(mobileClassificationDialog));
   mobileClassificationDialog.addEventListener('click', event => {
@@ -1494,21 +1476,10 @@
   });
 
   function syncMergedTodoNavigation() {
-    const switchButton = byId('todoStatusSwitch');
     const todoNavigation = document.querySelector('.smart-nav [data-view="todos"]');
     const onTodoView = currentView === 'todos';
-    const mobile = matchMedia('(max-width: 800px)').matches;
     document.body.classList.remove('hide-type-filters');
     document.body.classList.toggle('merged-todo-view', onTodoView);
-    switchButton.hidden = !(onTodoView && mobile);
-    if (!switchButton.hidden) {
-      const showingCompleted = Boolean(settings.showCompletedTodos);
-      switchButton.classList.toggle('active', showingCompleted);
-      switchButton.setAttribute('aria-pressed', String(showingCompleted));
-      const label = t('showCompletedTodos');
-      switchButton.title = label;
-      switchButton.setAttribute('aria-label', label);
-    }
     if (todoNavigation) todoNavigation.classList.toggle('active', currentView === 'todos');
 
     document.querySelectorAll('.item-card').forEach(card => {
@@ -1524,11 +1495,6 @@
     syncMergedTodoNavigation();
   };
 
-  byId('todoStatusSwitch').addEventListener('click', () => {
-    settings.showCompletedTodos = !settings.showCompletedTodos;
-    persist();
-    renderList();
-  });
   matchMedia('(max-width: 800px)').addEventListener?.('change', syncMergedTodoNavigation);
 
   function showSyncNotice(message, state = '', hold = false) {
@@ -2575,7 +2541,6 @@
   function switchSettingsPage(page) {
     document.querySelectorAll('[data-settings-page]').forEach(button => button.classList.toggle('active', button.dataset.settingsPage === page));
     document.querySelectorAll('[data-settings-panel]').forEach(panel => panel.classList.toggle('active', panel.dataset.settingsPanel === page));
-    if (page === 'handy') void refreshHandyPanel();
   }
 
   byId('settingsButton').addEventListener('click', () => openSettings('language'));
@@ -2754,9 +2719,7 @@
     clearTimeout(autoSyncSaveTimer);
     autoSyncSaveTimer = null;
     try {
-      // Load the remote snapshot only after pending edits have been written.
-      await flushCurrentDataProfile().catch(() => {});
-      await workspaceWriteQueue.catch(() => {});
+      // 刷新只读取数据源，不把任何内容写回文件夹或云端。
       let snapshot;
       if (syncAdapter) {
         snapshot = await syncAdapter.load();
@@ -2764,8 +2727,6 @@
         await refreshCloudVersion();
         autoSyncBaseline = librarySignature(snapshot);
         autoSyncDirty = false;
-        if (!workspaceAdapter && activeDataProfile()) workspaceAdapter = await adapterForDataProfile(activeDataProfile(), true);
-        if (workspaceAdapter) await queueWorkspaceSave(snapshot);
         updateWorkspaceUI();
         renderDataProfiles();
         setStatus(byId('oneDriveStatus'), copy.syncDone, 'success');
@@ -2820,6 +2781,93 @@
     byId('createMenu').classList.remove('open');
     applySidebarCollapse(!uiSettings.sidebarCollapsed);
     saveUISettings();
+  });
+
+  /* ===================== 行记数据统计弹窗 ===================== */
+  const dataStatsDialog = byId('dataStatsDialog');
+  const dataStatsCopy = {
+    zh: { loading:'正在统计当前数据档案…', failed:'统计失败：', localHint:'软件本地档案：大小按存储内容估算。' },
+    en: { loading:'Measuring the active data profile…', failed:'Failed to measure: ', localHint:'Local profile: size is estimated from stored content.' },
+    'zh-Hant': { loading:'正在統計目前資料檔案…', failed:'統計失敗：', localHint:'軟體本地檔案：大小按儲存內容估算。' }
+  };
+  const formatDataSize = bytes => {
+    if (!Number.isFinite(bytes) || bytes < 0) return '—';
+    if (bytes < 1024) return `${Math.round(bytes)} B`;
+    for (const [unit, size] of [['GB', 1024 ** 3], ['MB', 1024 ** 2], ['KB', 1024]]) {
+      if (bytes >= size) {
+        const value = bytes / size;
+        return `${value >= 100 ? Math.round(value) : value.toFixed(1)} ${unit}`;
+      }
+    }
+    return `${Math.round(bytes)} B`;
+  };
+  const estimateFolderHandleSize = async handle => {
+    let totalBytes = 0;
+    let fileCount = 0;
+    const walk = async directory => {
+      for await (const entry of directory.values()) {
+        if (entry.kind === 'directory') await walk(entry);
+        else {
+          const file = await entry.getFile();
+          totalBytes += file.size;
+          fileCount += 1;
+        }
+      }
+    };
+    await walk(handle);
+    return { totalBytes, fileCount };
+  };
+  const openDataStats = async () => {
+    const copy = dataStatsCopy[uiSettings.language] || dataStatsCopy.zh;
+    const statusEl = byId('dataStatsStatus');
+    const pathEl = byId('dataStatsPath');
+    ['dataStatsSize', 'dataStatsFiles', 'dataStatsNotes', 'dataStatsTodos', 'dataStatsClassifications', 'dataStatsTrash']
+      .forEach(id => { byId(id).textContent = '—'; });
+    pathEl.textContent = '—';
+    statusEl.textContent = '';
+    openAnimatedDialog(dataStatsDialog);
+    const fillCounts = () => {
+      byId('dataStatsNotes').textContent = String(library.items.filter(item => item.type === 'note' && !isTrashed(item)).length);
+      byId('dataStatsTodos').textContent = String(library.items.filter(item => item.type === 'todo' && !isTrashed(item)).length);
+      byId('dataStatsClassifications').textContent = String(library.folders.length);
+      byId('dataStatsTrash').textContent = String(library.items.filter(isTrashed).length);
+    };
+    fillCounts();
+    try {
+      const profile = activeDataProfile();
+      const adapter = workspaceAdapter || await adapterForDataProfile(profile, true);
+      const location = profile?.storage === 'local' ? localProfileLocation() : (adapter.label || profile?.folder || '');
+      pathEl.textContent = location;
+      let size = null;
+      if (profile?.storage === 'folder') {
+        if (adapter.kind === 'native' && window.actaDesktop?.dataFolderStats) {
+          const stats = await window.actaDesktop.dataFolderStats(adapter.folder);
+          size = { totalBytes: Number(stats.totalBytes) || 0, fileCount: Number(stats.fileCount) || 0 };
+        } else if (adapter.kind === 'web' && adapter.handle?.values) {
+          size = await estimateFolderHandleSize(adapter.handle);
+        }
+      } else if (profile?.storage === 'local') {
+        const raw = localStorage.getItem(profileLibraryStorageKey(profile.id)) || '';
+        size = { totalBytes: new Blob([raw]).size, fileCount: NaN };
+        statusEl.textContent = copy.localHint;
+      }
+      fillCounts();
+      if (size) {
+        byId('dataStatsSize').textContent = formatDataSize(size.totalBytes);
+        byId('dataStatsFiles').textContent = Number.isFinite(size.fileCount) ? String(size.fileCount) : '—';
+      }
+    } catch (error) {
+      statusEl.textContent = `${copy.failed}${error.message || error}`;
+    }
+  };
+  byId('dataStatsButton').addEventListener('click', () => void openDataStats());
+  byId('closeDataStats').addEventListener('click', () => closeAnimatedDialog(dataStatsDialog));
+  dataStatsDialog.addEventListener('click', event => {
+    if (event.target === dataStatsDialog) closeAnimatedDialog(dataStatsDialog);
+  });
+  dataStatsDialog.addEventListener('cancel', event => {
+    event.preventDefault();
+    closeAnimatedDialog(dataStatsDialog);
   });
 
   const mobileEdgeQuery = matchMedia('(max-width: 800px)');
@@ -3086,6 +3134,8 @@
   const noteBaseSizeValue = byId('noteBaseSizeValue');
   const noteHeadingStyle = byId('noteHeadingStyle');
   const noteLineHeight = byId('noteLineHeight');
+  const noteLineHeightValue = byId('noteLineHeightValue');
+  const noteTypingAnimation = byId('noteTypingAnimation');
   const noteToolbarPosition = byId('noteToolbarPosition');
   const noteToolbarShowLabels = byId('noteToolbarShowLabels');
   const noteHeadingSizes = {
@@ -3093,7 +3143,12 @@
     noteHeadingH2Size: new Set([20, 22, 24, 26, 28, 32]),
     noteHeadingH3Size: new Set([16, 17, 18, 19, 20, 22, 24])
   };
-  const noteLineHeightValues = new Set([1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2]);
+  const noteLineHeightRange = [1, 2];
+  // 行距以 0.1 为一档，超出 1.0-2.0 的历史值回退默认。
+  const normalizeNoteLineHeight = value => {
+    const next = Math.round(Number(value) * 10) / 10;
+    return Number.isFinite(next) ? Math.min(noteLineHeightRange[1], Math.max(noteLineHeightRange[0], next)) : defaultUISettings.noteLineHeight;
+  };
 
   function applyNoteEditorSettings() {
     const root = document.documentElement;
@@ -3104,10 +3159,11 @@
     });
     const baseSize = Number(uiSettings.noteBaseSize);
     uiSettings.noteBaseSize = baseSize >= 13 && baseSize <= 22 ? baseSize : defaultUISettings.noteBaseSize;
-    uiSettings.noteLineHeight = noteLineHeightValues.has(Number(uiSettings.noteLineHeight)) ? Number(uiSettings.noteLineHeight) : defaultUISettings.noteLineHeight;
+    uiSettings.noteLineHeight = normalizeNoteLineHeight(uiSettings.noteLineHeight);
     if (!['classic', 'modern', 'accent'].includes(uiSettings.noteHeadingStyle)) uiSettings.noteHeadingStyle = defaultUISettings.noteHeadingStyle;
     if (!['top', 'bottom'].includes(uiSettings.noteToolbarPosition)) uiSettings.noteToolbarPosition = defaultUISettings.noteToolbarPosition;
     uiSettings.noteToolbarShowLabels = Boolean(uiSettings.noteToolbarShowLabels);
+    if (!['rise', 'glow', 'off'].includes(uiSettings.noteTypingAnimation)) uiSettings.noteTypingAnimation = defaultUISettings.noteTypingAnimation;
     root.style.setProperty('--note-body-size', `${uiSettings.noteBaseSize}px`);
     root.style.setProperty('--note-heading-h1-size', `${uiSettings.noteHeadingH1Size}px`);
     root.style.setProperty('--note-heading-h2-size', `${uiSettings.noteHeadingH2Size}px`);
@@ -3116,6 +3172,7 @@
     root.dataset.noteHeadingStyle = uiSettings.noteHeadingStyle;
     root.dataset.noteToolbarPosition = uiSettings.noteToolbarPosition;
     root.dataset.noteToolbarLabels = uiSettings.noteToolbarShowLabels ? 'show' : 'hide';
+    root.dataset.noteTypingAnimation = uiSettings.noteTypingAnimation;
     noteBaseSize.value = String(uiSettings.noteBaseSize);
     noteBaseSizeValue.textContent = `${uiSettings.noteBaseSize} px`;
     noteHeadingH1Size.value = String(uiSettings.noteHeadingH1Size);
@@ -3123,6 +3180,8 @@
     noteHeadingH3Size.value = String(uiSettings.noteHeadingH3Size);
     noteHeadingStyle.value = uiSettings.noteHeadingStyle;
     noteLineHeight.value = String(uiSettings.noteLineHeight);
+    noteLineHeightValue.textContent = String(uiSettings.noteLineHeight);
+    noteTypingAnimation.value = uiSettings.noteTypingAnimation;
     noteToolbarPosition.value = uiSettings.noteToolbarPosition;
     noteToolbarShowLabels.checked = uiSettings.noteToolbarShowLabels;
   }
@@ -3159,8 +3218,17 @@
     applyNoteEditorSettings();
     saveUISettings();
   });
+  noteLineHeight.addEventListener('input', () => {
+    uiSettings.noteLineHeight = normalizeNoteLineHeight(noteLineHeight.value);
+    applyNoteEditorSettings();
+  });
   noteLineHeight.addEventListener('change', () => {
-    uiSettings.noteLineHeight = Number(noteLineHeight.value);
+    uiSettings.noteLineHeight = normalizeNoteLineHeight(noteLineHeight.value);
+    applyNoteEditorSettings();
+    saveUISettings();
+  });
+  noteTypingAnimation.addEventListener('change', () => {
+    uiSettings.noteTypingAnimation = noteTypingAnimation.value;
     applyNoteEditorSettings();
     saveUISettings();
   });
@@ -4204,171 +4272,6 @@
     window.addEventListener('scroll', closeContextMenu, true);
     window.addEventListener('resize', closeContextMenu);
   }
-
-  /* ===================== Acta Handy ===================== */
-  const handyMessages = {
-    zh: {
-      running:'Acta Handy 正在运行', notRunning:'未检测到 Acta Handy', desktopOnly:'Acta Handy 仅在 Tauri 桌面客户端可用',
-      noFolder:'当前数据档案未连接文件夹，Acta Handy 无法访问。请在「行记数据」中把档案连接到一个本地文件夹。',
-      grantOn:'已向 Acta Handy 开放当前数据档案。', grantOff:'已撤回 Acta Handy 的读写授权。', actionFailed:'操作失败：{0}',
-      kindModified:'修改', kindAdded:'新增', kindRemoved:'删除', kindRestored:'已回档',
-      restore:'回档', restored:'已回档「{0}」。', restoreFailed:'回档失败：{0}',
-      manifest:'数据清单', classifications:'归类定义', noHistory:'改动前副本已被清理，无法回档'
-    },
-    en: {
-      running:'Acta Handy is running', notRunning:'Acta Handy was not detected', desktopOnly:'Acta Handy is only available in the Tauri desktop client',
-      noFolder:'The active data profile has no folder connected, so Acta Handy cannot reach it. Connect the profile to a local folder under "Acta Data".',
-      grantOn:'The active data profile is now open to Acta Handy.', grantOff:'Acta Handy access has been revoked.', actionFailed:'Action failed: {0}',
-      kindModified:'Modified', kindAdded:'Added', kindRemoved:'Removed', kindRestored:'Restored',
-      restore:'Restore', restored:'Restored "{0}".', restoreFailed:'Restore failed: {0}',
-      manifest:'Data manifest', classifications:'Classifications', noHistory:'The pre-change copy was pruned; cannot restore'
-    },
-    'zh-Hant': {
-      running:'Acta Handy 正在執行', notRunning:'未偵測到 Acta Handy', desktopOnly:'Acta Handy 僅在 Tauri 桌面用戶端可用',
-      noFolder:'目前資料檔案未連接資料夾，Acta Handy 無法存取。請在「行記資料」中把檔案連接到一個本機資料夾。',
-      grantOn:'已向 Acta Handy 開放目前資料檔案。', grantOff:'已撤回 Acta Handy 的讀寫授權。', actionFailed:'操作失敗：{0}',
-      kindModified:'修改', kindAdded:'新增', kindRemoved:'刪除', kindRestored:'已回檔',
-      restore:'回檔', restored:'已回檔「{0}」。', restoreFailed:'回檔失敗：{0}',
-      manifest:'資料清單', classifications:'歸類定義', noHistory:'改動前副本已被清理，無法回檔'
-    }
-  };
-  const handyText = (key, ...values) => values.reduce((message, value, index) => message.replace(`{${index}}`, value), (handyMessages[uiSettings.language] || handyMessages.zh)[key] || key);
-
-  const handyBridge = () => (window.actaDesktop?.handyDetect ? window.actaDesktop : null);
-
-  function handyFolder() {
-    const profile = activeDataProfile();
-    return profile?.folder && handyBridge() ? profile.folder : '';
-  }
-
-  function handyChangeTitle(change) {
-    if (!change.summary) {
-      if (change.file === 'acta-manifest.json') return handyText('manifest');
-      if (change.file === 'classifications.json') return handyText('classifications');
-      return change.file || '';
-    }
-    return change.summary;
-  }
-
-  function handyChangeFileLabel(file = '') {
-    const names = { 'acta-manifest.json': 'manifest', 'classifications.json': 'classifications' };
-    if (names[file]) return names[file];
-    return file.replace(/^notes\//, 'notes/').replace(/^todos\//, 'todos/');
-  }
-
-  function renderHandyChanges(changes) {
-    const list = byId('handyChangeList');
-    const empty = byId('handyChangesEmpty');
-    if (!list || !empty) return;
-    empty.hidden = changes.length > 0;
-    list.innerHTML = changes.map(change => {
-      const kind = change.kind === 'modified' ? 'modified' : change.kind === 'added' ? 'added' : change.kind === 'removed' ? 'removed' : 'restored';
-      const canRestore = Boolean(change.id) && (kind === 'modified' || kind === 'added' || kind === 'removed');
-      const time = change.at ? new Date(change.at).toLocaleString() : '';
-      return `
-        <div class="handy-change-row" role="listitem" data-kind="${kind}">
-          <i class="handy-change-dot" aria-hidden="true"></i>
-          <span class="handy-change-copy">
-            <b>${escapeHTML(handyChangeTitle(change))}</b>
-            <small><em>${escapeHTML(handyText(`kind${kind[0].toUpperCase()}${kind.slice(1)}`))}</em>${time ? ` · ${escapeHTML(time)}` : ''}${change.file ? ` · ${escapeHTML(handyChangeFileLabel(change.file))}` : ''}</small>
-          </span>
-          ${canRestore ? `<button class="settings-button secondary handy-restore-button" type="button" data-handy-restore="${escapeHTML(change.id)}" data-handy-summary="${escapeHTML(handyChangeTitle(change))}" title="${escapeHTML(change.file || '')}">${escapeHTML(handyText('restore'))}</button>` : ''}
-        </div>`;
-    }).join('');
-  }
-
-  async function refreshHandyPanel() {
-    const bridge = handyBridge();
-    const toggle = byId('handyGrantToggle');
-    const dot = byId('handyStatusDot');
-    const statusText = byId('handyStatusText');
-    const hint = byId('handyProfileHint');
-    const pathEl = byId('handyFolderPath');
-    const changesBox = byId('handyChanges');
-    if (!bridge || !toggle || !dot || !statusText) return;
-    if (!bridge) {
-      dot.dataset.state = 'unknown';
-      statusText.textContent = handyText('desktopOnly');
-      hint.textContent = handyText('desktopOnly');
-      pathEl.textContent = '—';
-      toggle.disabled = true;
-      toggle.checked = false;
-      if (changesBox) changesBox.hidden = true;
-      return;
-    }
-    const folder = handyFolder();
-    if (!folder) {
-      dot.dataset.state = 'unknown';
-      statusText.textContent = handyText('noFolder');
-      hint.textContent = handyText('noFolder');
-      pathEl.textContent = '—';
-      toggle.disabled = true;
-      toggle.checked = false;
-      if (changesBox) changesBox.hidden = true;
-      return;
-    }
-    if (changesBox) changesBox.hidden = false;
-    pathEl.textContent = folder;
-    toggle.disabled = false;
-    let running = null;
-    try { running = Boolean((await bridge.handyDetect())?.running); } catch { running = null; }
-    dot.dataset.state = running === null ? 'unknown' : running ? 'on' : 'off';
-    statusText.textContent = running === null ? handyText('notRunning') : running ? handyText('running') : handyText('notRunning');
-    try {
-      const state = await bridge.handyStatus(folder);
-      toggle.checked = Boolean(state?.granted);
-    } catch { /* 档案文件夹不可读时保持现状 */ }
-    const scan = await bridge.handyScanChanges(folder).catch(() => null);
-    if (scan && scan.enabled === false) { renderHandyChanges([]); return; }
-    const log = await bridge.handyChanges(folder).catch(() => null);
-    renderHandyChanges(Array.isArray(log?.changes) ? log.changes : []);
-  }
-
-  byId('handyGrantToggle')?.addEventListener('change', async () => {
-    const bridge = handyBridge();
-    const folder = handyFolder();
-    const toggle = byId('handyGrantToggle');
-    if (!bridge || !folder) { toggle.checked = false; return; }
-    const granted = toggle.checked;
-    try {
-      await bridge.handyGrant(folder, granted);
-      setStatus(byId('handyStatus'), handyText(granted ? 'grantOn' : 'grantOff'), 'success');
-      await refreshHandyPanel();
-    } catch (error) {
-      toggle.checked = !granted;
-      setStatus(byId('handyStatus'), handyText('actionFailed', error?.message || error), 'error');
-    }
-  });
-  byId('handyDetectRefresh')?.addEventListener('click', () => { void refreshHandyPanel(); });
-  byId('handyChangesRefresh')?.addEventListener('click', () => { void refreshHandyPanel(); });
-  byId('handyChangeList')?.addEventListener('click', async event => {
-    const button = event.target.closest('[data-handy-restore]');
-    if (!button || button.disabled) return;
-    const bridge = handyBridge();
-    const folder = handyFolder();
-    if (!bridge || !folder) return;
-    button.disabled = true;
-    const summary = button.dataset.handySummary || '';
-    try {
-      await bridge.handyRestoreChange(folder, button.dataset.handyRestore);
-      // 回档改的是磁盘上的档案文件，立即重新加载让界面与磁盘一致。
-      try {
-        if (oneDriveAdapter) replaceLibrary(await oneDriveAdapter.load());
-      } catch { /* 加载失败时用户可手动「下载完整数据文件夹」 */ }
-      showToast(handyText('restored', summary));
-      setStatus(byId('handyStatus'), handyText('restored', summary), 'success');
-      await refreshHandyPanel();
-    } catch (error) {
-      showToast(handyText('restoreFailed', error?.message || error));
-      button.disabled = false;
-    }
-  });
-  // Handy 设置页可见时，每分钟自动检查一次运行状态与外部改动。
-  setInterval(() => {
-    if (!settingsModal.classList.contains('open')) return;
-    if (!document.querySelector('[data-settings-panel="handy"].active')) return;
-    void refreshHandyPanel();
-  }, 60000);
 
   /* ===================== 软件数据位置 + OOBE 首次设置 ===================== */
   function syncSettingsControls() {

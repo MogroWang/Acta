@@ -41,6 +41,9 @@
     inspectFolder(folder) {
       return invoke('inspect_folder', { folder });
     },
+    dataFolderStats(folder) {
+      return invoke('data_folder_stats', { folder });
+    },
     webDavRequest(requestUrl, requestOptions = {}) {
       return invoke('web_dav_request', { requestUrl, requestOptions });
     },
@@ -83,24 +86,6 @@
     clearAppCache() {
       return invoke('clear_app_cache');
     },
-    handyDetect() {
-      return invoke('handy_detect');
-    },
-    handyGrant(folder, granted) {
-      return invoke('handy_grant', { folder, granted });
-    },
-    handyStatus(folder) {
-      return invoke('handy_status', { folder });
-    },
-    handyScanChanges(folder) {
-      return invoke('handy_scan_changes', { folder });
-    },
-    handyChanges(folder) {
-      return invoke('handy_changes', { folder });
-    },
-    handyRestoreChange(folder, changeId) {
-      return invoke('handy_restore_change', { folder, changeId });
-    },
     setAppIcon(dataUrl = '', preset = '') {
       return invoke('set_app_icon', { dataUrl, preset });
     },
@@ -137,6 +122,15 @@
       ) return;
       if (event.detail === 2) currentWindow.toggleMaximize().catch(() => {});
       else currentWindow.startDragging().catch(() => {});
+    });
+    // 沉浸编辑模式的自绘顶栏同样承担窗口拖动；仅 Tauri 桌面环境注册。
+    const focusHeader = document.querySelector('.note-focus-header');
+    focusHeader?.addEventListener('mousedown', event => {
+      if (
+        event.button !== 0 ||
+        event.target.closest('button, a, input, select, textarea, [contenteditable], [role="button"]')
+      ) return;
+      currentWindow.startDragging().catch(() => {});
     });
     document.querySelector('[data-window-action="minimize"]')?.addEventListener('click', () => {
       currentWindow.minimize().catch(() => {});

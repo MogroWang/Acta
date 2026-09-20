@@ -1110,7 +1110,7 @@ async function main() {
       const mobileFontSizeLayoutFits = mobileFontSizeLayoutMetrics.every(metric => metric.scrollWidth - metric.clientWidth <= metric.baselineOverflow + 1);
       fontSizeSetting.value = '14';
       fontSizeSetting.dispatchEvent(new Event('input'));
-      const mobileTitlebarButtonsVisible = ['#mobileActaData', '#mobileDataRefresh', '#mobileListSettings'].every(selector => {
+      const mobileTitlebarButtonsVisible = ['#mobileTrash', '#mobileStats', '#mobileDataRefresh', '#mobileListSettings'].every(selector => {
         const button = document.querySelector(selector);
         const rect = button.getBoundingClientRect();
         return getComputedStyle(button).display === 'grid' && rect.width >= 35 && rect.height >= 35;
@@ -1146,9 +1146,11 @@ async function main() {
       const mobileClassificationEditOpensTarget = document.querySelector('#classificationManagerList [data-classification-folder].active')?.dataset.classificationFolder === mobileClassificationEditId;
       document.querySelector('#closeClassificationManager').click();
       await waitFor(() => !document.querySelector('#classificationManagerDialog').open);
-      document.querySelector('#mobileActaData').click();
-      const mobileActaDataOpensSettings = document.querySelector('#settingsModal').classList.contains('open')
-        && document.querySelector('[data-settings-page="workspace"]').classList.contains('active');
+      document.querySelector('#mobileTrash').click();
+      const mobileTrashOpensTrashView = currentView === 'trash'
+        && document.querySelector('#smartNav [data-view="trash"]')?.classList.contains('active');
+      document.querySelector('[data-view="inbox"]').click();
+      await waitFor(() => currentView === 'inbox');
       document.querySelector('#settingsClose').click();
       await waitFor(() => !document.querySelector('#settingsModal').classList.contains('open'));
       window.resizeTo(1280, 800);
@@ -1227,7 +1229,7 @@ async function main() {
       const saveStateStyle = getComputedStyle(document.querySelector('#saveState'));
       const saveStateRelocated = Math.abs(saveStateRect.left - expandedSidebarRect.right - 8) <= 1 && saveStateStyle.textAlign === 'left';
       const saveStateMetrics = { saveLeft:saveStateRect.left, sidebarRight:expandedSidebarRect.right, difference:saveStateRect.left - expandedSidebarRect.right, textAlign:saveStateStyle.textAlign };
-      const lowerLeftControlsTogether = ['#dataRefreshButton', '#settingsButton', '#sidebarToggle'].every(selector => document.querySelector(selector)?.closest('.sidebar-dock-actions'));
+      const lowerLeftControlsTogether = ['#dataRefreshButton', '#dataStatsButton', '#settingsButton', '#sidebarToggle'].every(selector => document.querySelector(selector)?.closest('.sidebar-dock-actions'));
       window.__actaSmokeStep = 'sidebar-checked';
       document.querySelector('#settingsButton').click();
       const cacheReloadAvailable = Boolean(document.querySelector('#clearCacheReload'));
@@ -1236,7 +1238,7 @@ async function main() {
       const syncSettingsIndex = settingsNavigation.findIndex(button => button.dataset.settingsPage === 'cloud');
       const dataSyncOrderZh = syncSettingsIndex === workspaceSettingsIndex + 1 && settingsNavigation[syncSettingsIndex]?.textContent.trim() === '数据同步';
       document.querySelector('[data-settings-page="note-editor"]').click();
-      const noteEditorSettingsComplete = ['#noteHeadingH1Size', '#noteHeadingH2Size', '#noteHeadingH3Size', '#noteHeadingStyle', '#noteToolbarPosition', '#noteToolbarShowLabels']
+      const noteEditorSettingsComplete = ['#noteHeadingH1Size', '#noteHeadingH2Size', '#noteHeadingH3Size', '#noteHeadingStyle', '#noteLineHeight', '#noteTypingAnimation', '#noteToolbarPosition', '#noteToolbarShowLabels']
         .every(selector => Boolean(document.querySelector(selector)));
       const updateNoteSetting = (selector, value, eventType = 'change') => {
         const field = document.querySelector(selector);
@@ -1553,7 +1555,7 @@ async function main() {
         mobileClassificationEditOpensTarget,
         mobileClassificationIconsUpright,
         nativeDialogPositionFixed,
-        mobileActaDataOpensSettings,
+        mobileTrashOpensTrashView,
         expandedBrandVersionVisible,
         collapsedSidebarAligned,
         collapsedSidebarOffsets,
@@ -1855,7 +1857,7 @@ async function main() {
     assert.equal(result.mobileClassificationEditOpensTarget, true);
     assert.equal(result.mobileClassificationIconsUpright, true);
     assert.equal(result.nativeDialogPositionFixed, true);
-    assert.equal(result.mobileActaDataOpensSettings, true);
+    assert.equal(result.mobileTrashOpensTrashView, true);
     assert.equal(result.expandedBrandVersionVisible, true);
     assert.equal(result.collapsedSidebarAligned, true, JSON.stringify(result.collapsedSidebarOffsets));
     assert.equal(result.collapsedBrandCentered, true);

@@ -129,8 +129,8 @@
         <div class="titlebar-center"><span id="saveState" data-i18n="saved" role="status" aria-live="polite">已保存</span></div>
         <div class="window-spacer"></div>
         <div class="mobile-titlebar-actions">
-          <button class="icon-button mobile-titlebar-action" id="mobileActaData" type="button" aria-label="行记数据"><svg><use href="#i-database"/></svg></button>
-          <button class="icon-button mobile-titlebar-action" id="mobileStats" type="button" data-view="stats" aria-label="统计"><svg><use href="#i-chart"/></svg></button>
+          <button class="icon-button mobile-titlebar-action" id="mobileTrash" type="button" data-view="trash" aria-label="回收站"><svg><use href="#i-trash"/></svg></button>
+          <button class="icon-button mobile-titlebar-action" id="mobileStats" type="button" data-view="stats" aria-label="总结"><svg><use href="#i-chart"/></svg></button>
           <button class="icon-button mobile-titlebar-action" id="mobileDataRefresh" type="button" aria-label="刷新数据"><svg><use href="#i-refresh"/></svg></button>
           <button class="icon-button mobile-titlebar-action mobile-list-settings" id="mobileListSettings" type="button" aria-label="设置"><svg><use href="#i-settings"/></svg></button>
         </div>
@@ -160,7 +160,7 @@
             <button data-view="todos"><span><svg><use href="#i-check"/></svg><span data-i18n="todos">待办</span></span><em id="todoCount">0</em></button>
             <button data-view="notes"><span><svg><use href="#i-note"/></svg><span data-i18n="notes">笔记</span></span><em id="noteCount">0</em></button>
             <button data-view="trash"><span><svg><use href="#i-trash"/></svg><span data-i18n="trash">回收站</span></span><em id="trashCount">0</em></button>
-            <button data-view="stats"><span><svg><use href="#i-chart"/></svg><span data-i18n="stats">统计</span></span></button>
+            <button data-view="stats"><span><svg><use href="#i-chart"/></svg><span data-i18n="stats">总结</span></span></button>
           </nav>
 
           <section class="folder-section">
@@ -182,12 +182,13 @@
 
           <div class="sidebar-bottom">
             <button class="sync-card" id="workspaceButton">
-              <span class="sync-icon"><svg><use href="#i-folder"/></svg><i></i></span>
+              <span class="sync-icon"><svg><use href="#i-folder"/></svg></span>
               <span><b>演示行记数据</b><small class="workspace-card-status demo" id="workspaceCardStatus">不会保存更改</small></span>
               <svg class="chevron"><use href="#i-chevron"/></svg>
             </button>
             <div class="sidebar-dock-actions" role="group" aria-label="侧栏操作">
               <button class="sidebar-dock-action" id="dataRefreshButton" type="button" title="刷新数据" aria-label="刷新数据"><svg><use href="#i-refresh"/></svg></button>
+              <button class="sidebar-dock-action" id="dataStatsButton" type="button" title="数据统计" aria-label="数据统计"><svg><use href="#i-chart"/></svg></button>
               <button class="sidebar-dock-action" id="settingsButton" type="button" title="设置" aria-label="设置"><svg><use href="#i-settings"/></svg></button>
               <button class="sidebar-dock-action sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="true" aria-controls="primarySidebar" title="收起左侧功能栏"><svg><use href="#i-chevron"/></svg></button>
             </div>
@@ -200,7 +201,6 @@
             <div class="mobile-list-shortcuts">
               <button class="mobile-classifications-trigger" id="mobileClassifications" type="button" aria-label="查看归类" aria-haspopup="dialog"><svg><use href="#i-folder"/></svg><span>查看归类</span><svg class="shortcut-chevron"><use href="#i-chevron"/></svg></button>
             </div>
-            <button class="todo-status-switch" id="todoStatusSwitch" type="button" aria-pressed="false" hidden><svg><use href="#i-check"/></svg><span data-i18n="showCompletedTodos">显示已完成</span></button>
             <div class="calendar-toolbar" id="calendarToolbar" hidden>
               <div class="calendar-navigation" role="group" aria-label="日历导航">
                 <button type="button" data-calendar-shift="-1" title="上一月"><svg><use href="#i-chevron"/></svg><span data-calendar-shift-label>上一月</span></button>
@@ -311,10 +311,9 @@
         <div class="settings-layout">
           <nav class="settings-nav" aria-label="设置页面">
             <button class="active" type="button" data-settings-page="language"><svg><use href="#i-globe"/></svg><span>语言</span></button>
+            <button type="button" data-settings-page="general"><svg><use href="#i-sliders"/></svg><span>常规设置</span></button>
             <button type="button" data-settings-page="workspace"><svg><use href="#i-folder"/></svg><span>行记数据</span></button>
             <button type="button" data-settings-page="cloud"><svg><use href="#i-cloud"/></svg><span>数据同步</span></button>
-            <button type="button" data-settings-page="handy"><svg><use href="#i-lightning"/></svg><span>Acta Handy</span></button>
-            <button type="button" data-settings-page="general"><svg><use href="#i-sliders"/></svg><span>常规设置</span></button>
             <button type="button" data-settings-page="note-editor"><svg><use href="#i-note"/></svg><span>笔记编辑器</span></button>
             <button type="button" data-settings-page="appearance"><svg><use href="#i-palette"/></svg><span>外观设置</span></button>
             <button type="button" data-settings-page="about"><svg><use href="#i-info"/></svg><span>关于</span></button>
@@ -345,26 +344,10 @@
               <p class="settings-status" id="workspaceStatus" role="status" aria-live="polite">正在读取行记数据档案…</p>
             </section>
 
-            <section class="settings-panel" data-settings-panel="handy">
-              <header><h3>Acta Handy</h3><p>Acta Handy 是 MogroWang Studio 提供的桌面扩展，可以在电脑上快速查看和编辑这里的待办与笔记。</p></header>
-              <div class="settings-group">
-                <div class="settings-row handy-status-row"><span><b>运行状态</b><small id="handyDetectHint">检查电脑上是否启动了 Acta Handy</small></span><span class="handy-status"><i id="handyStatusDot" aria-hidden="true"></i><em id="handyStatusText">未检查</em><button class="icon-button" id="handyDetectRefresh" type="button" title="重新检查" aria-label="重新检查"><svg><use href="#i-refresh"/></svg></button></span></div>
-                <label class="settings-row"><span><b>允许读写待办与笔记</b><small>开启后，当前行记数据档案向 Acta Handy 开放读写；Acta 会记录它的每一次改动。</small></span><input id="handyGrantToggle" type="checkbox"/></label>
-                <div class="settings-row"><span><b>数据档案</b><small id="handyProfileHint">Handy 通过当前数据档案的文件夹交换数据</small></span><code class="app-data-path" id="handyFolderPath">—</code></div>
-              </div>
-              <p class="settings-status" id="handyStatus"></p>
-              <div class="handy-changes" id="handyChanges">
-                <header><div><b id="handyChangesTitle">读写改动记录</b><small id="handyChangesHint">Acta Handy 对待办与笔记的改动都会记录在这里，可随时回档</small></div><span class="handy-changes-actions"><button class="settings-button secondary" id="handyChangesRefresh" type="button"><svg><use href="#i-refresh"/></svg><span>刷新记录</span></button></span></header>
-                <div class="handy-change-list" id="handyChangeList" role="list"></div>
-                <p class="settings-status handy-changes-empty" id="handyChangesEmpty">还没有改动记录。</p>
-              </div>
-              <p class="settings-status handy-protocol-note">工作方式：Acta 会在开启后于数据档案文件夹中放置授权标识，Acta Handy 依据它读写 acta-manifest 数据文件夹；Acta 检测到外部改动时保存改动前的副本，供你一键回档。</p>
-            </section>
-
             <section class="settings-panel" data-settings-panel="general">
               <header><h3>常规设置</h3><p>调整启动位置、内容密度和动效偏好。</p></header>
               <div class="settings-group">
-                <label class="settings-row"><span><b>默认启动页面</b><small>打开应用时优先进入的智能视图</small></span><select id="defaultViewSetting"><option value="inbox">收集箱</option><option value="calendar" data-i18n="calendar">日历</option><option value="todos">所有待办</option><option value="notes">所有笔记</option><option value="stats">统计</option></select></label>
+                <label class="settings-row"><span><b>默认启动页面</b><small>打开应用时优先进入的智能视图</small></span><select id="defaultViewSetting"><option value="inbox">收集箱</option><option value="calendar" data-i18n="calendar">日历</option><option value="todos">所有待办</option><option value="notes">所有笔记</option><option value="stats">总结</option></select></label>
                 <label class="settings-row"><span><b>紧凑列表</b><small>在中栏显示更多笔记和待办</small></span><input id="compactModeSetting" type="checkbox"/></label>
                 <label class="settings-row"><span><b>减少动态效果</b><small>降低转场和弹性动画，减少视觉干扰</small></span><input id="reduceMotionSetting" type="checkbox"/></label>
                 <div class="settings-row"><span><b>初始设置向导</b><small>重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画</small></span><button class="settings-button secondary" id="openOobeButton" type="button"><svg><use href="#i-spark"/></svg><span>重新运行引导</span></button></div>
@@ -386,12 +369,13 @@
                 <label class="settings-row"><span><b>二级标题字号</b><small>Markdown 渲染后的二级标题大小</small></span><select id="noteHeadingH2Size"><option value="20">20 px</option><option value="22">22 px</option><option value="24">24 px</option><option value="26">26 px</option><option value="28">28 px</option><option value="32">32 px</option></select></label>
                 <label class="settings-row"><span><b>三级标题字号</b><small>Markdown 渲染后的三级标题大小</small></span><select id="noteHeadingH3Size"><option value="16">16 px</option><option value="17">17 px</option><option value="18">18 px</option><option value="19">19 px</option><option value="20">20 px</option><option value="22">22 px</option><option value="24">24 px</option></select></label>
                 <label class="settings-row"><span><b>标题样式</b><small>改变可视化编辑器中的标题字体与装饰</small></span><select id="noteHeadingStyle"><option value="classic">经典衬线</option><option value="modern">现代无衬线</option><option value="accent">简约强调</option></select></label>
-                <label class="settings-row"><span><b>正文行间距</b><small>Markdown 渲染后的正文与源码行距</small></span><select id="noteLineHeight"><option value="1.4">1.4</option><option value="1.5">1.5</option><option value="1.6" selected>1.6</option><option value="1.7">1.7</option><option value="1.8">1.8</option><option value="1.9">1.9</option><option value="2">2.0</option></select></label>
+                <label class="settings-row"><span><b>正文行间距</b><small>Markdown 渲染后的正文与源码行距</small></span><span class="font-size-control"><input id="noteLineHeight" type="range" min="1" max="2" step="0.1"/><output id="noteLineHeightValue">1.6</output></span></label>
               </div>
               <div class="note-heading-preview" id="noteHeadingPreview" aria-label="标题预览"><h1>一级标题</h1><h2>二级标题</h2><h3>三级标题</h3></div>
               <div class="settings-group">
                 <label class="settings-row"><span><b>工具栏位置</b><small>固定在笔记编辑器的上方或下方</small></span><select id="noteToolbarPosition"><option value="top">上方</option><option value="bottom">下方</option></select></label>
                 <label class="settings-row"><span><b>显示工具名称</b><small>在图标旁显示工具名称，空间不足时自动换行</small></span><input id="noteToolbarShowLabels" type="checkbox"/></label>
+                <label class="settings-row"><span><b>输入动画</b><small>沉浸编辑模式下，新输入文字的出现方式</small></span><select id="noteTypingAnimation"><option value="rise">缓缓涌现</option><option value="glow">高亮渐隐</option><option value="off">不启用</option></select></label>
               </div>
             </section>
 
@@ -547,6 +531,22 @@
         </div>
         <footer class="quick-capture-actions"><span id="quickCaptureShortcut">Ctrl/⌘ + Enter 快速创建</span><button class="settings-button secondary" id="cancelQuickCapture" type="button">取消</button><button class="settings-button quick-capture-submit" type="submit"><svg><use href="#i-lightning"/></svg><span id="quickCaptureSubmitLabel">创建待办</span></button></footer>
       </form>
+    </dialog>
+
+    <dialog class="relation-dialog data-stats-dialog" id="dataStatsDialog" aria-labelledby="dataStatsTitle">
+      <header class="relation-dialog-head"><span><svg><use href="#i-database"/></svg></span><div><h3 id="dataStatsTitle">行记数据统计</h3><small id="dataStatsSubtitle">当前数据档案的容量与内容概览</small></div><button class="relation-dialog-close" id="closeDataStats" type="button" aria-label="关闭"><svg><use href="#i-close"/></svg></button></header>
+      <div class="data-stats-body">
+        <div class="data-stats-grid">
+          <div class="data-stats-tile"><b id="dataStatsSize">—</b><span id="dataStatsSizeLabel">文件总大小</span></div>
+          <div class="data-stats-tile"><b id="dataStatsFiles">—</b><span>文件数</span></div>
+          <div class="data-stats-tile"><b id="dataStatsNotes">—</b><span>笔记</span></div>
+          <div class="data-stats-tile"><b id="dataStatsTodos">—</b><span>待办</span></div>
+          <div class="data-stats-tile"><b id="dataStatsClassifications">—</b><span>归类</span></div>
+          <div class="data-stats-tile"><b id="dataStatsTrash">—</b><span>回收站</span></div>
+        </div>
+        <code class="app-data-path data-stats-path" id="dataStatsPath">—</code>
+        <p class="settings-status" id="dataStatsStatus" role="status"></p>
+      </div>
     </dialog>
 
     <dialog class="relation-dialog mobile-classification-dialog" id="mobileClassificationDialog" aria-labelledby="mobileClassificationTitle">
@@ -815,5 +815,6 @@
     <script src="note-export.js"></script>
     <script src="interface.js"></script>
     <script src="custom-select.js"></script>
+    <script src="custom-datetime.js"></script>
   </body>
 </html>

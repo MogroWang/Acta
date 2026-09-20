@@ -39,13 +39,13 @@ const dictionaries = {
     noScheduledTodos:'这段时间没有待办', noScheduledTodosHint:'为待办设置截止日期后，它会显示在日历中。', scheduledTodos:'项待办',
     noCalendarItems:'这段时间没有日历内容', noCalendarItemsHint:'有排期的待办和当天创建的笔记会显示在这里。', calendarItems:'项日历内容', createdNotes:'当日创建笔记',
     moreTodos:'另有 {0} 项', linkedNotes:'关联笔记', calendarLegendLinked:'带笔记关联', calendarOpenTodo:'打开待办', calendarOpenNote:'打开笔记', calendarOpenDay:'查看当日', weekNumber:'周数', swipeWeekHint:'左右滑动查看其他日期',
-    stats:'统计', showCompletedTodos:'显示已完成', statOpen:'进行中', confirm:'确定', cancel:'取消',
+    stats:'总结', showCompletedTodos:'显示已完成', statOpen:'进行中', confirm:'确定', cancel:'取消',
     statsEmpty:'这里还没有内容可以统计', statsEmptyHint:'创建笔记或待办后，这里会展示记录情况。',
     trash:'回收站', trashItems:'件回收',
     trashEmptyTitle:'回收站还是空的', trashEmptyHint:'删除的待办和笔记会先躺在这里，不会自动清空，随时回来翻翻，也许就有新的灵感。',
     trashFooterNote:'回收站不会自动倾倒', restore:'恢复', destroy:'彻底删除', restored:'已恢复到原位', destroyed:'已彻底删除',
     emptyTrash:'清空回收站', emptyTrashConfirmTitle:'清空回收站', emptyTrashConfirmMessage:'回收站中的 {0} 件内容将被彻底删除，无法恢复。', trashEmptied:'回收站已清空',
-    deletedAt:'删除于', restoreHint:'恢复到原来的归类', trashOpenHint:'回收站中的内容不会出现在列表、日历与统计里',
+    deletedAt:'删除于', restoreHint:'恢复到原来的归类', trashOpenHint:'回收站中的内容不会出现在列表、日历与总结里',
     deleteTitle:'删除项目', deleteSubtitle:'选择如何处理「{0}」', deleteTrashLabel:'移入回收站', deleteTrashHint:'保留在回收站中，随时可以恢复', deleteDestroyLabel:'直接删除', deleteDestroyHint:'不进入回收站，立即彻底删除', moveToTrash:'移入回收站', deletedToTrash:'已移入回收站',
     statsListTitle:'待办笔记清单', statsListHint:'收集指定时间段创建的待办与笔记，勾选后可制作图片',
     statsRangeAll:'全部时间', statsRangeToday:'今天', statsRange7:'最近 7 天', statsRange30:'最近 30 天', statsRange90:'最近 90 天', statsRangeCustom:'自定义',
@@ -81,13 +81,13 @@ const dictionaries = {
     noScheduledTodos:'No tasks in this period', noScheduledTodosHint:'Set a task deadline to place it on the calendar.', scheduledTodos:'tasks',
     noCalendarItems:'Nothing on this calendar yet', noCalendarItemsHint:'Scheduled tasks and notes created that day appear here.', calendarItems:'calendar items', createdNotes:'Notes created that day',
     moreTodos:'{0} more', linkedNotes:'Linked notes', calendarLegendLinked:'Linked to notes', calendarOpenTodo:'Open task', calendarOpenNote:'Open note', calendarOpenDay:'Open day', weekNumber:'Week', swipeWeekHint:'Swipe left or right for other days',
-    stats:'Statistics', showCompletedTodos:'Show completed', statOpen:'In progress', confirm:'Confirm', cancel:'Cancel',
+    stats:'Summary', showCompletedTodos:'Show completed', statOpen:'In progress', confirm:'Confirm', cancel:'Cancel',
     statsEmpty:'Nothing to report yet', statsEmptyHint:'Once you add notes or tasks, your activity shows up here.',
     trash:'Trash', trashItems:'items',
     trashEmptyTitle:'The trash is empty', trashEmptyHint:'Deleted notes and tasks rest here. Nothing is emptied automatically — come back and rummage whenever you like.',
     trashFooterNote:'Trash is never emptied automatically', restore:'Restore', destroy:'Delete forever', restored:'Restored to its place', destroyed:'Deleted forever',
     emptyTrash:'Empty trash', emptyTrashConfirmTitle:'Empty trash', emptyTrashConfirmMessage:'{0} items in the trash will be deleted forever and cannot be recovered.', trashEmptied:'Trash emptied',
-    deletedAt:'Deleted', restoreHint:'Restore to its original classification', trashOpenHint:'Trashed items stay out of lists, calendar, and statistics',
+    deletedAt:'Deleted', restoreHint:'Restore to its original classification', trashOpenHint:'Trashed items stay out of lists, calendar, and the summary',
     deleteTitle:'Delete item', deleteSubtitle:'Choose what to do with “{0}”', deleteTrashLabel:'Move to trash', deleteTrashHint:'Kept in the trash, restore anytime', deleteDestroyLabel:'Delete now', deleteDestroyHint:'Skips the trash and is deleted forever', moveToTrash:'Move to trash', deletedToTrash:'Moved to trash',
     statsListTitle:'Notes and tasks list', statsListHint:'Gather notes and tasks created in a chosen period, tick some, and make a picture',
     statsRangeAll:'All time', statsRangeToday:'Today', statsRange7:'Last 7 days', statsRange30:'Last 30 days', statsRange90:'Last 90 days', statsRangeCustom:'Custom',
@@ -227,6 +227,12 @@ const stripHTML = (html = '') => {
 };
 const isSafeHref = (value = '') => /^(https?:\/\/|mailto:)/i.test(String(value).trim());
 
+// 行内 Markdown 特殊字符转义：保证 HTML→Markdown→HTML 往返不改变格式。
+// 行首块级字符（#、>、-、数字）不做转义，源码保持易读。
+const escapeMarkdownText = value => String(value)
+  .replace(/\\/g, '\\\\')
+  .replace(/([`*_[\]=~])/g, '\\$1');
+
 function noteHTMLToMarkdown(html = '') {
   const root = document.createElement('div');
   root.innerHTML = html;
@@ -239,7 +245,7 @@ function noteHTMLToMarkdown(html = '') {
     return `${ordered ? `${index + 1}.` : taskMarker} ${content}`;
   }).join('\n') + '\n\n';
   const renderNode = (node) => {
-    if (node.nodeType === Node.TEXT_NODE) return (node.nodeValue || '').replace(/\u00a0/g, ' ');
+    if (node.nodeType === Node.TEXT_NODE) return escapeMarkdownText((node.nodeValue || '').replace(/\u00a0/g, ' '));
     if (node.nodeType !== Node.ELEMENT_NODE) return '';
     const tag = node.tagName;
     const content = renderChildren(node);
@@ -270,6 +276,10 @@ function noteHTMLToMarkdown(html = '') {
   return renderChildren(root).replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
+// 行内文本 → HTML。转义字符 `\x` 在格式替换后统一还原，
+// 格式匹配的 em 规则排除前置反斜杠，避免把 `\*x\*` 误判为斜体。
+const inlineMarkdownHTML = value => markdownInline(value).replace(/\n/g, '<br>');
+
 function markdownInline(value = '') {
   const protectedHTML = [];
   const protect = html => {
@@ -277,18 +287,19 @@ function markdownInline(value = '') {
     protectedHTML.push(html);
     return token;
   };
-  let text = String(value).replace(/`([^`\n]+)`/g, (_match, code) => protect(`<code>${escapeHTML(code)}</code>`));
+  let text = String(value).replace(/`([^`\n]+)`/g, (_match, code) => protect(`<code>${escapeHTML(code.replace(/\\`/g, '`'))}</code>`));
   text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label, href) => {
     if (!isSafeHref(href)) return label;
-    return protect(`<a href="${escapeHTML(href.trim())}">${escapeHTML(label)}</a>`);
+    return protect(`<a href="${escapeHTML(href.trim())}">${escapeHTML(label.replace(/\\([\[\]()])/g, '$1'))}</a>`);
   });
   text = escapeHTML(text)
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/__([^_]+)__/g, '<strong>$1</strong>')
     .replace(/~~([^~]+)~~/g, '<del>$1</del>')
     .replace(/==([^=]+)==/g, '<mark>$1</mark>')
-    .replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>')
-    .replace(/(^|[^_])_([^_]+)_/g, '$1<em>$2</em>');
+    .replace(/(^|[^*\\])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+    .replace(/(^|[^_\\])_([^_\n]+)_/g, '$1<em>$2</em>')
+    .replace(/\\([\\`*_[\]=~])/g, '$1');
   return text.replace(/\u0000(\d+)\u0000/g, (_match, index) => protectedHTML[Number(index)] || '');
 }
 
@@ -296,30 +307,42 @@ function markdownToNoteHTML(markdown = '') {
   const lines = String(markdown).replace(/\r\n?/g, '\n').split('\n');
   const output = [];
   let paragraph = [];
-  let listType = '';
+  // 列表栈按缩进层级解析嵌套列表；与 HTML→Markdown 的缩进输出互为逆操作。
+  let listStack = [];
   let inCode = false;
   let codeLines = [];
   let codeLanguage = '';
   let quoteLines = [];
   const flushParagraph = () => {
     if (!paragraph.length) return;
-    output.push(`<p>${paragraph.map(markdownInline).join('<br>')}</p>`);
+    output.push(`<p>${paragraph.map(inlineMarkdownHTML).join('<br>')}</p>`);
     paragraph = [];
   };
-  const closeList = () => {
-    if (!listType) return;
-    output.push(`</${listType}>`);
-    listType = '';
+  const closeLists = toDepth => {
+    while (listStack.length > toDepth) output.push(`</${listStack.pop().type}>`);
   };
   const flushQuote = () => {
     if (!quoteLines.length) return;
-    output.push(`<blockquote><p>${quoteLines.map(markdownInline).join('<br>')}</p></blockquote>`);
+    output.push(`<blockquote><p>${quoteLines.map(inlineMarkdownHTML).join('<br>')}</p></blockquote>`);
     quoteLines = [];
+  };
+  const openListItem = (indent, type, listItemHTML) => {
+    if (listStack.length && indent < listStack[listStack.length - 1].indent) closeLists(listStack.length - 1);
+    const top = listStack[listStack.length - 1];
+    if (!top || indent > top.indent) {
+      output.push(`<${type}>`);
+      listStack.push({ type, indent });
+    } else if (top.type !== type) {
+      output.push(`</${top.type}>`);
+      output.push(`<${type}>`);
+      listStack[listStack.length - 1] = { type, indent };
+    }
+    output.push(listItemHTML);
   };
   lines.forEach(line => {
     const fence = line.match(/^\s*```([a-z0-9_+-]*)\s*$/i);
     if (fence) {
-      flushParagraph(); closeList(); flushQuote();
+      flushParagraph(); closeLists(0); flushQuote();
       if (inCode) {
         output.push(`<pre><code${codeLanguage ? ` data-language="${escapeHTML(codeLanguage)}"` : ''}>${escapeHTML(codeLines.join('\n'))}</code></pre>`);
         codeLines = [];
@@ -333,45 +356,80 @@ function markdownToNoteHTML(markdown = '') {
     if (inCode) { codeLines.push(line); return; }
     const quote = line.match(/^\s*>\s?(.*)$/);
     if (quote) {
-      flushParagraph(); closeList();
+      flushParagraph(); closeLists(0);
       quoteLines.push(quote[1]);
       return;
     }
     flushQuote();
     const heading = line.match(/^(#{1,6})\s+(.+)$/);
     const horizontalRule = /^\s{0,3}(?:(?:-\s*){3,}|(?:\*\s*){3,}|(?:_\s*){3,})$/.test(line);
-    const task = line.match(/^\s*[-+*]\s+\[([ xX])\]\s+(.+)$/);
-    const unordered = line.match(/^\s*[-+*]\s+(.+)$/);
-    const ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+    const task = line.match(/^(\s*)[-+*]\s+\[([ xX])\]\s+(.+)$/);
+    const unordered = line.match(/^(\s*)[-+*]\s+(.+)$/);
+    const ordered = line.match(/^(\s*)\d+[.)]\s+(.+)$/);
     if (heading) {
-      flushParagraph(); closeList();
-      output.push(`<h${heading[1].length}>${markdownInline(heading[2])}</h${heading[1].length}>`);
+      flushParagraph(); closeLists(0);
+      output.push(`<h${heading[1].length}>${inlineMarkdownHTML(heading[2])}</h${heading[1].length}>`);
     } else if (horizontalRule) {
-      flushParagraph(); closeList();
+      flushParagraph(); closeLists(0);
       output.push('<hr>');
     } else if (task || unordered || ordered) {
       flushParagraph();
-      const nextListType = ordered ? 'ol' : 'ul';
-      if (listType !== nextListType) { closeList(); output.push(`<${nextListType}>`); listType = nextListType; }
-      if (task) {
-        const checked = task[1].toLowerCase() === 'x';
-        output.push(`<li class="markdown-task" data-checked="${checked}"><span class="markdown-task-box" contenteditable="false">${checked ? '☑' : '☐'}</span>${markdownInline(task[2])}</li>`);
-      } else output.push(`<li>${markdownInline((unordered || ordered)[1])}</li>`);
+      const match = task || unordered || ordered;
+      const indent = match[1].length;
+      const type = ordered ? 'ol' : 'ul';
+      const listItemHTML = task
+        ? `<li class="markdown-task" data-checked="${task[2].toLowerCase() === 'x'}"><span class="markdown-task-box" contenteditable="false">${task[2].toLowerCase() === 'x' ? '☑' : '☐'}</span>${inlineMarkdownHTML(task[3])}</li>`
+        : `<li>${inlineMarkdownHTML(match[2])}</li>`;
+      openListItem(indent, type, listItemHTML);
     } else if (!line.trim()) {
-      flushParagraph(); closeList();
+      flushParagraph(); closeLists(0);
     } else {
-      closeList();
+      closeLists(0);
       paragraph.push(line);
     }
   });
   if (inCode && codeLines.length) output.push(`<pre><code${codeLanguage ? ` data-language="${escapeHTML(codeLanguage)}"` : ''}>${escapeHTML(codeLines.join('\n'))}</code></pre>`);
-  flushParagraph(); closeList(); flushQuote();
+  flushParagraph(); closeLists(0); flushQuote();
   return output.join('') || '<p><br></p>';
 }
 
 function validDate(value) {
   return typeof value === 'string' && !Number.isNaN(Date.parse(value)) ? value : '';
 }
+
+/* ===================== 沉浸模式输入动画 =====================
+ * 只在沉浸编辑模式下生效：把新输入的文本临时包进 .note-type-in，
+ * CSS 动画（涌现 / 高亮渐隐）结束后保留在 DOM 中不回改——存储与模式
+ * 切换的序列化都会剥掉这层包裹，因此不会影响 item.body 与撤销栈。 */
+(() => {
+  const WRAP_CLASS = 'note-type-in';
+  const animationEnabled = () => {
+    const mode = document.documentElement.dataset.noteTypingAnimation || 'rise';
+    if (mode === 'off') return false;
+    if (document.body.classList.contains('acta-reduce-motion')) return false;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    return document.body.classList.contains('note-focus-mode');
+  };
+  const unwrap = root => root.querySelectorAll(`.${WRAP_CLASS}`).forEach(span => span.replaceWith(...span.childNodes));
+  const typingObserver = new MutationObserver(mutations => {
+    if (!animationEnabled()) return;
+    const noteBody = document.getElementById('noteBody');
+    if (!noteBody || noteBody.hidden) return;
+    // 先清掉上一轮的包裹层再包新文本，避免嵌套堆积。
+    unwrap(noteBody);
+    mutations.forEach(mutation => {
+      [...mutation.addedNodes].forEach(node => {
+        if (node.nodeType !== Node.TEXT_NODE) return;
+        if (!node.nodeValue || !noteBody.contains(node)) return;
+        const span = document.createElement('span');
+        span.className = WRAP_CLASS;
+        node.before(span);
+        span.appendChild(node);
+      });
+    });
+  });
+  typingObserver.observe(document.body, { childList: true, subtree: true, characterData: false });
+})();
 
 function legacyTodoStartAt(item, fallback = '') {
   if (!calendarDate(item?.due)) return fallback;
@@ -2104,8 +2162,16 @@ function bindNoteEditor(item) {
     const text = stripHTML(html);
     $('#noteStats').textContent = `${text.split(/\s+/).filter(Boolean).length} ${t('words')} · ${text.length} ${t('chars')}`;
   };
+  // 输入动画的临时包裹层只存在于编辑 DOM 中，存储前剥掉，item.body 始终干净。
+  const stripTypingAnimation = html => {
+    if (!html.includes('note-type-in')) return html;
+    const holder = document.createElement('div');
+    holder.innerHTML = html;
+    holder.querySelectorAll('.note-type-in').forEach(span => span.replaceWith(...span.childNodes));
+    return holder.innerHTML;
+  };
   const commitHTML = () => {
-    item.body = body.innerHTML;
+    item.body = stripTypingAnimation(body.innerHTML);
     updateStats(item.body);
     touchItem(item);
     syncEditorModifiedTime(item);
@@ -2475,9 +2541,15 @@ function bindNoteEditor(item) {
     if (document.body.classList.contains('acta-reduce-motion') || matchMedia('(prefers-reduced-motion: reduce)').matches) finish();
     else focusExitTimer = setTimeout(finish, 210);
   };
+  // 模式切换保真：进入源码模式时暂存可视化 DOM，若源码未被修改，
+  // 退出时直接恢复原文（零转换）；只有真正改过源码才走 MD→HTML 转换。
+  let visualHTMLBeforeSource = '';
+  let sourceDirty = false;
   const setMarkdownMode = enabled => {
     markdownMode = Boolean(enabled && source);
     if (markdownMode) {
+      visualHTMLBeforeSource = body.innerHTML;
+      sourceDirty = false;
       source.value = noteHTMLToMarkdown(body.innerHTML);
       body.hidden = true;
       source.hidden = false;
@@ -2487,8 +2559,12 @@ function bindNoteEditor(item) {
       requestAnimationFrame(() => source.focus());
     } else {
       if (source && !source.hidden) {
-        item.body = markdownToNoteHTML(source.value);
-        body.innerHTML = item.body;
+        if (!sourceDirty) {
+          body.innerHTML = visualHTMLBeforeSource;
+        } else {
+          item.body = markdownToNoteHTML(source.value);
+          body.innerHTML = item.body;
+        }
       }
       if (source) source.hidden = true;
       body.hidden = false;
@@ -2508,7 +2584,91 @@ function bindNoteEditor(item) {
   };
 
   $('#exportNote')?.addEventListener('click', () => exportNoteToFile(item));
-  body.addEventListener('input', commitHTML);
+  /* ===================== 可视化模式实时 Markdown =====================
+   * 行首键入 "# " / "> " / "- " / "1. " / "- [ ] " 时转换为对应块级格式，
+   * 闭合 "**xx**"、"`xx`" 等行内标记时立即替换为富文本元素；
+   * 全部通过 execCommand 完成，浏览器原生撤销栈保持可用。 */
+  let liveMarkdownBusy = false;
+  const liveInlineRules = [
+    { marker: '**', tag: 'strong' },
+    { marker: '~~', tag: 'del' },
+    { marker: '==', tag: 'mark' },
+    { marker: '`', tag: 'code' },
+    { marker: '*', tag: 'em' },
+    { marker: '_', tag: 'em' }
+  ];
+  const liveBlockFormats = { '#': 'h1', '##': 'h2', '###': 'h3', '>': 'blockquote' };
+  const applyLiveBlockMarkdown = () => {
+    const selection = window.getSelection();
+    if (!selection.rangeCount || !selection.isCollapsed) return false;
+    const range = selection.getRangeAt(0);
+    const node = range.startContainer;
+    if (node.nodeType !== Node.TEXT_NODE) return false;
+    const lineText = node.nodeValue.slice(0, range.startOffset);
+    if (!lineText.endsWith(' ')) return false;
+    const token = lineText.trimEnd();
+    let command = null;
+    let value = null;
+    let isTask = false;
+    if (liveBlockFormats[token]) { command = 'formatBlock'; value = liveBlockFormats[token]; }
+    else if (token === '-' || token === '*') command = 'insertUnorderedList';
+    else if (/^\d+[.)]$/.test(token)) command = 'insertOrderedList';
+    else if (token === '- [ ]' || token === '- [x]') { command = 'insertUnorderedList'; isTask = true; }
+    if (!command) return false;
+    const deleteRange = document.createRange();
+    deleteRange.setStart(node, 0);
+    deleteRange.setEnd(node, range.startOffset);
+    selection.removeAllRanges();
+    selection.addRange(deleteRange);
+    document.execCommand('delete', false, null);
+    document.execCommand(command, false, value);
+    if (isTask) {
+      const li = window.getSelection().anchorNode?.parentElement?.closest('li');
+      if (li) {
+        li.classList.add('markdown-task');
+        li.dataset.checked = token.endsWith('x') ? 'true' : 'false';
+        li.insertAdjacentHTML('afterbegin', `<span class="markdown-task-box" contenteditable="false">${token.endsWith('x') ? '☑' : '☐'}</span>`);
+      }
+    }
+    return true;
+  };
+  const applyLiveInlineMarkdown = () => {
+    const selection = window.getSelection();
+    if (!selection.rangeCount || !selection.isCollapsed) return false;
+    const range = selection.getRangeAt(0);
+    const node = range.startContainer;
+    if (node.nodeType !== Node.TEXT_NODE) return false;
+    const before = node.nodeValue.slice(0, range.startOffset);
+    for (const { marker, tag } of liveInlineRules) {
+      if (!before.endsWith(marker)) continue;
+      const contentEnd = before.length - marker.length;
+      const contentStart = before.lastIndexOf(marker, contentEnd - 1);
+      if (contentStart < 0) continue;
+      const content = before.slice(contentStart + marker.length, contentEnd);
+      if (!content || content.includes('\n')) continue;
+      const replace = document.createRange();
+      replace.setStart(node, contentStart);
+      replace.setEnd(node, range.startOffset);
+      selection.removeAllRanges();
+      selection.addRange(replace);
+      document.execCommand('insertHTML', false, `<${tag}>${escapeHTML(content)}</${tag}>`);
+      return true;
+    }
+    return false;
+  };
+  body.addEventListener('input', event => {
+    if (liveMarkdownBusy || event.isComposing) {
+      commitHTML();
+      return;
+    }
+    liveMarkdownBusy = true;
+    try {
+      applyLiveBlockMarkdown() || applyLiveInlineMarkdown();
+    } finally {
+      liveMarkdownBusy = false;
+    }
+    commitHTML();
+  });
   body.addEventListener('click', event => {
     const checkbox = event.target.closest('.markdown-task-box');
     if (!checkbox) return;
@@ -2544,7 +2704,10 @@ function bindNoteEditor(item) {
   markdownToggle.addEventListener('click', () => setMarkdownMode(!markdownMode));
   focusButton?.addEventListener('click', () => setFocusMode(true));
   exitFocusButton?.addEventListener('click', () => setFocusMode(false));
-  source?.addEventListener('input', commitMarkdown);
+  source?.addEventListener('input', () => {
+    sourceDirty = true;
+    commitMarkdown();
+  });
   source?.addEventListener('keydown', event => {
     const mod = event.metaKey || event.ctrlKey;
     if (event.key === 'Escape' && focusMode) {

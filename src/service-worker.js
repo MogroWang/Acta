@@ -1,6 +1,7 @@
-const CACHE_NAME = 'acta-3.0.0-handy';
+const CACHE_NAME = 'acta-3.0.0';
 const APP_SHELL = [
   './', './index.html', './styles.css', './interface.css', './renderer.js', './note-export.js', './interface.js', './splash.js', './theme-boot.js', './lib/purify.min.js', './lib/pdf-lib.min.js', './lib/fontkit.umd.min.js', './manifest.webmanifest',
+  './custom-select.js', './custom-datetime.js',
   './icons/Acta_weblogo.png', './icons/flag-cn.svg', './icons/flag-us.svg',
   './icons/app-icon-positive-page.png', './icons/app-icon-outlined-page.png', './icons/app-icon-original-simple.png',
   './icons/icon-96.png', './icons/icon-192.png', './icons/icon-512.png'

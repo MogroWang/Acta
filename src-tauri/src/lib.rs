@@ -295,7 +295,6 @@ async fn upload_library(folder: String, library: Value) -> Result<SyncResult, St
         let synced_at = timestamp();
         if library.get("format").and_then(Value::as_str) == Some("acta-data-folder-bundle") {
             write_portable_data_folder(&folder, &library)?;
-            absorb_handy_self_write(&folder);
             return Ok(SyncResult {
                 path: folder.to_string_lossy().into_owned(),
                 synced_at,
@@ -388,6 +387,61 @@ async fn inspect_folder(folder: String) -> Result<FolderInspection, String> {
             has_acta_data,
             sample,
         })
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DataFolderStats {
+    total_bytes: u64,
+    file_count: u64,
+    note_count: u64,
+    todo_count: u64,
+}
+
+#[tauri::command]
+async fn data_folder_stats(folder: String) -> Result<DataFolderStats, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let folder = require_folder(folder)?;
+        fn walk(dir: &Path, total_bytes: &mut u64, file_count: &mut u64) -> io::Result<()> {
+            for entry in fs::read_dir(dir)? {
+                let entry = entry?;
+                let metadata = entry.metadata()?;
+                if metadata.is_dir() {
+                    walk(&entry.path(), total_bytes, file_count)?;
+                } else {
+                    *total_bytes += metadata.len();
+                    *file_count += 1;
+                }
+            }
+            Ok(())
+        }
+        let mut stats = DataFolderStats {
+            total_bytes: 0,
+            file_count: 0,
+            note_count: 0,
+            todo_count: 0,
+        };
+        walk(&folder, &mut stats.total_bytes, &mut stats.file_count)
+            .map_err(|error| error.to_string())?;
+        // 条目计数以 manifest 索引为准，读不到时保持 0，让前端回退用内存数据展示。
+        if let Ok(content) = fs::read_to_string(folder.join(DATA_MANIFEST_FILE)) {
+            if let Ok(value) = serde_json::from_str::<Value>(&content) {
+                stats.note_count = value
+                    .get("notes")
+                    .and_then(Value::as_array)
+                    .map(|entries| entries.len() as u64)
+                    .unwrap_or(0);
+                stats.todo_count = value
+                    .get("todos")
+                    .and_then(Value::as_array)
+                    .map(|entries| entries.len() as u64)
+                    .unwrap_or(0);
+            }
+        }
+        Ok(stats)
     })
     .await
     .map_err(|error| error.to_string())?
@@ -1040,441 +1094,6 @@ fn clear_app_cache(window: WebviewWindow) -> Result<bool, String> {
     Ok(true)
 }
 
-/* ===================== Acta Handy 集成 =====================
- * Acta Handy 通过数据档案文件夹（acta-manifest 数据文件夹）读写待办与笔记。
- * Acta 侧的职责：写入授权标识、扫描外部改动、保留改动前副本以支持回档。
- * Acta 自己的上传（upload_library）也会写这些文件，因此上传后立即把快照
- * 刷成当前内容，避免把自己的写入误记为 Handy 的改动。 */
-
-const HANDY_DIRECTORY: &str = "handy";
-const HANDY_GRANT_FILE: &str = "grant.json";
-const HANDY_CHANGES_FILE: &str = "changes.jsonl";
-const HANDY_SNAPSHOT_DIRECTORY: &str = "snapshot";
-const HANDY_HISTORY_DIRECTORY: &str = "history";
-const HANDY_HISTORY_LIMIT: usize = 200;
-const HANDY_LOG_LIMIT: usize = 500;
-
-fn handy_dir(folder: &Path) -> PathBuf {
-    folder.join(HANDY_DIRECTORY)
-}
-
-fn handy_grant_path(folder: &Path) -> PathBuf {
-    handy_dir(folder).join(HANDY_GRANT_FILE)
-}
-
-/// Handy 只关心清单、归类与笔记/待办条目文件；其他路径一律不纳入监控。
-fn handy_relative_path(value: &str) -> Option<String> {
-    let normalized = value.replace('\\', "/");
-    let mut parts = normalized.split('/');
-    match parts.next()? {
-        DATA_MANIFEST_FILE | CLASSIFICATIONS_FILE => {
-            (parts.next().is_none()).then(|| normalized)
-        }
-        NOTES_DIRECTORY | TODOS_DIRECTORY => {
-            let file = parts.next()?;
-            (parts.next().is_none()
-                && safe_data_item_file_name(file, &["json", "md"]).is_ok())
-            .then(|| normalized)
-        }
-        _ => None,
-    }
-}
-
-fn handy_store_name(relative: &str) -> String {
-    relative.replace('/', "__")
-}
-
-fn collect_handy_files(folder: &Path) -> Result<std::collections::BTreeMap<String, Vec<u8>>, String> {
-    let mut files = std::collections::BTreeMap::new();
-    for top in [DATA_MANIFEST_FILE, CLASSIFICATIONS_FILE] {
-        let path = folder.join(top);
-        if path.is_file() {
-            files.insert(top.to_string(), fs::read(&path).map_err(|error| error.to_string())?);
-        }
-    }
-    for directory in [NOTES_DIRECTORY, TODOS_DIRECTORY] {
-        let Ok(entries) = fs::read_dir(folder.join(directory)) else { continue };
-        for entry in entries.flatten() {
-            if !entry.file_type().map(|kind| kind.is_file()).unwrap_or(false) {
-                continue;
-            }
-            let name = entry.file_name().to_string_lossy().into_owned();
-            let relative = format!("{directory}/{name}");
-            if handy_relative_path(&relative).is_none() {
-                continue;
-            }
-            files.insert(relative, fs::read(entry.path()).map_err(|error| error.to_string())?);
-        }
-    }
-    Ok(files)
-}
-
-/// 从条目内容中提取一个可读标题，供改动记录展示。
-fn handy_change_summary(relative: &str, bytes: &[u8]) -> String {
-    if relative == DATA_MANIFEST_FILE || relative == CLASSIFICATIONS_FILE {
-        return String::new();
-    }
-    let file_name = relative.rsplit('/').next().unwrap_or(relative);
-    if file_name.ends_with(".md") {
-        let text = String::from_utf8_lossy(bytes);
-        let line = text
-            .lines()
-            .map(str::trim)
-            .find(|line| !line.is_empty())
-            .unwrap_or_default()
-            .trim_start_matches('#')
-            .trim();
-        return line.chars().take(60).collect();
-    }
-    if let Ok(value) = serde_json::from_slice::<Value>(bytes) {
-        if let Some(title) = value.get("title").and_then(Value::as_str) {
-            return title.chars().take(60).collect();
-        }
-    }
-    Path::new(file_name)
-        .file_stem()
-        .and_then(|stem| stem.to_str())
-        .unwrap_or(file_name)
-        .to_string()
-}
-
-fn handy_read_log(folder: &Path) -> Vec<Value> {
-    let raw = fs::read_to_string(handy_dir(folder).join(HANDY_CHANGES_FILE)).unwrap_or_default();
-    raw.lines()
-        .filter_map(|line| serde_json::from_str::<Value>(line).ok())
-        .collect()
-}
-
-fn handy_write_log(folder: &Path, entries: &[Value]) -> Result<(), String> {
-    let mut content = String::new();
-    for entry in entries.iter().rev().take(HANDY_LOG_LIMIT) {
-        content.push_str(&serde_json::to_string(entry).map_err(|error| error.to_string())?);
-        content.push('\n');
-    }
-    fs::write(handy_dir(folder).join(HANDY_CHANGES_FILE), content)
-        .map_err(|error| error.to_string())
-}
-
-fn handy_append_log(folder: &Path, entry: &Value) -> Result<(), String> {
-    use std::io::Write;
-    fs::create_dir_all(handy_dir(folder)).map_err(|error| error.to_string())?;
-    let mut file = fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(handy_dir(folder).join(HANDY_CHANGES_FILE))
-        .map_err(|error| error.to_string())?;
-    let mut line = serde_json::to_string(entry).map_err(|error| error.to_string())?;
-    line.push('\n');
-    file.write_all(line.as_bytes()).map_err(|error| error.to_string())
-}
-
-/// 把当前数据文件夹的所有受监控文件写入快照副本与索引（不记录改动）。
-fn refresh_handy_snapshot(folder: &Path) -> Result<(), String> {
-    let files = collect_handy_files(folder)?;
-    let snapshot_dir = handy_dir(folder).join(HANDY_SNAPSHOT_DIRECTORY);
-    fs::create_dir_all(&snapshot_dir).map_err(|error| error.to_string())?;
-    let mut index = Map::new();
-    for (relative, bytes) in &files {
-        fs::write(snapshot_dir.join(handy_store_name(relative)), bytes)
-            .map_err(|error| error.to_string())?;
-        index.insert(relative.clone(), json!({ "size": bytes.len() }));
-    }
-    write_json(&snapshot_dir.join("index.json"), &json!({ "format": "acta-handy-snapshot", "version": 1, "files": index }))
-}
-
-/// Acta 自己上传档案后调用：授权开启时把快照刷成当前内容，吸收自身写入。
-fn absorb_handy_self_write(folder: &Path) {
-    if handy_grant_path(folder).is_file() {
-        let _ = refresh_handy_snapshot(folder);
-    }
-}
-
-fn prune_handy_history(folder: &Path) {
-    let history_dir = handy_dir(folder).join(HANDY_HISTORY_DIRECTORY);
-    let Ok(entries) = fs::read_dir(&history_dir) else { return };
-    let mut names: Vec<String> = entries
-        .flatten()
-        .filter(|entry| entry.file_type().map(|kind| kind.is_file()).unwrap_or(false))
-        .map(|entry| entry.file_name().to_string_lossy().into_owned())
-        .filter(|name| name.chars().all(|character| character.is_ascii_digit() || character == '-'))
-        .collect();
-    if names.len() <= HANDY_HISTORY_LIMIT {
-        return;
-    }
-    let excess = names.len() - HANDY_HISTORY_LIMIT;
-    names.sort();
-    for name in names.into_iter().take(excess) {
-        let _ = fs::remove_file(history_dir.join(name));
-    }
-}
-
-#[tauri::command]
-async fn handy_detect() -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        #[cfg(target_os = "windows")]
-        {
-            use std::os::windows::process::CommandExt;
-            const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-            for name in ["Acta Handy.exe", "acta-handy.exe", "ActaHandy.exe"] {
-                let output = std::process::Command::new("tasklist")
-                    .args(["/FI", &format!("IMAGENAME eq {name}"), "/NH", "/FO", "CSV"])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .output();
-                if let Ok(output) = output {
-                    let text = String::from_utf8_lossy(&output.stdout).to_lowercase();
-                    if text.contains(&name.to_lowercase()) {
-                        return Ok(json!({ "running": true, "name": name }));
-                    }
-                }
-            }
-            Ok(json!({ "running": false }))
-        }
-        #[cfg(not(target_os = "windows"))]
-        {
-            for pattern in ["Acta Handy", "acta-handy"] {
-                let output = std::process::Command::new("pgrep").args(["-f", pattern]).output();
-                if output.map(|result| !result.stdout.is_empty()).unwrap_or(false) {
-                    return Ok(json!({ "running": true, "name": pattern }));
-                }
-            }
-            Ok(json!({ "running": false }))
-        }
-    })
-    .await
-    .map_err(|error| error.to_string())?
-}
-
-/// 写入或撤回 Handy 的读写授权标识（数据档案文件夹 handy/grant.json）。
-#[tauri::command]
-async fn handy_grant(folder: String, granted: bool) -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let folder = require_folder(folder)?;
-        let grant_path = handy_grant_path(&folder);
-        if granted {
-            let directory = handy_dir(&folder);
-            fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
-            let payload = json!({
-                "format": "acta-handy-grant",
-                "version": 1,
-                "grantedAt": timestamp(),
-                "grantedBy": "com.mws.acta"
-            });
-            write_json(&grant_path, &payload)?;
-            // 授权即刻生效的基线：当前内容就是"改动前"状态。
-            refresh_handy_snapshot(&folder)?;
-        } else {
-            match fs::remove_file(&grant_path) {
-                Ok(()) => {}
-                Err(error) if error.kind() == ErrorKind::NotFound => {}
-                Err(error) => return Err(error.to_string()),
-            }
-        }
-        Ok(json!({ "granted": granted, "path": grant_path.to_string_lossy() }))
-    })
-    .await
-    .map_err(|error| error.to_string())?
-}
-
-/// 授权状态与记录数量，供设置面板恢复显示。
-#[tauri::command]
-async fn handy_status(folder: String) -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let folder = require_folder(folder)?;
-        let grant_path = handy_grant_path(&folder);
-        let granted = grant_path.is_file();
-        let granted_at = if granted {
-            fs::read_to_string(&grant_path)
-                .ok()
-                .and_then(|raw| serde_json::from_str::<Value>(&raw).ok())
-                .and_then(|value| value.get("grantedAt").and_then(Value::as_str).map(str::to_owned))
-                .unwrap_or_default()
-        } else {
-            String::new()
-        };
-        let changes = handy_read_log(&folder);
-        Ok(json!({
-            "granted": granted,
-            "grantedAt": granted_at,
-            "path": grant_path.to_string_lossy(),
-            "changes": changes.len()
-        }))
-    })
-    .await
-    .map_err(|error| error.to_string())?
-}
-
-/// 扫描数据档案的外部改动：与快照对比，把差异记录进日志并保存改动前副本。
-#[tauri::command]
-async fn handy_scan_changes(folder: String) -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let folder = require_folder(folder)?;
-        if !handy_grant_path(&folder).is_file() {
-            return Ok(json!({ "enabled": false, "changes": [] }));
-        }
-        let snapshot_dir = handy_dir(&folder).join(HANDY_SNAPSHOT_DIRECTORY);
-        let index_path = snapshot_dir.join("index.json");
-        let baseline = !index_path.is_file();
-        let old_index: Vec<String> = if baseline {
-            Vec::new()
-        } else {
-            read_json(&index_path)
-                .ok()
-                .and_then(|value| value.get("files").and_then(Value::as_object).cloned())
-                .map(|files| files.keys().cloned().collect())
-                .unwrap_or_default()
-        };
-        let current = collect_handy_files(&folder)?;
-        let history_dir = handy_dir(&folder).join(HANDY_HISTORY_DIRECTORY);
-        let mut changes: Vec<Value> = Vec::new();
-        let mut new_index = Map::new();
-
-        for (relative, bytes) in &current {
-            let stored = snapshot_dir.join(handy_store_name(relative));
-            let previous = fs::read(&stored).ok();
-            if !baseline && previous.as_deref() != Some(bytes.as_slice()) {
-                let kind = if previous.is_some() { "modified" } else { "added" };
-                let change_id = format!(
-                    "{}-{}",
-                    Utc::now().timestamp_millis(),
-                    changes.len()
-                );
-                if let Some(previous_bytes) = &previous {
-                    fs::create_dir_all(&history_dir).map_err(|error| error.to_string())?;
-                    fs::write(history_dir.join(&change_id), previous_bytes)
-                        .map_err(|error| error.to_string())?;
-                }
-                changes.push(json!({
-                    "id": change_id,
-                    "kind": kind,
-                    "file": relative,
-                    "at": timestamp(),
-                    "summary": handy_change_summary(relative, bytes)
-                }));
-            }
-            fs::create_dir_all(&snapshot_dir).map_err(|error| error.to_string())?;
-            fs::write(&stored, bytes).map_err(|error| error.to_string())?;
-            new_index.insert(relative.clone(), json!({ "size": bytes.len() }));
-        }
-
-        if !baseline {
-            for relative in &old_index {
-                if current.contains_key(relative) {
-                    continue;
-                }
-                let stored = snapshot_dir.join(handy_store_name(relative));
-                if let Ok(previous_bytes) = fs::read(&stored) {
-                    let change_id = format!(
-                        "{}-{}",
-                        Utc::now().timestamp_millis(),
-                        changes.len()
-                    );
-                    fs::create_dir_all(&history_dir).map_err(|error| error.to_string())?;
-                    fs::write(history_dir.join(&change_id), &previous_bytes)
-                        .map_err(|error| error.to_string())?;
-                    changes.push(json!({
-                        "id": change_id,
-                        "kind": "removed",
-                        "file": relative,
-                        "at": timestamp(),
-                        "summary": handy_change_summary(relative, &previous_bytes)
-                    }));
-                }
-                let _ = fs::remove_file(&stored);
-            }
-        }
-
-        write_json(&index_path, &json!({ "format": "acta-handy-snapshot", "version": 1, "files": new_index }))?;
-        for change in &changes {
-            handy_append_log(&folder, change)?;
-        }
-        prune_handy_history(&folder);
-        Ok(json!({ "enabled": true, "changes": changes }))
-    })
-    .await
-    .map_err(|error| error.to_string())?
-}
-
-/// 读取改动记录（新→旧），供设置面板展示。
-#[tauri::command]
-async fn handy_changes(folder: String) -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let folder = require_folder(folder)?;
-        let mut changes = handy_read_log(&folder);
-        changes.reverse();
-        Ok(json!({ "changes": changes }))
-    })
-    .await
-    .map_err(|error| error.to_string())?
-}
-
-fn handy_entry_id(entry: &Value) -> &str {
-    entry.get("id").and_then(Value::as_str).unwrap_or_default()
-}
-
-/// 回档一条改动：把改动前副本写回原文件（或移除 Handy 新增的文件）。
-#[tauri::command]
-async fn handy_restore_change(folder: String, change_id: String) -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let folder = require_folder(folder)?;
-        let valid_id = !change_id.is_empty()
-            && change_id.chars().all(|character| character.is_ascii_digit() || character == '-');
-        if !valid_id {
-            return Err("改动记录编号无效".into());
-        }
-        let log = handy_read_log(&folder);
-        let change = log
-            .iter()
-            .find(|entry| handy_entry_id(entry) == change_id)
-            .ok_or_else(|| "找不到这条改动记录".to_string())?;
-        let kind = change.get("kind").and_then(Value::as_str).unwrap_or_default().to_string();
-        let relative = change
-            .get("file")
-            .and_then(Value::as_str)
-            .and_then(handy_relative_path)
-            .ok_or_else(|| "改动记录包含无效的文件路径".to_string())?;
-        let summary = change.get("summary").and_then(Value::as_str).unwrap_or_default().to_string();
-        let target = folder.join(&relative);
-        let snapshot_dir = handy_dir(&folder).join(HANDY_SNAPSHOT_DIRECTORY);
-        let stored = snapshot_dir.join(handy_store_name(&relative));
-        match kind.as_str() {
-            "modified" | "removed" => {
-                let previous = fs::read(handy_dir(&folder).join(HANDY_HISTORY_DIRECTORY).join(&change_id))
-                    .map_err(|_| "改动前副本已被清理，无法回档".to_string())?;
-                if let Some(parent) = target.parent() {
-                    fs::create_dir_all(parent).map_err(|error| error.to_string())?;
-                }
-                fs::write(&target, &previous).map_err(|error| error.to_string())?;
-                let _ = fs::write(&stored, &previous);
-            }
-            "added" => {
-                match fs::remove_file(&target) {
-                    Ok(()) => {}
-                    Err(error) if error.kind() == ErrorKind::NotFound => {}
-                    Err(error) => return Err(error.to_string()),
-                }
-                let _ = fs::remove_file(&stored);
-            }
-            _ => return Err("这条记录不支持回档".into()),
-        }
-        // 日志中移除该条，追加一条 restored 说明，保持记录可追溯。
-        let remaining: Vec<Value> = log
-            .into_iter()
-            .filter(|entry| handy_entry_id(entry) != change_id)
-            .collect();
-        handy_write_log(&folder, &remaining)?;
-        handy_append_log(&folder, &json!({
-            "id": "",
-            "kind": "restored",
-            "file": relative,
-            "at": timestamp(),
-            "summary": summary
-        }))?;
-        Ok(json!({ "restored": true }))
-    })
-    .await
-    .map_err(|error| error.to_string())?
-}
-
 /// Remove any service worker before the webview loads so this build always runs its own
 /// embedded assets.
 ///
@@ -1598,12 +1217,7 @@ pub fn run() {
             export_note,
             export_assets,
             clear_app_cache,
-            handy_detect,
-            handy_grant,
-            handy_status,
-            handy_scan_changes,
-            handy_changes,
-            handy_restore_change,
+            data_folder_stats,
             set_app_icon,
             save_theme_color,
             reveal_window,
