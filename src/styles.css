@@ -415,15 +415,16 @@ html[data-note-toolbar-position="top"] .note-editor .note-toolbar { top: 8px; bo
     backdrop-filter: blur(18px) saturate(1.25);
     display: block;
   }
+  /* 中列留白给悬浮的圆形新建按钮，四个入口两两分列左右 */
   .smart-nav {
     width: 100%; height: 62px; margin: 0;
-    display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 2px;
+    display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 64px minmax(0,1fr) minmax(0,1fr); gap: 2px;
   }
   .smart-nav button { height: 58px; padding: 5px 2px; justify-content: center; border-radius: 12px; }
   .smart-nav button:nth-child(1) { grid-column: 1; }
   .smart-nav button:nth-child(2) { grid-column: 2; }
-  .smart-nav button:nth-child(3) { grid-column: 3; }
-  .smart-nav button:nth-child(4) { grid-column: 4; }
+  .smart-nav button:nth-child(3) { grid-column: 4; }
+  .smart-nav button:nth-child(4) { grid-column: 5; }
   .smart-nav button:nth-child(5), .smart-nav button[data-view="stats"] { display: none; }
   .smart-nav button > span { flex-direction: column; gap: 4px; font-size: calc(10px * var(--acta-font-scale)); line-height: 1.05; }
   .smart-nav button svg { width: 19px; height: 19px; }
