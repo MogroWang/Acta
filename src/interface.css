@@ -2120,3 +2120,14 @@ body.trash-view .list-footer { background: color-mix(in srgb, var(--note-soft) 1
 .data-stats-tile span { color: var(--muted); font-size: calc(9px * var(--acta-font-scale)); }
 .data-stats-path { max-width: 100%; }
 
+/* 系统"减少透明度"时,半透明表面换成实底、去掉背景模糊,层级改由边线
+   与阴影承担——与 prefers-reduced-motion 平行的无障碍响应。 */
+@media (prefers-reduced-transparency: reduce) {
+  .settings-backdrop { background: rgba(25,29,25,.5); backdrop-filter: none; }
+  .sync-notice { background: var(--paper); backdrop-filter: none; }
+  .relation-dialog::backdrop, .note-export-dialog::backdrop { backdrop-filter: none; }
+  body.note-focus-mode .note-toolbar { background: var(--panel); backdrop-filter: none; }
+  .stats-toolbar { background: var(--paper); backdrop-filter: none; }
+  .stats-toolbar::after { display: none; }
+}
+

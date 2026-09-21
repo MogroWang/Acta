@@ -1,4 +1,4 @@
-const CACHE_NAME = 'acta-3.0.0';
+const CACHE_NAME = 'acta-3.1.0';
 const APP_SHELL = [
   './', './index.html', './styles.css', './interface.css', './renderer.js', './note-export.js', './interface.js', './splash.js', './theme-boot.js', './lib/purify.min.js', './lib/pdf-lib.min.js', './lib/fontkit.umd.min.js', './manifest.webmanifest',
   './custom-select.js', './custom-datetime.js',

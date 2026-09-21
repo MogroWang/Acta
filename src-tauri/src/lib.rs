@@ -896,7 +896,12 @@ fn set_macos_dock_icon(bytes: &[u8]) -> Result<(), String> {
     use objc2_foundation::NSData;
 
     let mtm = MainThreadMarker::new().ok_or_else(|| "应用图标只能在主线程更新".to_string())?;
-    let data = NSData::with_bytes(bytes);
+    let payload = if macos_version_major().unwrap_or(0) >= 26 {
+        macos_full_bleed_dock_bytes(bytes)
+    } else {
+        bytes.to_vec()
+    };
+    let data = NSData::with_bytes(&payload);
     let image = NSImage::initWithData(NSImage::alloc(), &data)
         .ok_or_else(|| "无法读取应用图标".to_string())?;
     let application = NSApplication::sharedApplication(mtm);
@@ -904,6 +909,72 @@ fn set_macos_dock_icon(bytes: &[u8]) -> Result<(), String> {
         application.setApplicationIconImage(Some(&image));
     }
     Ok(())
+}
+
+/// macOS 26 (Tahoe) 起系统会为 Dock 图标统一叠加 Liquid Glass 圆角遮罩。
+/// 内置预设与用户上传的图标是带透明边距的传统版式，直接交给系统遮罩
+/// 会被二次收小一圈。这里在 26+ 上把非透明内容铺满画布（full-bleed），
+/// 让遮罩裁出的尺寸与新系统应用一致；更早的系统不渲染该遮罩，保留原始
+/// 资产。只影响本次设置 Dock 的位图，持久化的仍是用户选择的原始数据，
+/// 图标切换与启动恢复链路不变。
+#[cfg(target_os = "macos")]
+fn macos_full_bleed_dock_bytes(bytes: &[u8]) -> Vec<u8> {
+    const TARGET_EDGE: u32 = 512;
+    const ALPHA_THRESHOLD: u8 = 8;
+    let Ok(image) = image::load_from_memory(bytes) else {
+        return bytes.to_vec();
+    };
+    let rgba = image.to_rgba8();
+    let (width, height) = rgba.dimensions();
+    if width == 0 || height == 0 {
+        return bytes.to_vec();
+    }
+    let mut left = u32::MAX;
+    let mut top = u32::MAX;
+    let mut right = 0;
+    let mut bottom = 0;
+    let mut has_content = false;
+    for (x, y, pixel) in rgba.enumerate_pixels() {
+        if pixel.0[3] > ALPHA_THRESHOLD {
+            has_content = true;
+            left = left.min(x);
+            top = top.min(y);
+            right = right.max(x);
+            bottom = bottom.max(y);
+        }
+    }
+    if !has_content {
+        return bytes.to_vec();
+    }
+    let content_width = right - left + 1;
+    let content_height = bottom - top + 1;
+    // 内容已铺满（或近乎铺满）画布时无需处理。
+    if content_width * 100 >= width * 98 && content_height * 100 >= height * 98 {
+        return bytes.to_vec();
+    }
+    let cropped = image::imageops::crop_imm(&rgba, left, top, content_width, content_height).to_image();
+    let full_bleed = image::DynamicImage::ImageRgba8(cropped)
+        .resize_exact(TARGET_EDGE, TARGET_EDGE, image::imageops::FilterType::Lanczos3);
+    let mut output = Vec::new();
+    match full_bleed.write_to(&mut std::io::Cursor::new(&mut output), image::ImageFormat::Png) {
+        Ok(()) if !output.is_empty() => output,
+        _ => bytes.to_vec(),
+    }
+}
+
+/// 读取 macOS 主版本号（如 26），进程内缓存；读取失败返回 None，
+/// 调用方按"旧系统"处理（不做 full-bleed 处理，行为与历史版本一致）。
+#[cfg(target_os = "macos")]
+fn macos_version_major() -> Option<u32> {
+    static CACHE: std::sync::OnceLock<Option<u32>> = std::sync::OnceLock::new();
+    *CACHE.get_or_init(|| {
+        let output = std::process::Command::new("sw_vers")
+            .arg("-productVersion")
+            .output()
+            .ok()?;
+        let version = String::from_utf8_lossy(&output.stdout);
+        version.trim().split('.').next()?.parse().ok()
+    })
 }
 
 #[tauri::command]

@@ -415,20 +415,34 @@ function validDate(value) {
     if (!animationEnabled()) return;
     const noteBody = document.getElementById('noteBody');
     if (!noteBody || noteBody.hidden) return;
-    // 先清掉上一轮的包裹层再包新文本，避免嵌套堆积。
-    unwrap(noteBody);
+    const freshNodes = [];
     mutations.forEach(mutation => {
       [...mutation.addedNodes].forEach(node => {
-        if (node.nodeType !== Node.TEXT_NODE) return;
-        if (!node.nodeValue || !noteBody.contains(node)) return;
+        if (node.nodeType === Node.TEXT_NODE && node.nodeValue && noteBody.contains(node)) freshNodes.push(node);
+      });
+    });
+    if (!freshNodes.length) return;
+    // 断开观察再改 DOM：unwrap 与包裹本身也产生 childList 变化，若被同一
+    // observer 捕获会互相触发成自激循环，大文档时主线程被完全占满。
+    typingObserver.disconnect();
+    unwrap(noteBody);
+    // 打字一次只会带来一两个新文本节点；execCommand/粘贴会把整段重排出
+    // 成百上千个,那不是输入,不播放输入动画,只清理已有包裹层。
+    if (freshNodes.length <= 8) {
+      freshNodes.forEach(node => {
+        if (!node.isConnected || !noteBody.contains(node)) return;
         const span = document.createElement('span');
         span.className = WRAP_CLASS;
         node.before(span);
         span.appendChild(node);
       });
-    });
+    }
+    typingObserver.observe(document.body, { childList: true, subtree: true, characterData: false });
   });
   typingObserver.observe(document.body, { childList: true, subtree: true, characterData: false });
+  // 存储前剥除包裹层：交给 bindNoteEditor 的 commitHTML 直接在 DOM 上剥，
+  // 免去"读 HTML→解析→再序列化"的整篇往返。
+  window.__actaUnwrapTypingWrappers = unwrap;
 })();
 
 function legacyTodoStartAt(item, fallback = '') {
@@ -2162,16 +2176,11 @@ function bindNoteEditor(item) {
     const text = stripHTML(html);
     $('#noteStats').textContent = `${text.split(/\s+/).filter(Boolean).length} ${t('words')} · ${text.length} ${t('chars')}`;
   };
-  // 输入动画的临时包裹层只存在于编辑 DOM 中，存储前剥掉，item.body 始终干净。
-  const stripTypingAnimation = html => {
-    if (!html.includes('note-type-in')) return html;
-    const holder = document.createElement('div');
-    holder.innerHTML = html;
-    holder.querySelectorAll('.note-type-in').forEach(span => span.replaceWith(...span.childNodes));
-    return holder.innerHTML;
-  };
+  // 输入动画的临时包裹层只存在于编辑 DOM 中，提交存储前直接在 DOM 上剥掉，
+  // item.body 始终干净；比"整篇 HTML→解析→序列化"省一次全文往返。
   const commitHTML = () => {
-    item.body = stripTypingAnimation(body.innerHTML);
+    if (body.querySelector('.note-type-in')) window.__actaUnwrapTypingWrappers?.(body);
+    item.body = body.innerHTML;
     updateStats(item.body);
     touchItem(item);
     syncEditorModifiedTime(item);
@@ -2756,8 +2765,15 @@ function bindNoteEditor(item) {
     if (handled) { event.preventDefault(); event.stopPropagation(); }
   });
   if (window.__actaNoteToolbarSelectionHandler) document.removeEventListener('selectionchange', window.__actaNoteToolbarSelectionHandler);
-  window.__actaNoteToolbarSelectionHandler = syncToolbarState;
-  document.addEventListener('selectionchange', syncToolbarState);
+  // selectionchange 在拖选与格式化后高频触发，其中 queryCommandState 与
+  // 逐按钮的 DOM 查询在大文档上代价可观；合并到每帧最多一次。
+  let toolbarSyncFrame = 0;
+  const scheduleToolbarSync = () => {
+    if (toolbarSyncFrame) return;
+    toolbarSyncFrame = requestAnimationFrame(() => { toolbarSyncFrame = 0; syncToolbarState(); });
+  };
+  window.__actaNoteToolbarSelectionHandler = scheduleToolbarSync;
+  document.addEventListener('selectionchange', scheduleToolbarSync);
 }
 
 function addTask(item) {

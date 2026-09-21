@@ -71,6 +71,16 @@ jobs:
         run: npm ci
       - name: Build app and dmg
         run: npm run macos:build
+      - name: Strip quarantine attribute from app bundle
+        shell: bash
+        run: |
+          # 未签名/未公证的 app 带着 quarantine 扩展属性时，Gatekeeper 会直接
+          # 报“已损坏”。构建产物里任何环节（工具链、缓存恢复）意外写入的
+          # quarantine 都在这里清掉，保证 dmg 里的 .app 与上传产物不带该属性。
+          app_path=$(ls -d src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app 2>/dev/null | head -n 1)
+          if [ -z "$app_path" ]; then echo "No app bundle found." >&2; exit 1; fi
+          sudo xattr -r -d com.apple.quarantine "$app_path" 2>/dev/null || true
+          echo "Cleared com.apple.quarantine on: $app_path"
       - name: Collect dmg
         shell: bash
         run: |
@@ -78,6 +88,7 @@ jobs:
           found=$(ls src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg 2>/dev/null | head -n 1)
           if [ -z "$found" ]; then echo "No dmg found in bundle output." >&2; exit 1; fi
           cp "$found" "dist/Acta-${{ steps.ver.outputs.version }}-macos-arm64.dmg"
+          sudo xattr -r -d com.apple.quarantine "dist/Acta-${{ steps.ver.outputs.version }}-macos-arm64.dmg" 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         with:
           name: Acta-${{ steps.ver.outputs.version }}-macos-arm64

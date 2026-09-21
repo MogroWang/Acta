@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version v3.0.0</strong>
+  <strong>Current version v3.1.0</strong>
 </p>
 
 Acta is a local-first notes and tasks app that brings writing, action, and organization into one calm workspace. The project shares a single web interface across Tauri desktop apps for Windows/macOS, a Capacitor Android app, and a modern-browser PWA.
@@ -21,7 +21,7 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 - A year/month/week/day calendar replacing Today: week numbers in the compact month view, independently scrollable desktop/mobile week layouts, and direct task/subtask completion in week and day views
 - A summary page (formerly statistics) as a notes-and-tasks list: gather items created in a chosen period, list every subtask in full, tick some, and make a list picture in one click; a "Data statistics" dialog in the sidebar's lower-left dock reports the profile's total file size, file count, notes, tasks, classifications, and trash count
 - A note base font-size slider that scales body text and every heading level together; heading size and style remain independently adjustable, and line spacing is now a slider over 1.0–2.0; Markdown syntax typed in the visual editor (headings, lists, quotes, bold/italic, and more) applies instantly, and newly typed text in focus mode can play a gentle rise or highlight-fade animation
-- First-run OOBE onboarding: set the software data folder, theme and interface font, launch animation, and app icon step by step; it can be re-run from general settings, and the software data location can be changed later
+- First-run OOBE onboarding: set the software data folder, theme and interface font, launch animation, and app icon step by step; it can be re-run from general settings, and the software data location can be changed later. On macOS 26 and later the app icon is adapted automatically to the new Dock corner-radius spec, without affecting custom or preset icon switching
 - MWS Light / MWS Dark brand themes (primary #FF6666, secondary #66CC66; the light theme paints the sidebar and titlebar in the brand colors) plus three previewable launch animations with a playback-speed control
 - Deleting offers move-to-trash or delete-now; the trash is never emptied automatically and supports restore, delete-forever, and empty-all
 - Folders, smart views, combinable task/note filters, and unified search
@@ -113,6 +113,18 @@ npm test
 ```
 
 The smoke test covers default task classification, creation/start/due times, mobile calendar interaction, week-list scrolling, direct task/subtask completion, IME composition, strict view filtering, bidirectional links, OOBE onboarding, custom select menus, MWS themes, launch-animation speed semantics, the app-icon preset fallback, and Markdown round-trips.
+
+## Troubleshooting
+
+### macOS says the app "is damaged and can't be opened"
+
+Acta's macOS builds are not code-signed or notarized by Apple, so a DMG downloaded through a browser gets the system quarantine attribute; after dragging the app out, Gatekeeper may report it as damaged. If you trust the download source, clear the attribute in Terminal and open the app again (replace the path with your actual install location):
+
+```bash
+sudo xattr -r -d com.apple.quarantine "/Applications/Acta · 行记.app"
+```
+
+A `No such xattr` message for individual files just means that file had no quarantine attribute and can be ignored. The build pipeline also runs the same cleanup on its packaged output so downloads are less likely to trigger this.
 
 ## License
 

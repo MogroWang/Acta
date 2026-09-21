@@ -1,6 +1,6 @@
 [package]
 name = "acta"
-version = "3.0.0"
+version = "3.1.0"
 description = "Acta · 行记"
 authors = ["MogroWang Studio"]
 edition = "2021"
@@ -25,6 +25,8 @@ tauri-plugin-opener = "2"
 url = "2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
+# 图标 macOS 26+ 适配：解码/裁切/缩放 Dock 位图用（与 tauri 内置 image 同源）。
+image = { version = "0.25", default-features = false, features = ["png"] }
 objc2 = "0.6.2"
 objc2-app-kit = { version = "0.3.2", default-features = false, features = ["NSApplication", "NSImage", "NSResponder"] }
 objc2-foundation = { version = "0.3.2", default-features = false, features = ["NSData", "NSObject"] }
