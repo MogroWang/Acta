@@ -20,7 +20,7 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 - High, medium, and low task priorities, plus subtasks, progress, immutable creation time, and optional start/due times
 - A year/month/week/day calendar replacing Today: week numbers in the compact month view, independently scrollable desktop/mobile week layouts, and direct task/subtask completion in week and day views
 - A summary page (formerly statistics) as a notes-and-tasks list: gather items created in a chosen period, list every subtask in full, tick some, and make a list picture in one click; a "Data statistics" dialog in the sidebar's lower-left dock reports the profile's total file size, file count, notes, tasks, classifications, and trash count
-- A note base font-size slider that scales body text and every heading level together; heading size and style remain independently adjustable, and line spacing is now a slider over 1.0–2.0; Markdown syntax typed in the visual editor (headings, lists, quotes, bold/italic, and more) applies instantly
+- A note base font-size slider that scales body text and every heading level together; heading size and heading font remain independently adjustable (serif, rounded, monospace, or a custom font), with separate sliders for in-paragraph line spacing and paragraph spacing; Markdown syntax typed in the visual editor (headings, lists, quotes, bold/italic, and more) applies instantly
 - First-run OOBE onboarding: set the software data folder, theme and interface font, launch animation, and app icon step by step; it can be re-run from general settings, and the software data location can be changed later. On macOS 26 and later the app icon is adapted automatically to the new Dock corner-radius spec, without affecting custom or preset icon switching
 - MWS Light / MWS Dark brand themes (primary #FF6666, secondary #66CC66; the light theme paints the sidebar and titlebar in the brand colors) plus three previewable launch animations with a playback-speed control
 - Deleting offers move-to-trash or delete-now; the trash is never emptied automatically and supports restore, delete-forever, and empty-all
@@ -29,7 +29,7 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 - A desktop context menu with cut, copy, paste, and select all for text, plus copy for any selected text
 - Simplified Chinese, Traditional Chinese, and English interfaces with theme and font settings
 - All dropdown menus, scrollbars, sliders, date-time pickers, and settings toggles are custom-drawn controls; hover feedback uses scale instead of shifting, keeping motion restrained and smooth
-- Local data folders, OneDrive local-folder sync, and WebDAV sync
+- Local data folders and WebDAV sync
 - Android local notifications, system file pickers, and Storage Access Framework integration
 - Installable PWA support with offline caching
 
@@ -115,7 +115,7 @@ The macOS build targets Apple Silicon (`aarch64-apple-darwin`), set by the `maco
 - Core data stays on the device by default; browser settings use `localStorage`, while directory handles use IndexedDB. Since v3.0.0 the desktop app keeps its software data next to the program by default (the `data` folder beside the exe), or in a location you choose, mirrored into `settings.json` there so it survives cache clears.
 - A data folder contains `acta-manifest.json`, `classifications.json`, `notes/`, and `todos/`, with each note and task stored separately.
 - Tauri uses restricted Rust commands for system files, WebDAV, and cache management; Android uses a custom Capacitor plugin and the Storage Access Framework for user-authorized directories.
-- OneDrive mode works through a local synchronized folder and does not access the user's Microsoft account. WebDAV credentials are used only for the server configured by the user.
+- WebDAV credentials are used only for the server configured by the user.
 
 ## Testing
 

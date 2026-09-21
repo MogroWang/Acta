@@ -1118,9 +1118,8 @@ html[data-acta-theme="mono-dark"] .quick-capture-types button.active { backgroun
 .note-heading-preview h1 { font-size: calc(var(--note-heading-h1-size, 32px) * .78 * var(--acta-font-scale)); }
 .note-heading-preview h2 { margin-top: 10px; font-size: calc(var(--note-heading-h2-size, 24px) * .78 * var(--acta-font-scale)); }
 .note-heading-preview h3 { margin-top: 8px; font-size: calc(var(--note-heading-h3-size, 19px) * .78 * var(--acta-font-scale)); }
-html[data-note-heading-style="classic"] :is(.note-editor .note-body, .note-heading-preview) :is(h1,h2,h3) { font-family: Georgia, "Songti SC", serif; font-weight: 650; }
-html[data-note-heading-style="modern"] :is(.note-editor .note-body, .note-heading-preview) :is(h1,h2,h3) { font-family: var(--acta-app-font); font-weight: 760; letter-spacing: -.035em; }
-html[data-note-heading-style="accent"] :is(.note-editor .note-body, .note-heading-preview) :is(h1,h2,h3) { padding-left: .55em; border-left: 3px solid var(--note-accent); font-family: var(--acta-app-font); font-weight: 680; letter-spacing: -.015em; }
+/* 标题字体由设置驱动 --note-heading-font，标题字重与全局标题层级保持一致。 */
+html :is(.note-editor .note-body, .note-heading-preview) :is(h1,h2,h3) { font-family: var(--note-heading-font, Georgia, "Songti SC", serif); font-weight: 650; }
 .note-editor .note-body blockquote { margin: 1.2em 0; padding: 5px 0 5px 17px; border-left: 3px solid var(--note-accent); color: var(--muted); }
 .note-editor .note-body blockquote p:last-child { margin-bottom: 0; }
 .note-editor .note-body code { padding: 2px 5px; border-radius: 5px; background: color-mix(in srgb, var(--note-soft) 66%, var(--white)); color: color-mix(in srgb, var(--note-accent) 74%, var(--ink)); font: .88em/1.45 ui-monospace, "SFMono-Regular", Consolas, monospace; }
@@ -1391,7 +1390,7 @@ body.sidebar-collapsed { --acta-sidebar-width: 72px; }
   body.sidebar-collapsed .smart-nav button > span > svg { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); }
   body.sidebar-collapsed .nav-section button > em { width: 0; min-width: 0; max-width: 0; margin: 0; flex: 0 0 0; }
   body.sidebar-collapsed .nav-section button svg { width: 18px; height: 18px; }
-  body.sidebar-collapsed .folder-section { max-width: 44px; width: auto; margin-top: 17px; align-self: center; overflow-x: hidden; }
+  body.sidebar-collapsed .folder-section { max-width: 44px; width: auto; margin-top: 17px; align-self: center; overflow-x: hidden; padding-bottom: 14px; }
   body.sidebar-collapsed .folder-section::-webkit-scrollbar { display: none; }
   body.sidebar-collapsed .section-label { max-width: 44px; width: auto; padding: 0; justify-content: center; }
   body.sidebar-collapsed .section-label-actions { width: 44px; display: block; }
@@ -1413,7 +1412,7 @@ body.sidebar-collapsed #folderNav .folder-short-name.is-long { font-size: calc(9
 body.sidebar-collapsed #folderNav .folder-short-name.is-emoji { max-width: 30px; overflow: visible; font: 400 calc(17px * var(--acta-font-scale))/1 "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif; letter-spacing: 0; text-shadow: none; }
   body.sidebar-collapsed .create-menu { top: 18px; left: 64px; right: auto; width: 242px; transform-origin: 0 20px; }
   body.sidebar-collapsed .sidebar-bottom { max-width: 44px; align-self: center; }
-  body.sidebar-collapsed .sidebar-bottom .sync-card { width: 36px; height: 36px; padding: 0; grid-template-columns: 1fr; gap: 0; justify-items: center; }
+  body.sidebar-collapsed .sidebar-bottom .sync-card { width: 36px; height: 36px; margin: 0 auto; padding: 0; grid-template-columns: 1fr; gap: 0; justify-items: center; }
   body.sidebar-collapsed .sidebar-bottom .sync-card > span:nth-child(2), body.sidebar-collapsed .sidebar-bottom .sync-card > .chevron { display: none; }
   body.sidebar-collapsed .sidebar-bottom .sync-icon { width: 36px; height: 36px; }
   body.sidebar-collapsed .sidebar-dock-actions { width: 44px; padding: 3px; border-radius: 8px; grid-template-columns: minmax(0, 1fr); justify-content: center; justify-items: center; gap: 2px; }

@@ -91,7 +91,7 @@
 
           <div class="sidebar-bottom">
             <button class="sync-card" id="workspaceButton">
-              <span class="sync-icon"><svg><use href="#i-folder"/></svg></span>
+              <span class="sync-icon"><svg><use href="#i-database"/></svg></span>
               <span><b>演示行记数据</b><small class="workspace-card-status demo" id="workspaceCardStatus">不会保存更改</small></span>
               <svg class="chevron"><use href="#i-chevron"/></svg>
             </button>
@@ -280,8 +280,10 @@
                 <label class="settings-row"><span><b>一级标题字号</b><small>Markdown 渲染后的一级标题大小</small></span><select id="noteHeadingH1Size"><option value="26">26 px</option><option value="28">28 px</option><option value="30">30 px</option><option value="32">32 px</option><option value="36">36 px</option><option value="40">40 px</option></select></label>
                 <label class="settings-row"><span><b>二级标题字号</b><small>Markdown 渲染后的二级标题大小</small></span><select id="noteHeadingH2Size"><option value="20">20 px</option><option value="22">22 px</option><option value="24">24 px</option><option value="26">26 px</option><option value="28">28 px</option><option value="32">32 px</option></select></label>
                 <label class="settings-row"><span><b>三级标题字号</b><small>Markdown 渲染后的三级标题大小</small></span><select id="noteHeadingH3Size"><option value="16">16 px</option><option value="17">17 px</option><option value="18">18 px</option><option value="19">19 px</option><option value="20">20 px</option><option value="22">22 px</option><option value="24">24 px</option></select></label>
-                <label class="settings-row"><span><b>标题样式</b><small>改变可视化编辑器中的标题字体与装饰</small></span><select id="noteHeadingStyle"><option value="classic">经典衬线</option><option value="modern">现代无衬线</option><option value="accent">简约强调</option></select></label>
-                <label class="settings-row"><span><b>正文行间距</b><small>Markdown 渲染后的正文与源码行距</small></span><span class="font-size-control"><input id="noteLineHeight" type="range" min="1" max="2" step="0.1"/><output id="noteLineHeightValue">1.6</output></span></label>
+                <label class="settings-row"><span><b>标题字体</b><small>Markdown 渲染后标题使用的字体</small></span><select id="noteHeadingFont"><option value="app">跟随界面</option><option value="serif">衬线字体</option><option value="rounded">圆体</option><option value="mono">等宽字体</option><option value="custom">自定义字体</option></select></label>
+                <label class="settings-row conditional-font" id="noteHeadingCustomFontRow"><span><b>标题字体家族</b><small>输入设备上已安装的字体，例如 Georgia 或 Songti SC</small></span><input id="noteHeadingCustomFont" type="text" value="Georgia" placeholder="Georgia, Songti SC" maxlength="120"/></label>
+                <label class="settings-row"><span><b>正文行间距</b><small>调节段落内部文字行与行的距离</small></span><span class="font-size-control"><input id="noteLineHeight" type="range" min="1" max="2" step="0.1"/><output id="noteLineHeightValue">1.6</output></span></label>
+                <label class="settings-row"><span><b>段落块间距</b><small>调节段落与段落之间的留白</small></span><span class="font-size-control"><input id="noteParagraphGap" type="range" min="0" max="2" step="0.1"/><output id="noteParagraphGapValue">1.0 em</output></span></label>
               </div>
               <div class="note-heading-preview" id="noteHeadingPreview" aria-label="标题预览"><h1>一级标题</h1><h2>二级标题</h2><h3>三级标题</h3></div>
               <div class="settings-group">
@@ -349,14 +351,9 @@
             </section>
 
             <section class="settings-panel" data-settings-panel="cloud">
-              <header><h3>数据同步</h3><p>在本地文件夹与 WebDAV 服务器之间选择一种同步方式。</p></header>
+              <header><h3>数据同步</h3><p>通过 WebDAV 服务器同步完整数据文件夹。</p></header>
               <div class="settings-group">
-                <label class="settings-row"><span><b>同步模式</b><small>切换后使用对应位置进行上传、下载与自动同步</small></span><select id="cloudSyncMode"><option value="onedrive">本地文件夹</option><option value="webdav">WebDAV</option></select></label>
-                <div class="cloud-mode-fields" id="oneDriveModeFields">
-                  <div class="settings-row"><span><b>本地文件夹</b><small id="oneDriveFolderPath">尚未选择本地文件夹</small></span><span class="sync-icon"><svg><use href="#i-folder"/></svg><i></i></span></div>
-                  <div class="settings-row"><span><b>文件夹同步</b><small class="cloud-mode-note">全平台可用；支持设备本地、局域网及系统已挂载的网络位置</small></span><button class="settings-button" id="chooseOneDriveFolder" type="button"><svg><use href="#i-folder"/></svg><span>选择本地文件夹</span></button></div>
-                </div>
-                <div class="cloud-mode-fields" id="webDavModeFields" hidden>
+                <div class="cloud-mode-fields" id="webDavModeFields">
                   <label class="settings-row"><span><b>服务器地址</b><small>填写用于保存 Acta 完整数据文件夹的 WebDAV 目录地址</small></span><input id="webDavServer" type="url" inputmode="url" autocomplete="url" placeholder="https://dav.example.com/Acta/"/></label>
                   <label class="settings-row"><span><b>账号</b><small>WebDAV 用户名</small></span><input id="webDavUsername" type="text" autocomplete="username" maxlength="180"/></label>
                   <label class="settings-row"><span><b>密码</b><small>建议使用服务商提供的应用专用密码</small></span><input id="webDavPassword" type="password" autocomplete="current-password" maxlength="300"/></label>
@@ -371,7 +368,7 @@
                 <button class="settings-button secondary" id="disconnectOneDrive" type="button" disabled><svg><use href="#i-close"/></svg>断开同步位置</button>
               </div>
               <p class="settings-status" id="oneDriveStatus">请先选择同步模式并完成连接。</p>
-              <p class="settings-status" id="cloudSyncHint">本地文件夹模式通过系统文件选择器访问路径，可配合局域网或其他同步工具使用；WebDAV 密码仅保存在当前设备。</p>
+              <p class="settings-status" id="cloudSyncHint">WebDAV 密码仅保存在当前设备；网页版需要服务器允许跨域访问。</p>
             </section>
 
             <section class="settings-panel" data-settings-panel="about">

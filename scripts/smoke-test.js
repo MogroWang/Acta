@@ -1250,7 +1250,7 @@ async function main() {
       const syncSettingsIndex = settingsNavigation.findIndex(button => button.dataset.settingsPage === 'cloud');
       const dataSyncOrderZh = syncSettingsIndex === workspaceSettingsIndex + 1 && settingsNavigation[syncSettingsIndex]?.textContent.trim() === '数据同步';
       document.querySelector('[data-settings-page="note-editor"]').click();
-      const noteEditorSettingsComplete = ['#noteHeadingH1Size', '#noteHeadingH2Size', '#noteHeadingH3Size', '#noteHeadingStyle', '#noteLineHeight', '#noteToolbarPosition', '#noteToolbarShowLabels']
+      const noteEditorSettingsComplete = ['#noteHeadingH1Size', '#noteHeadingH2Size', '#noteHeadingH3Size', '#noteHeadingFont', '#noteHeadingCustomFontRow', '#noteLineHeight', '#noteParagraphGap', '#noteToolbarPosition', '#noteToolbarShowLabels']
         .every(selector => Boolean(document.querySelector(selector)));
       const updateNoteSetting = (selector, value, eventType = 'change') => {
         const field = document.querySelector(selector);
@@ -1261,21 +1261,26 @@ async function main() {
       updateNoteSetting('#noteHeadingH1Size', 36);
       updateNoteSetting('#noteHeadingH2Size', 26);
       updateNoteSetting('#noteHeadingH3Size', 20);
-      updateNoteSetting('#noteHeadingStyle', 'accent');
+      updateNoteSetting('#noteHeadingFont', 'custom');
+      updateNoteSetting('#noteHeadingCustomFont', 'Palatino', 'input');
+      updateNoteSetting('#noteParagraphGap', 1.5);
       updateNoteSetting('#noteToolbarPosition', 'top');
       updateNoteSetting('#noteToolbarShowLabels', true);
       const storedNoteEditorSettings = readAppearanceSettings();
       const noteEditorSettingsPersist = storedNoteEditorSettings.noteHeadingH1Size === 36
         && storedNoteEditorSettings.noteHeadingH2Size === 26
         && storedNoteEditorSettings.noteHeadingH3Size === 20
-        && storedNoteEditorSettings.noteHeadingStyle === 'accent'
+        && storedNoteEditorSettings.noteHeadingFont === 'custom'
+        && storedNoteEditorSettings.noteHeadingCustomFont === 'Palatino'
+        && storedNoteEditorSettings.noteParagraphGap === 1.5
         && storedNoteEditorSettings.noteToolbarPosition === 'top'
         && storedNoteEditorSettings.noteToolbarShowLabels === true;
       const noteHeadingSettingsApplied = document.documentElement.style.getPropertyValue('--note-heading-h1-size') === '36px'
         && document.documentElement.style.getPropertyValue('--note-heading-h2-size') === '26px'
         && document.documentElement.style.getPropertyValue('--note-heading-h3-size') === '20px'
-        && document.documentElement.dataset.noteHeadingStyle === 'accent'
-        && parseFloat(getComputedStyle(document.querySelector('#noteHeadingPreview h1')).borderLeftWidth) > 0;
+        && document.documentElement.style.getPropertyValue('--note-heading-font').startsWith('Palatino')
+        && document.documentElement.style.getPropertyValue('--note-paragraph-gap') === '1.5'
+        && parseFloat(getComputedStyle(document.querySelector('#noteHeadingPreview h1')).borderLeftWidth) === 0;
       selectedId = 'welcome-note';
       renderEditor();
       const configuredToolbar = document.querySelector('.note-toolbar');
@@ -1321,13 +1326,13 @@ async function main() {
       const deleteProfileEnabled = Boolean(deleteProfileAction && !deleteProfileAction.disabled);
       document.querySelector('[data-settings-page="cloud"]').click();
       const dataSyncHeadingZh = document.querySelector('[data-settings-panel="cloud"] h3').textContent === '数据同步';
-      const localFolderModeZh = document.querySelector('#cloudSyncMode option[value="onedrive"]').textContent;
-      const localFolderNoteZh = document.querySelector('#oneDriveModeFields .cloud-mode-note').textContent;
+      const cloudPanelDescriptionZh = document.querySelector('[data-settings-panel="cloud"] header p').textContent;
+      const webDavFieldsVisible = !document.querySelector('#webDavModeFields').hidden && Boolean(document.querySelector('#webDavServer'));
       const englishLanguage = document.querySelector('input[name="actaLanguage"][value="en"]');
       englishLanguage.checked = true;
       englishLanguage.dispatchEvent(new Event('change'));
-      await waitFor(() => document.querySelector('#cloudSyncMode option[value="onedrive"]').textContent === 'Local folder');
-      const localFolderModeEn = document.querySelector('#cloudSyncMode option[value="onedrive"]').textContent;
+      await waitFor(() => document.querySelector('[data-settings-panel="cloud"] header p').textContent === 'Sync the complete data folder through a WebDAV server.');
+      const cloudPanelDescriptionEn = document.querySelector('[data-settings-panel="cloud"] header p').textContent;
       const dataSyncLabelEn = document.querySelector('[data-settings-page="cloud"] span').textContent === 'Data sync' && document.querySelector('[data-settings-panel="cloud"] h3').textContent === 'Data sync';
       const noteEditorLabelEn = document.querySelector('[data-settings-page="note-editor"] span').textContent === 'Note editor'
         && document.querySelector('[data-settings-panel="note-editor"] h3').textContent === 'Note editor';
@@ -1608,9 +1613,9 @@ async function main() {
         appearanceSettingsComplete,
         appearanceLayoutFits,
         dataSyncHeadingZh,
-        localFolderModeZh,
-        localFolderNoteZh,
-        localFolderModeEn,
+        cloudPanelDescriptionZh,
+        webDavFieldsVisible,
+        cloudPanelDescriptionEn,
         dataSyncLabelEn,
         noteEditorLabelEn,
         calendarDefaultOptionEn
@@ -1900,9 +1905,9 @@ async function main() {
     assert.equal(result.appearanceSettingsComplete, true);
     assert.equal(result.appearanceLayoutFits, true);
     assert.equal(result.dataSyncHeadingZh, true);
-    assert.equal(result.localFolderModeZh, '本地文件夹');
-    assert.match(result.localFolderNoteZh, /全平台/);
-    assert.equal(result.localFolderModeEn, 'Local folder');
+    assert.equal(result.cloudPanelDescriptionZh, '通过 WebDAV 服务器同步完整数据文件夹。');
+    assert.equal(result.webDavFieldsVisible, true);
+    assert.equal(result.cloudPanelDescriptionEn, 'Sync the complete data folder through a WebDAV server.');
     assert.equal(result.dataSyncLabelEn, true);
     assert.equal(result.noteEditorLabelEn, true);
     assert.equal(result.calendarDefaultOptionEn, true);
@@ -1968,6 +1973,8 @@ async function main() {
       };
     });
     await bridgePage.goto(appUrl, { waitUntil:'load' });
+    // boot 模块经动态 import 引导，在 load 事件后异步完成，先等 tauri-bridge 就绪。
+    await bridgePage.waitForFunction(() => typeof window.actaDesktop !== 'undefined', { timeout: 30000 });
     const bridgeResult = await bridgePage.evaluate(async () => {
       const folder = await window.actaDesktop.chooseSyncFolder();
       await window.actaDesktop.uploadLibrary(folder, { version:1 });
@@ -2015,6 +2022,7 @@ async function main() {
       };
     });
     await featurePage.goto(appUrl, { waitUntil:'load' });
+    await featurePage.waitForFunction(() => typeof window.actaDesktop !== 'undefined' && Boolean(document.querySelector('#oobeOverlay')), { timeout: 30000 });
     const featureResult = await featurePage.evaluate(`(async () => {
       const waitFor = async predicate => {
         for (let attempt = 0; attempt < 120; attempt += 1) {

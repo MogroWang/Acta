@@ -7,10 +7,10 @@
     appIconPreset: 'default', customAppIcon: '',
     splashAnimationEnabled: true, splashAnimationPreset: 'acta-lines', splashAnimationSpeed: 1,
     appFont: 'system', customFont: 'Inter', appFontSize: 14,
-    noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteBaseSize: 17, noteHeadingStyle: 'classic', noteLineHeight: 1.6,
+    noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteBaseSize: 17, noteHeadingFont: 'serif', noteHeadingCustomFont: '', noteLineHeight: 1.6, noteParagraphGap: 1,
     noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
     oneDriveFolder: '', oneDriveLabel: '', workspaceLabel: '',
-    dataProfiles: [], activeDataProfileId: '', cloudSyncMode: 'onedrive', webDavServer: '', webDavUsername: '', autoSync: false, autoSyncInterval: 5, listPaneWidth: 330, sidebarCollapsed: false, language: ['zh', 'zh-Hant', 'en'].includes(settings.language) ? settings.language : 'zh'
+    dataProfiles: [], activeDataProfileId: '', webDavServer: '', webDavUsername: '', autoSync: false, autoSyncInterval: 5, listPaneWidth: 330, sidebarCollapsed: false, language: ['zh', 'zh-Hant', 'en'].includes(settings.language) ? settings.language : 'zh'
   };
   let uiSettings = { ...defaultUISettings };
   try { uiSettings = { ...uiSettings, ...(JSON.parse(localStorage.getItem(uiStorageKey)) || {}) }; } catch { /* Use safe defaults. */ }
@@ -145,7 +145,7 @@
       '完整数据文件夹由 acta-manifest.json、classifications.json、notes/ 和 todos/ 组成；每则笔记与待办分别保存。':'A complete data folder contains acta-manifest.json, classifications.json, notes/, and todos/; every note and task is stored separately.', '保存完整数据文件夹':'Save complete data folder', '从数据文件夹重载':'Reload data folder', '导出数据文件夹':'Export data folder',
       'OneDrive 上传、下载和自动同步均处理完整数据文件夹，笔记与待办不会合并成单个资料库文件。':'OneDrive upload, download, and automatic sync all process the complete data folder; notes and tasks are never merged into one library file.', 'OneDrive 文件夹操作':'OneDrive folder access', '由 OneDrive 客户端同步清单、归类、notes 和 todos 整套文件夹':'The OneDrive client syncs the manifest, classifications, notes, and todos as one complete folder.', '下载完整数据文件夹':'Download complete data folder', '上传完整数据文件夹':'Upload complete data folder', '本地内容变化后自动上传，并定时检查 OneDrive 数据文件夹中的更新':'Upload local changes automatically and periodically check the OneDrive data folder for updates',
       '选择 OneDrive 本地文件夹，由系统 OneDrive 客户端负责上传和下载。':'Choose a local OneDrive folder. The system OneDrive client handles cloud transfers.', 'OneDrive 本地文件夹':'Local OneDrive folder', '尚未选择 OneDrive 本地文件夹':'No local OneDrive folder selected', '文件夹同步':'Folder sync', 'Acta 读写完整数据文件夹，云端传输由 OneDrive 客户端完成':'Acta reads and writes the complete data folder; the OneDrive client handles cloud transfers.', '选择 OneDrive 文件夹':'Choose OneDrive folder', '断开文件夹':'Disconnect folder', '请先选择电脑中的 OneDrive 本地文件夹。':'Choose a local OneDrive folder on this device first.', 'Acta 不连接 Microsoft Graph，也不获取微软账号信息；请确保系统 OneDrive 客户端正在运行。':'Acta does not connect to Microsoft Graph or read Microsoft account information. Keep the system OneDrive client running.',
-      '在 OneDrive 本地文件夹与 WebDAV 服务器之间选择一种同步方式。':'Choose between a local OneDrive folder and a WebDAV server.', '同步模式':'Sync mode', '切换后使用对应位置进行上传、下载与自动同步':'Use the selected location for upload, download, and automatic sync.', '仅建议 Windows 用户使用；云端传输由 OneDrive 客户端完成':'Recommended only for Windows users; the OneDrive client handles cloud transfers.', '服务器地址':'Server URL', '填写用于保存 Acta 完整数据文件夹的 WebDAV 目录地址':'Enter the WebDAV directory URL that stores the complete Acta data folder.', '账号':'Account', 'WebDAV 用户名':'WebDAV username', '密码':'Password', '建议使用服务商提供的应用专用密码':'Use an app-specific password from your provider when available.', 'WebDAV 连接':'WebDAV connection', '尚未连接 WebDAV':'WebDAV is not connected', '保存并测试连接':'Save and test connection', '内容变化后自动上传，并定时检查同步位置中的更新':'Upload changes automatically and periodically check the sync location.', '断开同步位置':'Disconnect sync location', '请先选择同步模式并完成连接。':'Choose a sync mode and connect it first.', 'OneDrive 模式不连接 Microsoft Graph；WebDAV 密码仅保存在当前设备，网页版需要服务器允许跨域访问。':'OneDrive mode does not use Microsoft Graph. The WebDAV password stays on this device; web access requires the server to allow cross-origin requests.'
+      '通过 WebDAV 服务器同步完整数据文件夹。':'Sync the complete data folder through a WebDAV server.', 'WebDAV 密码仅保存在当前设备；网页版需要服务器允许跨域访问。':'The WebDAV password stays on this device; web access requires the server to allow cross-origin requests.', '同步模式':'Sync mode', '切换后使用对应位置进行上传、下载与自动同步':'Use the selected location for upload, download, and automatic sync.', '仅建议 Windows 用户使用；云端传输由 OneDrive 客户端完成':'Recommended only for Windows users; the OneDrive client handles cloud transfers.', '服务器地址':'Server URL', '填写用于保存 Acta 完整数据文件夹的 WebDAV 目录地址':'Enter the WebDAV directory URL that stores the complete Acta data folder.', '账号':'Account', 'WebDAV 用户名':'WebDAV username', '密码':'Password', '建议使用服务商提供的应用专用密码':'Use an app-specific password from your provider when available.', 'WebDAV 连接':'WebDAV connection', '尚未连接 WebDAV':'WebDAV is not connected', '保存并测试连接':'Save and test connection', '内容变化后自动上传，并定时检查同步位置中的更新':'Upload changes automatically and periodically check the sync location.', '断开同步位置':'Disconnect sync location', '请先选择同步模式并完成连接。':'Choose a sync mode and connect it first.', 'OneDrive 模式不连接 Microsoft Graph；WebDAV 密码仅保存在当前设备，网页版需要服务器允许跨域访问。':'OneDrive mode does not use Microsoft Graph. The WebDAV password stays on this device; web access requires the server to allow cross-origin requests.'
     },
     'zh-Hant': {
       '设置':'設定', '按你的方式使用 Acta':'依照你的方式使用 Acta', '关闭设置':'關閉設定', '设置页面':'設定頁面', '语言':'語言', '工作区':'工作區', '行记数据':'行記資料', '数据同步':'資料同步', '常规设置':'一般設定', '外观设置':'外觀設定', '关于':'關於',
@@ -158,7 +158,7 @@
       '完整数据文件夹由 acta-manifest.json、classifications.json、notes/ 和 todos/ 组成；每则笔记与待办分别保存。':'完整資料資料夾由 acta-manifest.json、classifications.json、notes/ 和 todos/ 組成；每則筆記與待辦分別儲存。', '保存完整数据文件夹':'儲存完整資料資料夾', '从数据文件夹重载':'從資料資料夾重新載入', '导出数据文件夹':'匯出資料資料夾',
       'OneDrive 上传、下载和自动同步均处理完整数据文件夹，笔记与待办不会合并成单个资料库文件。':'OneDrive 上傳、下載和自動同步都會處理完整資料資料夾，筆記與待辦不會合併成單一資料庫檔案。', 'OneDrive 文件夹操作':'OneDrive 資料夾操作', '由 OneDrive 客户端同步清单、归类、notes 和 todos 整套文件夹':'由 OneDrive 用戶端同步清單、歸類、notes 和 todos 整套資料夾。', '下载完整数据文件夹':'下載完整資料資料夾', '上传完整数据文件夹':'上傳完整資料資料夾', '本地内容变化后自动上传，并定时检查 OneDrive 数据文件夹中的更新':'本機內容變更後自動上傳，並定時檢查 OneDrive 資料資料夾中的更新',
       '选择 OneDrive 本地文件夹，由系统 OneDrive 客户端负责上传和下载。':'選擇 OneDrive 本機資料夾，由系統 OneDrive 用戶端負責上傳和下載。', 'OneDrive 本地文件夹':'OneDrive 本機資料夾', '尚未选择 OneDrive 本地文件夹':'尚未選擇 OneDrive 本機資料夾', '文件夹同步':'資料夾同步', 'Acta 读写完整数据文件夹，云端传输由 OneDrive 客户端完成':'Acta 讀寫完整資料資料夾，雲端傳輸由 OneDrive 用戶端完成。', '选择 OneDrive 文件夹':'選擇 OneDrive 資料夾', '断开文件夹':'中斷資料夾', '请先选择电脑中的 OneDrive 本地文件夹。':'請先選擇電腦中的 OneDrive 本機資料夾。', 'Acta 不连接 Microsoft Graph，也不获取微软账号信息；请确保系统 OneDrive 客户端正在运行。':'Acta 不連接 Microsoft Graph，也不取得 Microsoft 帳號資訊；請確保系統 OneDrive 用戶端正在執行。',
-      '在 OneDrive 本地文件夹与 WebDAV 服务器之间选择一种同步方式。':'在 OneDrive 本機資料夾與 WebDAV 伺服器之間選擇一種同步方式。', '同步模式':'同步模式', '切换后使用对应位置进行上传、下载与自动同步':'切換後使用對應位置進行上傳、下載與自動同步。', '仅建议 Windows 用户使用；云端传输由 OneDrive 客户端完成':'僅建議 Windows 使用者使用；雲端傳輸由 OneDrive 用戶端完成。', '服务器地址':'伺服器地址', '填写用于保存 Acta 完整数据文件夹的 WebDAV 目录地址':'填寫用於儲存 Acta 完整資料資料夾的 WebDAV 目錄地址。', '账号':'帳號', 'WebDAV 用户名':'WebDAV 使用者名稱', '密码':'密碼', '建议使用服务商提供的应用专用密码':'建議使用服務商提供的應用程式專用密碼。', 'WebDAV 连接':'WebDAV 連接', '尚未连接 WebDAV':'尚未連接 WebDAV', '保存并测试连接':'儲存並測試連接', '内容变化后自动上传，并定时检查同步位置中的更新':'內容變更後自動上傳，並定時檢查同步位置中的更新。', '断开同步位置':'中斷同步位置', '请先选择同步模式并完成连接。':'請先選擇同步模式並完成連接。', 'OneDrive 模式不连接 Microsoft Graph；WebDAV 密码仅保存在当前设备，网页版需要服务器允许跨域访问。':'OneDrive 模式不連接 Microsoft Graph；WebDAV 密碼僅儲存在目前裝置，網頁版需要伺服器允許跨來源存取。'
+      '通过 WebDAV 服务器同步完整数据文件夹。':'透過 WebDAV 伺服器同步完整資料資料夾。', 'WebDAV 密码仅保存在当前设备；网页版需要服务器允许跨域访问。':'WebDAV 密碼僅儲存在目前裝置；網頁版需要伺服器允許跨來源存取。', '同步模式':'同步模式', '切换后使用对应位置进行上传、下载与自动同步':'切換後使用對應位置進行上傳、下載與自動同步。', '仅建议 Windows 用户使用；云端传输由 OneDrive 客户端完成':'僅建議 Windows 使用者使用；雲端傳輸由 OneDrive 用戶端完成。', '服务器地址':'伺服器地址', '填写用于保存 Acta 完整数据文件夹的 WebDAV 目录地址':'填寫用於儲存 Acta 完整資料資料夾的 WebDAV 目錄地址。', '账号':'帳號', 'WebDAV 用户名':'WebDAV 使用者名稱', '密码':'密碼', '建议使用服务商提供的应用专用密码':'建議使用服務商提供的應用程式專用密碼。', 'WebDAV 连接':'WebDAV 連接', '尚未连接 WebDAV':'尚未連接 WebDAV', '保存并测试连接':'儲存並測試連接', '内容变化后自动上传，并定时检查同步位置中的更新':'內容變更後自動上傳，並定時檢查同步位置中的更新。', '断开同步位置':'中斷同步位置', '请先选择同步模式并完成连接。':'請先選擇同步模式並完成連接。', 'OneDrive 模式不连接 Microsoft Graph；WebDAV 密码仅保存在当前设备，网页版需要服务器允许跨域访问。':'OneDrive 模式不連接 Microsoft Graph；WebDAV 密碼僅儲存在目前裝置，網頁版需要伺服器允許跨來源存取。'
     }
   };
   Object.assign(interfaceTranslations.en, {
@@ -189,12 +189,12 @@
     '一级标题字号':'Heading 1 size', 'Markdown 渲染后的一级标题大小':'Rendered Markdown heading 1 size',
     '二级标题字号':'Heading 2 size', 'Markdown 渲染后的二级标题大小':'Rendered Markdown heading 2 size',
     '三级标题字号':'Heading 3 size', 'Markdown 渲染后的三级标题大小':'Rendered Markdown heading 3 size',
-    '标题样式':'Heading style', '改变可视化编辑器中的标题字体与装饰':'Change heading typography and decoration in the visual editor',
-    '经典衬线':'Classic serif', '现代无衬线':'Modern sans serif', '简约强调':'Minimal accent',
+    '标题字体':'Heading font', 'Markdown 渲染后标题使用的字体':'Heading font for the rendered Markdown', '跟随界面':'Follow app font', '标题字体家族':'Heading font family', '输入设备上已安装的字体，例如 Georgia 或 Songti SC':'Enter a font installed on this device, such as Georgia or Songti SC',
     '工具栏位置':'Toolbar position', '固定在笔记编辑器的上方或下方':'Pin the toolbar above or below the note editor',
     '上方':'Top', '下方':'Bottom', '显示工具名称':'Show tool names', '在图标旁显示工具名称，空间不足时自动换行':'Show names beside icons; wrap automatically when space is limited',
     '标题预览':'Heading preview', '一级标题':'Heading 1', '二级标题':'Heading 2', '三级标题':'Heading 3',
-    '正文行间距':'Body line spacing', 'Markdown 渲染后的正文与源码行距':'Line spacing for the rendered Markdown body and source',
+    '正文行间距':'Body line spacing', '调节段落内部文字行与行的距离':'Distance between lines of text inside a paragraph',
+    '段落块间距':'Paragraph spacing', '调节段落与段落之间的留白':'Whitespace between paragraphs',
     '总结':'Summary',
     '初始设置向导':'Setup guide', '重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画':'Walk through the first-run guide again to revisit data location, theme, and launch animation', '重新运行引导':'Run the guide again',
     '基准字号':'Base font size', '拖动滑块，正文与各级标题会一起缩放':'Drag the slider; body text and headings scale together'
@@ -225,12 +225,12 @@
     '一级标题字号':'一級標題字級', 'Markdown 渲染后的一级标题大小':'Markdown 轉譯後的一級標題大小',
     '二级标题字号':'二級標題字級', 'Markdown 渲染后的二级标题大小':'Markdown 轉譯後的二級標題大小',
     '三级标题字号':'三級標題字級', 'Markdown 渲染后的三级标题大小':'Markdown 轉譯後的三級標題大小',
-    '标题样式':'標題樣式', '改变可视化编辑器中的标题字体与装饰':'改變視覺化編輯器中的標題字型與裝飾',
-    '经典衬线':'經典襯線', '现代无衬线':'現代無襯線', '简约强调':'簡約強調',
+    '标题字体':'標題字型', 'Markdown 渲染后标题使用的字体':'Markdown 轉譯後標題使用的字型', '跟随界面':'跟隨介面', '标题字体家族':'標題字型家族', '输入设备上已安装的字体，例如 Georgia 或 Songti SC':'輸入裝置上已安裝的字型，例如 Georgia 或 Songti SC',
     '工具栏位置':'工具列位置', '固定在笔记编辑器的上方或下方':'固定在筆記編輯器的上方或下方',
     '上方':'上方', '下方':'下方', '显示工具名称':'顯示工具名稱', '在图标旁显示工具名称，空间不足时自动换行':'在圖示旁顯示工具名稱，空間不足時自動換行',
     '标题预览':'標題預覽', '一级标题':'一級標題', '二级标题':'二級標題', '三级标题':'三級標題',
-    '正文行间距':'正文行距', 'Markdown 渲染后的正文与源码行距':'Markdown 轉譯後的正文與原始碼行距',
+    '正文行间距':'正文行距', '调节段落内部文字行与行的距离':'調整段落內文字行與行的距離',
+    '段落块间距':'段落塊間距', '调节段落与段落之间的留白':'調整段落與段落之間的留白',
     '总结':'總結',
     '初始设置向导':'初始設定精靈', '重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画':'重新體驗首次啟動的引導，逐步確認資料位置、主題與啟動動畫', '重新运行引导':'重新執行引導',
     '基准字号':'基準字級', '拖动滑块，正文与各级标题会一起缩放':'拖動滑桿，正文與各級標題會一起縮放'
@@ -242,7 +242,7 @@
     const node = settingsWalker.currentNode;
     const source = node.nodeValue.trim();
     if (!source) continue;
-    if (node.parentElement?.closest('#workspaceSettingsTitle,#workspaceFolderPath,#workspaceStatus,#generalStatus,#oneDriveFolderPath,#oneDriveStatus,#appFontSizeValue,#splashSpeedValue,#appDataPath')) continue;
+    if (node.parentElement?.closest('#workspaceSettingsTitle,#workspaceFolderPath,#workspaceStatus,#generalStatus,#oneDriveStatus,#appFontSizeValue,#splashSpeedValue,#appDataPath')) continue;
     settingsTextEntries.push({ node, source, leading: node.nodeValue.match(/^\s*/)[0], trailing: node.nodeValue.match(/\s*$/)[0] });
   }
   const settingsAttributeEntries = [];
@@ -271,7 +271,6 @@
   let dataProfiles = [];
   let editingDataProfileId = '';
   let oneDriveAdapter = null;
-  let oneDriveFolderAdapter = null;
   let webDavAdapter = null;
   let webDavCredentials = null;
   let workspaceWriteQueue = Promise.resolve();
@@ -286,13 +285,13 @@
 
   const syncMessages = {
     zh: {
-      working:'正在同步网盘数据文件夹…', uploaded:'已将完整数据文件夹写入当前同步位置。', downloaded:'检测到网盘数据更新，已完整载入。', current:'网盘数据文件夹已是最新状态。', waiting:'自动同步已开启，等待数据变化。', disabled:'自动同步已关闭。', choose:'请先完成当前同步模式的连接。', connectFail:'WebDAV 连接失败：', uploadFail:'上传数据失败：', downloadFail:'下载数据失败：', connected:'网盘同步位置已连接。', manualUpload:'已上传清单、归类、notes 和 todos 完整数据文件夹。', manualDownload:'已从网盘完整下载并载入数据文件夹。', confirm:'从网盘下载会替换当前内容，是否继续？', disconnected:'已断开当前网盘同步位置。', reauthorize:'浏览器需要重新授权 OneDrive 文件夹，请重新选择。', conflict:'检测到网盘数据和当前内容均有新修改。为避免覆盖，自动同步已暂停；请先下载检查或手动上传。', invalidWebDavUrl:'请输入有效的 HTTP 或 HTTPS WebDAV 服务器地址。', webDavMissing:'请完整填写 WebDAV 服务器地址、账号和密码。', webDavConnected:'WebDAV 连接测试成功，设置已保存。', webDavStored:'已读取保存的 WebDAV 设置。', webDavCors:'浏览器阻止了跨域 WebDAV 请求。请在 WebDAV 服务器允许当前网页来源、Authorization、Depth、Content-Type 标头，并正确响应 OPTIONS 预检及 PROPFIND、MKCOL、GET、PUT、DELETE、HEAD 方法。', webDavMixedContent:'HTTPS 页面不能连接 HTTP WebDAV，请改用 HTTPS 服务器地址。', webDavNetwork:'无法连接 WebDAV 服务器，请检查地址、网络、证书和服务器状态。'
+      working:'正在同步网盘数据文件夹…', uploaded:'已将完整数据文件夹写入当前同步位置。', downloaded:'检测到网盘数据更新，已完整载入。', current:'网盘数据文件夹已是最新状态。', waiting:'自动同步已开启，等待数据变化。', disabled:'自动同步已关闭。', choose:'请先连接 WebDAV 同步位置。', connectFail:'WebDAV 连接失败：', uploadFail:'上传数据失败：', downloadFail:'下载数据失败：', connected:'网盘同步位置已连接。', manualUpload:'已上传清单、归类、notes 和 todos 完整数据文件夹。', manualDownload:'已从网盘完整下载并载入数据文件夹。', confirm:'从网盘下载会替换当前内容，是否继续？', disconnected:'已断开当前网盘同步位置。', reauthorize:'浏览器需要重新授权 OneDrive 文件夹，请重新选择。', conflict:'检测到网盘数据和当前内容均有新修改。为避免覆盖，自动同步已暂停；请先下载检查或手动上传。', invalidWebDavUrl:'请输入有效的 HTTP 或 HTTPS WebDAV 服务器地址。', webDavMissing:'请完整填写 WebDAV 服务器地址、账号和密码。', webDavConnected:'WebDAV 连接测试成功，设置已保存。', webDavStored:'已读取保存的 WebDAV 设置。', webDavCors:'浏览器阻止了跨域 WebDAV 请求。请在 WebDAV 服务器允许当前网页来源、Authorization、Depth、Content-Type 标头，并正确响应 OPTIONS 预检及 PROPFIND、MKCOL、GET、PUT、DELETE、HEAD 方法。', webDavMixedContent:'HTTPS 页面不能连接 HTTP WebDAV，请改用 HTTPS 服务器地址。', webDavNetwork:'无法连接 WebDAV 服务器，请检查地址、网络、证书和服务器状态。'
     },
     en: {
-      working:'Syncing the cloud data folder…', uploaded:'Wrote the complete data folder to the current sync location.', downloaded:'A cloud update was found and fully loaded.', current:'The cloud data folder is up to date.', waiting:'Automatic sync is on and waiting for changes.', disabled:'Automatic sync is off.', choose:'Connect the current sync mode first.', connectFail:'WebDAV connection failed: ', uploadFail:'Data upload failed: ', downloadFail:'Data download failed: ', connected:'The cloud sync location is connected.', manualUpload:'Uploaded the complete manifest, classifications, notes, and todos data folder.', manualDownload:'Downloaded and loaded the complete cloud data folder.', confirm:'Downloading from cloud storage will replace the current content. Continue?', disconnected:'Disconnected the current cloud sync location.', reauthorize:'The browser needs permission again. Choose the OneDrive folder again.', conflict:'Both cloud data and current content changed. Automatic sync was paused; download to review or upload manually.', invalidWebDavUrl:'Enter a valid HTTP or HTTPS WebDAV server URL.', webDavMissing:'Enter the WebDAV server URL, account, and password.', webDavConnected:'WebDAV connection test succeeded and settings were saved.', webDavStored:'Loaded the saved WebDAV settings.', webDavCors:'The browser blocked the cross-origin WebDAV request. Allow this web origin and the Authorization, Depth, and Content-Type headers, and correctly answer the OPTIONS preflight for PROPFIND, MKCOL, GET, PUT, DELETE, and HEAD.', webDavMixedContent:'An HTTPS page cannot connect to an HTTP WebDAV server. Use an HTTPS server URL.', webDavNetwork:'Could not reach the WebDAV server. Check its URL, network, certificate, and status.'
+      working:'Syncing the cloud data folder…', uploaded:'Wrote the complete data folder to the current sync location.', downloaded:'A cloud update was found and fully loaded.', current:'The cloud data folder is up to date.', waiting:'Automatic sync is on and waiting for changes.', disabled:'Automatic sync is off.', choose:'Connect the WebDAV sync location first.', connectFail:'WebDAV connection failed: ', uploadFail:'Data upload failed: ', downloadFail:'Data download failed: ', connected:'The cloud sync location is connected.', manualUpload:'Uploaded the complete manifest, classifications, notes, and todos data folder.', manualDownload:'Downloaded and loaded the complete cloud data folder.', confirm:'Downloading from cloud storage will replace the current content. Continue?', disconnected:'Disconnected the current cloud sync location.', reauthorize:'The browser needs permission again. Choose the OneDrive folder again.', conflict:'Both cloud data and current content changed. Automatic sync was paused; download to review or upload manually.', invalidWebDavUrl:'Enter a valid HTTP or HTTPS WebDAV server URL.', webDavMissing:'Enter the WebDAV server URL, account, and password.', webDavConnected:'WebDAV connection test succeeded and settings were saved.', webDavStored:'Loaded the saved WebDAV settings.', webDavCors:'The browser blocked the cross-origin WebDAV request. Allow this web origin and the Authorization, Depth, and Content-Type headers, and correctly answer the OPTIONS preflight for PROPFIND, MKCOL, GET, PUT, DELETE, and HEAD.', webDavMixedContent:'An HTTPS page cannot connect to an HTTP WebDAV server. Use an HTTPS server URL.', webDavNetwork:'Could not reach the WebDAV server. Check its URL, network, certificate, and status.'
     },
     'zh-Hant': {
-      working:'正在同步網路硬碟資料資料夾…', uploaded:'已將完整資料資料夾寫入目前同步位置。', downloaded:'偵測到網路硬碟資料更新，已完整載入。', current:'網路硬碟資料資料夾已是最新狀態。', waiting:'自動同步已開啟，等待資料變更。', disabled:'自動同步已關閉。', choose:'請先完成目前同步模式的連接。', connectFail:'WebDAV 連接失敗：', uploadFail:'上傳資料失敗：', downloadFail:'下載資料失敗：', connected:'網路硬碟同步位置已連接。', manualUpload:'已上傳清單、歸類、notes 和 todos 完整資料資料夾。', manualDownload:'已從網路硬碟完整下載並載入資料資料夾。', confirm:'從網路硬碟下載會取代目前內容，是否繼續？', disconnected:'已中斷目前網路硬碟同步位置。', reauthorize:'瀏覽器需要重新授權 OneDrive 資料夾，請重新選擇。', conflict:'偵測到網路硬碟資料和目前內容都有新修改。為避免覆寫，自動同步已暫停；請先下載檢查或手動上傳。', invalidWebDavUrl:'請輸入有效的 HTTP 或 HTTPS WebDAV 伺服器地址。', webDavMissing:'請完整填寫 WebDAV 伺服器地址、帳號和密碼。', webDavConnected:'WebDAV 連接測試成功，設定已儲存。', webDavStored:'已讀取儲存的 WebDAV 設定。', webDavCors:'瀏覽器封鎖了跨來源 WebDAV 請求。請在 WebDAV 伺服器允許目前網頁來源、Authorization、Depth、Content-Type 標頭，並正確回應 OPTIONS 預檢及 PROPFIND、MKCOL、GET、PUT、DELETE、HEAD 方法。', webDavMixedContent:'HTTPS 頁面不能連接 HTTP WebDAV，請改用 HTTPS 伺服器地址。', webDavNetwork:'無法連接 WebDAV 伺服器，請檢查地址、網路、憑證和伺服器狀態。'
+      working:'正在同步網路硬碟資料資料夾…', uploaded:'已將完整資料資料夾寫入目前同步位置。', downloaded:'偵測到網路硬碟資料更新，已完整載入。', current:'網路硬碟資料資料夾已是最新狀態。', waiting:'自動同步已開啟，等待資料變更。', disabled:'自動同步已關閉。', choose:'請先連接 WebDAV 同步位置。', connectFail:'WebDAV 連接失敗：', uploadFail:'上傳資料失敗：', downloadFail:'下載資料失敗：', connected:'網路硬碟同步位置已連接。', manualUpload:'已上傳清單、歸類、notes 和 todos 完整資料資料夾。', manualDownload:'已從網路硬碟完整下載並載入資料資料夾。', confirm:'從網路硬碟下載會取代目前內容，是否繼續？', disconnected:'已中斷目前網路硬碟同步位置。', reauthorize:'瀏覽器需要重新授權 OneDrive 資料夾，請重新選擇。', conflict:'偵測到網路硬碟資料和目前內容都有新修改。為避免覆寫，自動同步已暫停；請先下載檢查或手動上傳。', invalidWebDavUrl:'請輸入有效的 HTTP 或 HTTPS WebDAV 伺服器地址。', webDavMissing:'請完整填寫 WebDAV 伺服器地址、帳號和密碼。', webDavConnected:'WebDAV 連接測試成功，設定已儲存。', webDavStored:'已讀取儲存的 WebDAV 設定。', webDavCors:'瀏覽器封鎖了跨來源 WebDAV 請求。請在 WebDAV 伺服器允許目前網頁來源、Authorization、Depth、Content-Type 標頭，並正確回應 OPTIONS 預檢及 PROPFIND、MKCOL、GET、PUT、DELETE、HEAD 方法。', webDavMixedContent:'HTTPS 頁面不能連接 HTTP WebDAV，請改用 HTTPS 伺服器地址。', webDavNetwork:'無法連接 WebDAV 伺服器，請檢查地址、網路、憑證和伺服器狀態。'
     }
   };
   const folderPermissionMessages = {
@@ -2044,7 +2043,6 @@
         const handle = await window.showDirectoryPicker({ id:pickerId, mode:'readwrite', startIn:'documents' });
         if (handle.requestPermission && await handle.requestPermission({ mode:'readwrite' }) !== 'granted') throw new Error(uiText('noFolderPermission'));
         if (handleKey) await storeDirectoryHandle(handleKey, handle);
-        else if (kind === 'onedrive') await storeDirectoryHandle(kind, handle);
         return createWebFolderAdapter(handle, kind);
       } catch (error) {
         if (error?.name === 'AbortError') return null;
@@ -3211,9 +3209,13 @@
   const noteHeadingH3Size = byId('noteHeadingH3Size');
   const noteBaseSize = byId('noteBaseSize');
   const noteBaseSizeValue = byId('noteBaseSizeValue');
-  const noteHeadingStyle = byId('noteHeadingStyle');
+  const noteHeadingFont = byId('noteHeadingFont');
+  const noteHeadingCustomFont = byId('noteHeadingCustomFont');
+  const noteHeadingCustomFontRow = byId('noteHeadingCustomFontRow');
   const noteLineHeight = byId('noteLineHeight');
   const noteLineHeightValue = byId('noteLineHeightValue');
+  const noteParagraphGap = byId('noteParagraphGap');
+  const noteParagraphGapValue = byId('noteParagraphGapValue');
   const noteToolbarPosition = byId('noteToolbarPosition');
   const noteToolbarShowLabels = byId('noteToolbarShowLabels');
   const noteHeadingSizes = {
@@ -3227,6 +3229,27 @@
     const next = Math.round(Number(value) * 10) / 10;
     return Number.isFinite(next) ? Math.min(noteLineHeightRange[1], Math.max(noteLineHeightRange[0], next)) : defaultUISettings.noteLineHeight;
   };
+  // 段落块间距以 em 计（相对正文字号），0.1 一档，0 表示紧贴。
+  const normalizeNoteParagraphGap = value => {
+    const next = Math.round(Number(value) * 10) / 10;
+    return Number.isFinite(next) ? Math.min(2, Math.max(0, next)) : defaultUISettings.noteParagraphGap;
+  };
+  // 「标题样式」旧值迁移为字体：衬线样式与 modern/accent 的无衬线各归其位，装饰条不再保留。
+  if (uiSettings.noteHeadingStyle) {
+    uiSettings.noteHeadingFont = { classic: 'serif', modern: 'app', accent: 'app' }[uiSettings.noteHeadingStyle] || defaultUISettings.noteHeadingFont;
+    delete uiSettings.noteHeadingStyle;
+  }
+  const noteHeadingFontStack = () => {
+    const safeCustomFont = (uiSettings.noteHeadingCustomFont || 'Georgia').replace(/[;{}<>]/g, '').trim() || 'Georgia';
+    uiSettings.noteHeadingCustomFont = safeCustomFont;
+    return {
+      app: 'var(--acta-app-font)',
+      serif: 'Georgia, "Noto Serif CJK SC", "Songti SC", serif',
+      rounded: '"Arial Rounded MT Bold", "PingFang SC", "Microsoft YaHei", sans-serif',
+      mono: '"SFMono-Regular", Consolas, "Liberation Mono", monospace',
+      custom: `${safeCustomFont}, "Segoe UI", "Microsoft YaHei", sans-serif`
+    }[uiSettings.noteHeadingFont] || 'Georgia, "Noto Serif CJK SC", "Songti SC", serif';
+  };
 
   function applyNoteEditorSettings() {
     const root = document.documentElement;
@@ -3238,7 +3261,8 @@
     const baseSize = Number(uiSettings.noteBaseSize);
     uiSettings.noteBaseSize = baseSize >= 13 && baseSize <= 22 ? baseSize : defaultUISettings.noteBaseSize;
     uiSettings.noteLineHeight = normalizeNoteLineHeight(uiSettings.noteLineHeight);
-    if (!['classic', 'modern', 'accent'].includes(uiSettings.noteHeadingStyle)) uiSettings.noteHeadingStyle = defaultUISettings.noteHeadingStyle;
+    uiSettings.noteParagraphGap = normalizeNoteParagraphGap(uiSettings.noteParagraphGap);
+    if (!['app', 'serif', 'rounded', 'mono', 'custom'].includes(uiSettings.noteHeadingFont)) uiSettings.noteHeadingFont = defaultUISettings.noteHeadingFont;
     if (!['top', 'bottom'].includes(uiSettings.noteToolbarPosition)) uiSettings.noteToolbarPosition = defaultUISettings.noteToolbarPosition;
     uiSettings.noteToolbarShowLabels = Boolean(uiSettings.noteToolbarShowLabels);
     root.style.setProperty('--note-body-size', `${uiSettings.noteBaseSize}px`);
@@ -3246,7 +3270,8 @@
     root.style.setProperty('--note-heading-h2-size', `${uiSettings.noteHeadingH2Size}px`);
     root.style.setProperty('--note-heading-h3-size', `${uiSettings.noteHeadingH3Size}px`);
     root.style.setProperty('--note-line-height', String(uiSettings.noteLineHeight));
-    root.dataset.noteHeadingStyle = uiSettings.noteHeadingStyle;
+    root.style.setProperty('--note-paragraph-gap', String(uiSettings.noteParagraphGap));
+    root.style.setProperty('--note-heading-font', noteHeadingFontStack());
     root.dataset.noteToolbarPosition = uiSettings.noteToolbarPosition;
     root.dataset.noteToolbarLabels = uiSettings.noteToolbarShowLabels ? 'show' : 'hide';
     noteBaseSize.value = String(uiSettings.noteBaseSize);
@@ -3254,9 +3279,13 @@
     noteHeadingH1Size.value = String(uiSettings.noteHeadingH1Size);
     noteHeadingH2Size.value = String(uiSettings.noteHeadingH2Size);
     noteHeadingH3Size.value = String(uiSettings.noteHeadingH3Size);
-    noteHeadingStyle.value = uiSettings.noteHeadingStyle;
+    noteHeadingFont.value = uiSettings.noteHeadingFont;
+    noteHeadingCustomFont.value = uiSettings.noteHeadingCustomFont;
+    noteHeadingCustomFontRow.classList.toggle('show', uiSettings.noteHeadingFont === 'custom');
     noteLineHeight.value = String(uiSettings.noteLineHeight);
     noteLineHeightValue.textContent = String(uiSettings.noteLineHeight);
+    noteParagraphGap.value = String(uiSettings.noteParagraphGap);
+    noteParagraphGapValue.textContent = `${uiSettings.noteParagraphGap.toFixed(1)} em`;
     noteToolbarPosition.value = uiSettings.noteToolbarPosition;
     noteToolbarShowLabels.checked = uiSettings.noteToolbarShowLabels;
   }
@@ -3288,8 +3317,14 @@
     applyNoteEditorSettings();
     saveUISettings();
   }));
-  noteHeadingStyle.addEventListener('change', () => {
-    uiSettings.noteHeadingStyle = noteHeadingStyle.value;
+  noteHeadingFont.addEventListener('change', () => {
+    uiSettings.noteHeadingFont = noteHeadingFont.value;
+    applyNoteEditorSettings();
+    saveUISettings();
+    if (uiSettings.noteHeadingFont === 'custom') noteHeadingCustomFont.focus();
+  });
+  noteHeadingCustomFont.addEventListener('input', () => {
+    uiSettings.noteHeadingCustomFont = noteHeadingCustomFont.value;
     applyNoteEditorSettings();
     saveUISettings();
   });
@@ -3299,6 +3334,15 @@
   });
   noteLineHeight.addEventListener('change', () => {
     uiSettings.noteLineHeight = normalizeNoteLineHeight(noteLineHeight.value);
+    applyNoteEditorSettings();
+    saveUISettings();
+  });
+  noteParagraphGap.addEventListener('input', () => {
+    uiSettings.noteParagraphGap = normalizeNoteParagraphGap(noteParagraphGap.value);
+    applyNoteEditorSettings();
+  });
+  noteParagraphGap.addEventListener('change', () => {
+    uiSettings.noteParagraphGap = normalizeNoteParagraphGap(noteParagraphGap.value);
     applyNoteEditorSettings();
     saveUISettings();
   });
@@ -3738,31 +3782,18 @@
   const webDavCredentialStorageKey = 'webdav.credentials.v1';
   const autoSyncSetting = byId('autoSyncSetting');
   const autoSyncInterval = byId('autoSyncInterval');
-  const cloudSyncMode = byId('cloudSyncMode');
+  // 本地文件夹（OneDrive）同步模式已移除；旧设置里的模式键一并清除，同步统一走 WebDAV。
+  delete uiSettings.cloudSyncMode;
   const webDavServer = byId('webDavServer');
   const webDavUsername = byId('webDavUsername');
   const webDavPassword = byId('webDavPassword');
-  const localFolderSyncMessages = {
-    zh: {
-      description:'在本地文件夹与 WebDAV 服务器之间选择一种同步方式。', mode:'本地文件夹', title:'本地文件夹', folderSync:'文件夹同步', note:'全平台可用；支持设备本地、局域网及系统已挂载的网络位置', choose:'选择本地文件夹', empty:'尚未选择本地文件夹', hint:'本地文件夹模式通过系统文件选择器访问路径，可配合局域网或其他同步工具使用；WebDAV 密码仅保存在当前设备。', restored:'已恢复本地文件夹连接。', restoreFailed:'无法恢复本地文件夹：{0}'
-    },
-    en: {
-      description:'Choose between a local folder and a WebDAV server.', mode:'Local folder', title:'Local folder', folderSync:'Folder sync', note:'Available on every platform; supports device folders, LAN locations, and mounted network storage', choose:'Choose local folder', empty:'No local folder selected', hint:'Local folder mode uses the system folder picker and can work with LAN storage or other sync tools. The WebDAV password stays on this device.', restored:'Restored the local folder connection.', restoreFailed:'Could not restore the local folder: {0}'
-    },
-    'zh-Hant': {
-      description:'在本機資料夾與 WebDAV 伺服器之間選擇一種同步方式。', mode:'本機資料夾', title:'本機資料夾', folderSync:'資料夾同步', note:'全平台可用；支援裝置本機、區域網路及系統已掛載的網路位置', choose:'選擇本機資料夾', empty:'尚未選擇本機資料夾', hint:'本機資料夾模式透過系統資料夾選擇器存取路徑，可搭配區域網路或其他同步工具使用；WebDAV 密碼僅儲存在目前裝置。', restored:'已還原本機資料夾連接。', restoreFailed:'無法還原本機資料夾：{0}'
-    }
-  };
-  const localFolderSyncText = (key, ...values) => values.reduce((message, value, index) => message.replace(`{${index}}`, value), (localFolderSyncMessages[uiSettings.language] || localFolderSyncMessages.zh)[key]);
-  cloudSyncMode.value = ['onedrive', 'webdav'].includes(uiSettings.cloudSyncMode) ? uiSettings.cloudSyncMode : 'onedrive';
-  uiSettings.cloudSyncMode = cloudSyncMode.value;
   webDavServer.value = uiSettings.webDavServer || '';
   webDavUsername.value = uiSettings.webDavUsername || '';
   autoSyncSetting.checked = Boolean(uiSettings.autoSync);
   autoSyncInterval.value = String(uiSettings.autoSyncInterval || 5);
 
   function activateSelectedCloudAdapter(resetBaseline = false) {
-    oneDriveAdapter = cloudSyncMode.value === 'webdav' ? webDavAdapter : oneDriveFolderAdapter;
+    oneDriveAdapter = webDavAdapter;
     if (resetBaseline) {
       oneDriveRemoteVersion = '';
       oneDriveBaselineReady = false;
@@ -3773,23 +3804,7 @@
   }
 
   function updateOneDriveUI(message = '') {
-    const mode = cloudSyncMode.value;
     const connected = Boolean(activateSelectedCloudAdapter());
-    const copy = localFolderSyncMessages[uiSettings.language] || localFolderSyncMessages.zh;
-    const cloudPanel = document.querySelector('[data-settings-panel="cloud"]');
-    cloudPanel.querySelector(':scope > header p').textContent = copy.description;
-    cloudSyncMode.querySelector('option[value="onedrive"]').textContent = copy.mode;
-    const localFolderRows = byId('oneDriveModeFields').querySelectorAll('.settings-row');
-    localFolderRows[0].querySelector('b').textContent = copy.title;
-    localFolderRows[1].querySelector('b').textContent = copy.folderSync;
-    localFolderRows[1].querySelector('.cloud-mode-note').textContent = copy.note;
-    byId('chooseOneDriveFolder').querySelector('span').textContent = copy.choose;
-    byId('cloudSyncHint').textContent = copy.hint;
-    byId('oneDriveModeFields').hidden = mode !== 'onedrive';
-    byId('webDavModeFields').hidden = mode !== 'webdav';
-    byId('oneDriveFolderPath').textContent = oneDriveFolderAdapter
-      ? `${oneDriveFolderAdapter.label} / ${workspaceFileName}`
-      : copy.empty;
     byId('webDavConnectionPath').textContent = webDavAdapter
       ? webDavAdapter.label
       : (uiSettings.language === 'en' ? 'WebDAV is not connected' : uiSettings.language === 'zh-Hant' ? '尚未連接 WebDAV' : '尚未连接 WebDAV');
@@ -3908,18 +3923,6 @@
     }
   }
 
-  cloudSyncMode.addEventListener('change', async () => {
-    uiSettings.cloudSyncMode = cloudSyncMode.value;
-    uiSettings.autoSync = false;
-    activateSelectedCloudAdapter(true);
-    saveUISettings();
-    configureAutomaticSync();
-    updateOneDriveUI();
-    if (oneDriveAdapter) {
-      try { await refreshCloudVersion(); }
-      catch (error) { setStatus(byId('oneDriveStatus'), error.message, 'error'); }
-    }
-  });
   autoSyncSetting.addEventListener('change', async () => {
     uiSettings.autoSync = autoSyncSetting.checked;
     saveUISettings();
@@ -3933,31 +3936,6 @@
     uiSettings.autoSyncInterval = Number(autoSyncInterval.value);
     saveUISettings();
     configureAutomaticSync(true);
-  });
-
-  byId('chooseOneDriveFolder').addEventListener('click', async () => {
-    try {
-      const adapter = await chooseFolderAdapter('onedrive');
-      if (!adapter) return;
-      oneDriveFolderAdapter = adapter;
-      if (adapter.kind === 'native') {
-        uiSettings.oneDriveFolder = adapter.folder;
-        uiSettings.oneDriveLabel = adapter.label;
-      } else {
-        uiSettings.oneDriveFolder = '';
-        uiSettings.oneDriveLabel = adapter.label;
-      }
-      if (cloudSyncMode.value === 'onedrive') oneDriveAdapter = adapter;
-      saveUISettings();
-      await refreshCloudVersion();
-      autoSyncBaseline = librarySignature();
-      autoSyncDirty = false;
-      updateOneDriveUI(syncText('connected'));
-      configureAutomaticSync();
-    } catch (error) {
-      setStatus(byId('oneDriveStatus'), error.message, 'error');
-      showSyncNotice(error.message, 'error');
-    }
   });
 
   byId('connectWebDav').addEventListener('click', async () => {
@@ -3983,7 +3961,7 @@
       uiSettings.webDavUsername = username;
       webDavServer.value = adapter.config.server;
       await storeDirectoryHandle(webDavCredentialStorageKey, webDavCredentials);
-      if (cloudSyncMode.value === 'webdav') oneDriveAdapter = adapter;
+      oneDriveAdapter = adapter;
       saveUISettings();
       await refreshCloudVersion();
       autoSyncBaseline = librarySignature();
@@ -3994,7 +3972,7 @@
     } catch (error) {
       webDavAdapter = previousAdapter;
       webDavCredentials = previousCredentials;
-      if (cloudSyncMode.value === 'webdav') oneDriveAdapter = previousAdapter;
+      oneDriveAdapter = previousAdapter;
       const message = `${syncText('connectFail')}${error.message}`;
       connectionError = message;
       setStatus(byId('oneDriveStatus'), message, 'error');
@@ -4010,17 +3988,10 @@
     clearInterval(autoSyncTimer);
     clearTimeout(autoSyncSaveTimer);
     uiSettings.autoSync = false;
-    if (cloudSyncMode.value === 'webdav') {
-      webDavAdapter = null;
-      webDavCredentials = null;
-      webDavPassword.value = '';
-      await removeDirectoryHandle(webDavCredentialStorageKey).catch(() => {});
-    } else {
-      oneDriveFolderAdapter = null;
-      uiSettings.oneDriveFolder = '';
-      uiSettings.oneDriveLabel = '';
-      await removeDirectoryHandle('onedrive').catch(() => {});
-    }
+    webDavAdapter = null;
+    webDavCredentials = null;
+    webDavPassword.value = '';
+    await removeDirectoryHandle(webDavCredentialStorageKey).catch(() => {});
     oneDriveAdapter = null;
     oneDriveRemoteVersion = '';
     oneDriveBaselineReady = false;
@@ -4153,23 +4124,11 @@
 
   async function restoreFolderConnections() {
     await dataProfilesReady.catch(() => {});
-    const bridge = getSyncBridge();
+    // 清理本地文件夹同步模式遗留的授权数据与文件夹句柄。
     await removeDirectoryHandle('onedrive.graph.auth.v1').catch(() => {});
-    try {
-      if (bridge && uiSettings.oneDriveFolder) {
-        oneDriveFolderAdapter = createNativeFolderAdapter(uiSettings.oneDriveFolder, bridge, uiSettings.oneDriveLabel || uiSettings.oneDriveFolder);
-      } else {
-        const handle = await readDirectoryHandle('onedrive');
-        if (handle && (!handle.queryPermission || await handle.queryPermission({ mode:'readwrite' }) === 'granted')) {
-          oneDriveFolderAdapter = createWebFolderAdapter(handle, 'onedrive');
-        } else if (handle && cloudSyncMode.value === 'onedrive') {
-          setStatus(byId('oneDriveStatus'), syncText('reauthorize'));
-        }
-      }
-    } catch (error) {
-      oneDriveFolderAdapter = null;
-      if (cloudSyncMode.value === 'onedrive') setStatus(byId('oneDriveStatus'), localFolderSyncText('restoreFailed', error.message), 'error');
-    }
+    await removeDirectoryHandle('onedrive').catch(() => {});
+    uiSettings.oneDriveFolder = '';
+    uiSettings.oneDriveLabel = '';
     try {
       const storedCredentials = await readDirectoryHandle(webDavCredentialStorageKey);
       if (storedCredentials?.server && storedCredentials?.username && storedCredentials?.password) {
@@ -4181,13 +4140,13 @@
       }
     } catch (error) {
       webDavAdapter = null;
-      if (cloudSyncMode.value === 'webdav') setStatus(byId('oneDriveStatus'), error.message, 'error');
+      setStatus(byId('oneDriveStatus'), error.message, 'error');
     }
     activateSelectedCloudAdapter(true);
     if (oneDriveAdapter) {
       autoSyncBaseline = librarySignature();
       autoSyncDirty = false;
-      updateOneDriveUI(cloudSyncMode.value === 'webdav' ? syncText('webDavStored') : localFolderSyncText('restored'));
+      updateOneDriveUI(syncText('webDavStored'));
       configureAutomaticSync();
       if (uiSettings.autoSync) setTimeout(() => runAutomaticSync('interval'), 450);
       else {
