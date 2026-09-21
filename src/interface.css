@@ -1981,6 +1981,19 @@ body.trash-view .list-footer { background: color-mix(in srgb, var(--note-soft) 1
   .cloud-mode-fields .settings-row { align-items: stretch; flex-direction: column; }
   .cloud-mode-fields .settings-row > span:first-child { width: 100%; }
   .cloud-mode-fields .settings-button { width: 100%; justify-content: center; }
+  /* 含宽控件的设置行堆叠：文案独占整行，不再被滑块/按钮/文本输入挤成窄条竖排 */
+  .settings-row:has(> .font-size-control),
+  .settings-row:has(> .settings-button),
+  .settings-row:has(> .splash-preset-controls),
+  .settings-row:has(> .app-data-actions),
+  .settings-row:has(> input[type="text"]),
+  .settings-row:has(> input[type="url"]),
+  .settings-row:has(> input[type="password"]) { align-items: stretch; flex-direction: column; gap: 9px; }
+  .settings-row:has(> .font-size-control) .font-size-control { width: 100%; }
+  .settings-row:has(> .font-size-control) .font-size-control input { flex: 1; width: auto; }
+  .settings-row:has(> .settings-button) .settings-button { width: 100%; justify-content: center; }
+  .settings-row:has(> .splash-preset-controls) .splash-preset-controls { width: 100%; }
+  .settings-row:has(> .splash-preset-controls) .splash-preset-controls select { flex: 1; min-width: 0; width: auto; }
   .brand-logo { width: 104px; height: 30px; }
   .editor-topline { position: sticky; top: 0; z-index: 12; min-height: 47px; margin: -18px -18px 0; padding: 8px 18px; background: rgba(251,250,246,.94); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
   .note-toolbar { top: auto; bottom: 8px; }
