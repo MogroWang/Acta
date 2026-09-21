@@ -2,6 +2,10 @@
 
 ## 未发布
 
+### 修复
+
+- **折叠侧边栏智能视图药丸形轮廓**：侧边栏折叠后，智能视图六个按钮的悬停/激活背景收缩为仅图标宽的 18px 竖条，按钮圆角却固定为 9px（恰为宽度的一半），两端拼成半圆，背景遮罩呈竖向药丸形，与同列 44px 宽的「新建」按钮、归类色点和底部操作 dock 俱不衔接；现给折叠态按钮加 `min-width: 44px`，遮罩恢复为 44×37 的圆角矩形，与列内元素同宽对齐，点击热区也随之回到标准尺寸。`min-width` 在收缩宽度降到 44px 时才参与约束，展开/折叠过渡保持连续；归类按钮的悬停反馈发生在色点上，不受影响
+
 ### 变更
 
 - **技术栈升级：引入 Vite 8 + Vue 3 + TypeScript 构建管线**：项目从「无构建器的原生 HTML/JS」迁移为标准 Vite 工程，界面行为与数据链路不受影响（全量冒烟测试通过）。根 `index.html` 成为 Vite 入口，只保留内联脚本、SVG 图标雪碧图与 `#app` 挂载点；应用外壳（启动画面、工作区、设置窗口、OOBE 引导、提示层，约 700 行标记）整体成为 `src/App.vue` 的模板，由新的 `src/main.ts` 同步挂载后再引导业务模块，保证模块按 id 绑定节点时 DOM 已经就绪，启动画面的 `.splash-screen ~ .app-shell` 交接选择器也因两者同属挂载点而继续成立。既有业务模块（interface.js、note-export.js、custom-select.js、custom-datetime.js、splash.js、tauri-bridge.js）本体零改写，移入 `src/legacy/` 由 `src/boot.ts` 按原脚本顺序以 ES 模块加载；`renderer.js` 因顶层导出页面级全局绑定（`library`、`settings`、`$`、`renderAll` 等，冒烟测试与模块间通信都依赖）继续以经典脚本原样加载，现位于 `public/legacy/`。theme-boot.js、manifest、Service Worker、图标与 vendor 库（purify、pdf-lib、fontkit）移入 `public/` 原样复制。新增 `tsconfig.json` 严格类型检查（`npm run typecheck`，vue-tsc）、`vite.config.ts`（相对 base，使同一份 dist 适配 Tauri、Capacitor 与 Pages）与 `src/vite-env.d.ts`；TypeScript 采用 5.9（最新的 7.x 已是原生编译器，vue-tsc 语言工具链尚未适配，实测报 `./lib/tsc` 导出缺失）

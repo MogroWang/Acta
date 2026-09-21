@@ -1385,7 +1385,7 @@ body.sidebar-collapsed { --acta-sidebar-width: 72px; }
   body.sidebar-collapsed .new-button > kbd { margin: 0; padding-left: 0; padding-right: 0; }
   body.sidebar-collapsed .smart-nav { margin-top: 18px; }
   body.sidebar-collapsed .nav-section { max-width: 44px; align-self: center; align-items: center; }
-  body.sidebar-collapsed .nav-section button { position: relative; max-width: 44px; padding: 0; justify-content: center; }
+  body.sidebar-collapsed .nav-section button { position: relative; min-width: 44px; max-width: 44px; padding: 0; justify-content: center; }
   body.sidebar-collapsed .nav-section button > span { gap: 0; justify-content: center; }
   body.sidebar-collapsed .smart-nav button > span { width: 18px; flex: 0 0 18px; }
   body.sidebar-collapsed .smart-nav button > span > svg { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); }
