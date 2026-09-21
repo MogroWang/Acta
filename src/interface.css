@@ -130,7 +130,17 @@ body:not(.acta-steady) .settings-content::-webkit-scrollbar-thumb { background-c
 .settings-row small { color: var(--faint); font-size: calc(8px * var(--acta-font-scale)); line-height: 1.45; }
 .settings-row select, .settings-field input, .settings-field textarea { border: 1px solid var(--line); border-radius: 9px; background: var(--white); color: var(--ink); outline: 0; font-size: calc(10px * var(--acta-font-scale)); }
 .settings-row select { height: 33px; padding: 0 28px 0 10px; }
-.settings-row input[type="checkbox"] { width: 34px; height: 19px; accent-color: var(--sage); cursor: pointer; }
+/* 设置行勾选控件：自绘拨动开关，替代原生 accent-color 复选框（设置窗口 + OOBE 共用） */
+.settings-row input[type="checkbox"] { appearance: none; -webkit-appearance: none; position: relative; flex: 0 0 auto; width: 34px; height: 19px; margin: 0; border-radius: 999px; background: color-mix(in srgb, var(--ink) 16%, transparent); cursor: pointer; transition: background .2s var(--ease-out), box-shadow .2s var(--ease-out); }
+.settings-row input[type="checkbox"]::before { content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: var(--white); box-shadow: 0 1px 3px rgba(24,28,23,.28); transition: transform .2s var(--ease-out), width .2s var(--ease-out); }
+.settings-row input[type="checkbox"]:checked { background: var(--sage); }
+.settings-row input[type="checkbox"]:checked::before { transform: translateX(15px); }
+.settings-row input[type="checkbox"]:hover { background: color-mix(in srgb, var(--ink) 24%, transparent); }
+.settings-row input[type="checkbox"]:checked:hover { background: color-mix(in srgb, var(--sage) 86%, var(--ink)); }
+.settings-row input[type="checkbox"]:active::before { width: 17px; }
+.settings-row input[type="checkbox"]:checked:active::before { transform: translateX(13px); }
+.settings-row input[type="checkbox"]:focus-visible { outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb, var(--sage) 22%, transparent); }
+.settings-row input[type="checkbox"]:disabled { opacity: .45; cursor: default; }
 .language-options { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
 .language-option, .theme-option { position: relative; }
 .language-option input, .theme-option input { position: absolute; opacity: 0; pointer-events: none; }

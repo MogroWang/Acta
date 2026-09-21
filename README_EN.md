@@ -28,7 +28,7 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 - Rich-text editing and UTF-8 Markdown import/export for individual notes
 - A desktop context menu with cut, copy, paste, and select all for text, plus copy for any selected text
 - Simplified Chinese, Traditional Chinese, and English interfaces with theme and font settings
-- All dropdown menus, scrollbars, sliders, and date-time pickers are custom-drawn controls; hover feedback uses scale instead of shifting, keeping motion restrained and smooth
+- All dropdown menus, scrollbars, sliders, date-time pickers, and settings toggles are custom-drawn controls; hover feedback uses scale instead of shifting, keeping motion restrained and smooth
 - Local data folders, OneDrive local-folder sync, and WebDAV sync
 - Android local notifications, system file pickers, and Storage Access Framework integration
 - Installable PWA support with offline caching
