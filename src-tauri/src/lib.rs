@@ -764,15 +764,15 @@ fn decode_app_icon(data_url: &str) -> Result<Vec<u8>, String> {
         .map_err(|_| "应用图标数据无效".to_string())
 }
 
-/// 打包进二进制的预设图标（与前端 src/icons 的预设一一对应）。桌面 webview 的
+/// 打包进二进制的预设图标（与前端 public/icons 的预设一一对应）。桌面 webview 的
 /// 画布管线在个别环境下不可用（CSP、协议染色等），此时前端发送空 dataURL +
 /// 预设名，由 Rust 侧用这份内置资产兜底应用并持久化。
 fn app_icon_preset_bytes(preset: &str) -> Option<&'static [u8]> {
     match preset {
-        "default" => Some(include_bytes!("../../src/icons/icon-512.png").as_slice()),
-        "positive" => Some(include_bytes!("../../src/icons/app-icon-positive-page.png").as_slice()),
-        "outline" => Some(include_bytes!("../../src/icons/app-icon-outlined-page.png").as_slice()),
-        "original" => Some(include_bytes!("../../src/icons/app-icon-original-simple.png").as_slice()),
+        "default" => Some(include_bytes!("../../public/icons/icon-512.png").as_slice()),
+        "positive" => Some(include_bytes!("../../public/icons/app-icon-positive-page.png").as_slice()),
+        "outline" => Some(include_bytes!("../../public/icons/app-icon-outlined-page.png").as_slice()),
+        "original" => Some(include_bytes!("../../public/icons/app-icon-original-simple.png").as_slice()),
         _ => None,
     }
 }
