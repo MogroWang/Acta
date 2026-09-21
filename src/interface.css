@@ -1416,7 +1416,7 @@ body.sidebar-collapsed #folderNav .folder-short-name.is-emoji { max-width: 30px;
   body.sidebar-collapsed .sidebar-bottom .sync-card { width: 36px; height: 36px; padding: 0; grid-template-columns: 1fr; gap: 0; justify-items: center; }
   body.sidebar-collapsed .sidebar-bottom .sync-card > span:nth-child(2), body.sidebar-collapsed .sidebar-bottom .sync-card > .chevron { display: none; }
   body.sidebar-collapsed .sidebar-bottom .sync-icon { width: 36px; height: 36px; }
-  body.sidebar-collapsed .sidebar-dock-actions { width: 44px; padding: 3px; grid-template-columns: minmax(0, 1fr); justify-content: center; justify-items: center; gap: 2px; }
+  body.sidebar-collapsed .sidebar-dock-actions { width: 44px; padding: 3px; border-radius: 8px; grid-template-columns: minmax(0, 1fr); justify-content: center; justify-items: center; gap: 2px; }
   body.sidebar-collapsed .sidebar-dock-action { width: 36px; height: 36px; }
 }
 
