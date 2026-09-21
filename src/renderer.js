@@ -397,54 +397,6 @@ function validDate(value) {
   return typeof value === 'string' && !Number.isNaN(Date.parse(value)) ? value : '';
 }
 
-/* ===================== 沉浸模式输入动画 =====================
- * 只在沉浸编辑模式下生效：把新输入的文本临时包进 .note-type-in，
- * CSS 动画（涌现 / 高亮渐隐）结束后保留在 DOM 中不回改——存储与模式
- * 切换的序列化都会剥掉这层包裹，因此不会影响 item.body 与撤销栈。 */
-(() => {
-  const WRAP_CLASS = 'note-type-in';
-  const animationEnabled = () => {
-    const mode = document.documentElement.dataset.noteTypingAnimation || 'rise';
-    if (mode === 'off') return false;
-    if (document.body.classList.contains('acta-reduce-motion')) return false;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
-    return document.body.classList.contains('note-focus-mode');
-  };
-  const unwrap = root => root.querySelectorAll(`.${WRAP_CLASS}`).forEach(span => span.replaceWith(...span.childNodes));
-  const typingObserver = new MutationObserver(mutations => {
-    if (!animationEnabled()) return;
-    const noteBody = document.getElementById('noteBody');
-    if (!noteBody || noteBody.hidden) return;
-    const freshNodes = [];
-    mutations.forEach(mutation => {
-      [...mutation.addedNodes].forEach(node => {
-        if (node.nodeType === Node.TEXT_NODE && node.nodeValue && noteBody.contains(node)) freshNodes.push(node);
-      });
-    });
-    if (!freshNodes.length) return;
-    // 断开观察再改 DOM：unwrap 与包裹本身也产生 childList 变化，若被同一
-    // observer 捕获会互相触发成自激循环，大文档时主线程被完全占满。
-    typingObserver.disconnect();
-    unwrap(noteBody);
-    // 打字一次只会带来一两个新文本节点；execCommand/粘贴会把整段重排出
-    // 成百上千个,那不是输入,不播放输入动画,只清理已有包裹层。
-    if (freshNodes.length <= 8) {
-      freshNodes.forEach(node => {
-        if (!node.isConnected || !noteBody.contains(node)) return;
-        const span = document.createElement('span');
-        span.className = WRAP_CLASS;
-        node.before(span);
-        span.appendChild(node);
-      });
-    }
-    typingObserver.observe(document.body, { childList: true, subtree: true, characterData: false });
-  });
-  typingObserver.observe(document.body, { childList: true, subtree: true, characterData: false });
-  // 存储前剥除包裹层：交给 bindNoteEditor 的 commitHTML 直接在 DOM 上剥，
-  // 免去"读 HTML→解析→再序列化"的整篇往返。
-  window.__actaUnwrapTypingWrappers = unwrap;
-})();
-
 function legacyTodoStartAt(item, fallback = '') {
   if (!calendarDate(item?.due)) return fallback;
   const time = /^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(String(item.dueTime || ''))
@@ -2176,10 +2128,7 @@ function bindNoteEditor(item) {
     const text = stripHTML(html);
     $('#noteStats').textContent = `${text.split(/\s+/).filter(Boolean).length} ${t('words')} · ${text.length} ${t('chars')}`;
   };
-  // 输入动画的临时包裹层只存在于编辑 DOM 中，提交存储前直接在 DOM 上剥掉，
-  // item.body 始终干净；比"整篇 HTML→解析→序列化"省一次全文往返。
   const commitHTML = () => {
-    if (body.querySelector('.note-type-in')) window.__actaUnwrapTypingWrappers?.(body);
     item.body = body.innerHTML;
     updateStats(item.body);
     touchItem(item);

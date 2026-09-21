@@ -1122,14 +1122,6 @@ html[data-note-heading-style="accent"] :is(.note-editor .note-body, .note-headin
 .markdown-task[data-checked="true"] { color: var(--faint); text-decoration: line-through; }
 .note-markdown-source { width: 100%; min-height: 490px; box-sizing: border-box; margin-top: 10px; padding: 22px; resize: vertical; border: 1px solid color-mix(in srgb, var(--note-accent) 28%, var(--line)); border-radius: 14px; outline: 0; background: color-mix(in srgb, var(--paper) 94%, var(--note-accent)); color: var(--ink); caret-color: var(--note-accent); font: calc(12px * var(--acta-font-scale))/var(--note-line-height, 1.6) ui-monospace, "SFMono-Regular", Consolas, "Microsoft YaHei", monospace; tab-size: 2; white-space: pre; overflow: auto; }
 .note-markdown-source:focus { border-color: color-mix(in srgb, var(--note-accent) 28%, var(--line)); box-shadow: none; outline: none; }
-/* 沉浸模式输入动画：包裹层由输入动画模块临时插入，存储前会被剥除。 */
-.note-type-in { display: inline; }
-html[data-note-typing-animation="rise"] .note-type-in { animation: noteTypeRise .42s var(--ease-out) both; }
-html[data-note-typing-animation="glow"] .note-type-in { animation: noteTypeGlow .72s ease-out both; border-radius: 4px; }
-@keyframes noteTypeRise { from { opacity: 0; } to { opacity: 1; } }
-@keyframes noteTypeGlow { 0% { color: var(--note-accent); background: color-mix(in srgb, var(--note-accent) 14%, transparent); } 100% { color: inherit; background: transparent; } }
-body.acta-reduce-motion .note-type-in { animation: none !important; }
-@media (prefers-reduced-motion: reduce) { .note-type-in { animation: none !important; } }
 html[data-acta-theme="mono-dark"] .note-editor .note-body { box-shadow: inset 0 1px 0 rgba(255,255,255,.035); }
 html[data-acta-theme="mono-dark"] .note-block-format { background: #303030; color: var(--ink); }
 .note-editor .note-body mark { background: var(--note-soft); }

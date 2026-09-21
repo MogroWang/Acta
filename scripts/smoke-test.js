@@ -49,6 +49,8 @@ async function main() {
       deviceScaleFactor:1
     }));
     await page.goto(pathToFileURL(path.join(__dirname, '..', 'src', 'index.html')).href, { waitUntil:'load' });
+    // 版本号断言跟随 package.json，升级版本时无需再改测试。
+    const expectedVersion = require('../package.json').version;
     const smokeRun = page.evaluate(`(async () => {
       window.__actaSmokeStep = 'started';
       window.resizeTo = (width, height) => window.__actaResizeTo(width, height);
@@ -1157,7 +1159,7 @@ async function main() {
       await waitFor(() => innerWidth > 1200 && innerHeight > 700);
       window.__actaSmokeStep = 'classification-item-opened';
       const brandVersion = document.querySelector('.brand-version');
-      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '3.0.0'
+      const expandedBrandVersionVisible = brandVersion?.textContent.trim() === '${expectedVersion}'
         && parseFloat(getComputedStyle(brandVersion).opacity) > .9
         && brandVersion.getBoundingClientRect().width > 0;
       const miniLogoBeforeCollapseRect = document.querySelector('.brand-mini-logo').getBoundingClientRect();
@@ -1238,7 +1240,7 @@ async function main() {
       const syncSettingsIndex = settingsNavigation.findIndex(button => button.dataset.settingsPage === 'cloud');
       const dataSyncOrderZh = syncSettingsIndex === workspaceSettingsIndex + 1 && settingsNavigation[syncSettingsIndex]?.textContent.trim() === '数据同步';
       document.querySelector('[data-settings-page="note-editor"]').click();
-      const noteEditorSettingsComplete = ['#noteHeadingH1Size', '#noteHeadingH2Size', '#noteHeadingH3Size', '#noteHeadingStyle', '#noteLineHeight', '#noteTypingAnimation', '#noteToolbarPosition', '#noteToolbarShowLabels']
+      const noteEditorSettingsComplete = ['#noteHeadingH1Size', '#noteHeadingH2Size', '#noteHeadingH3Size', '#noteHeadingStyle', '#noteLineHeight', '#noteToolbarPosition', '#noteToolbarShowLabels']
         .every(selector => Boolean(document.querySelector(selector)));
       const updateNoteSetting = (selector, value, eventType = 'change') => {
         const field = document.querySelector(selector);

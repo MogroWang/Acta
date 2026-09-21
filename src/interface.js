@@ -8,7 +8,7 @@
     splashAnimationEnabled: true, splashAnimationPreset: 'acta-lines', splashAnimationSpeed: 1,
     appFont: 'system', customFont: 'Inter', appFontSize: 14,
     noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteBaseSize: 17, noteHeadingStyle: 'classic', noteLineHeight: 1.6,
-    noteToolbarPosition: 'bottom', noteToolbarShowLabels: false, noteTypingAnimation: 'rise',
+    noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
     oneDriveFolder: '', oneDriveLabel: '', workspaceLabel: '',
     dataProfiles: [], activeDataProfileId: '', cloudSyncMode: 'onedrive', webDavServer: '', webDavUsername: '', autoSync: false, autoSyncInterval: 5, listPaneWidth: 330, sidebarCollapsed: false, language: ['zh', 'zh-Hant', 'en'].includes(settings.language) ? settings.language : 'zh'
   };
@@ -196,7 +196,6 @@
     '标题预览':'Heading preview', '一级标题':'Heading 1', '二级标题':'Heading 2', '三级标题':'Heading 3',
     '正文行间距':'Body line spacing', 'Markdown 渲染后的正文与源码行距':'Line spacing for the rendered Markdown body and source',
     '总结':'Summary',
-    '输入动画':'Typing animation', '沉浸编辑模式下，新输入文字的出现方式':'How newly typed text appears in focus mode', '缓缓涌现':'Gentle rise', '高亮渐隐':'Highlight fade', '不启用':'Off',
     '初始设置向导':'Setup guide', '重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画':'Walk through the first-run guide again to revisit data location, theme, and launch animation', '重新运行引导':'Run the guide again',
     '基准字号':'Base font size', '拖动滑块，正文与各级标题会一起缩放':'Drag the slider; body text and headings scale together'
   });
@@ -233,7 +232,6 @@
     '标题预览':'標題預覽', '一级标题':'一級標題', '二级标题':'二級標題', '三级标题':'三級標題',
     '正文行间距':'正文行距', 'Markdown 渲染后的正文与源码行距':'Markdown 轉譯後的正文與原始碼行距',
     '总结':'總結',
-    '输入动画':'輸入動畫', '沉浸编辑模式下，新输入文字的出现方式':'沉浸編輯模式下，新輸入文字的出現方式', '缓缓涌现':'緩緩湧現', '高亮渐隐':'高亮漸隱', '不启用':'不啟用',
     '初始设置向导':'初始設定精靈', '重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画':'重新體驗首次啟動的引導，逐步確認資料位置、主題與啟動動畫', '重新运行引导':'重新執行引導',
     '基准字号':'基準字級', '拖动滑块，正文与各级标题会一起缩放':'拖動滑桿，正文與各級標題會一起縮放'
   });
@@ -3135,7 +3133,6 @@
   const noteHeadingStyle = byId('noteHeadingStyle');
   const noteLineHeight = byId('noteLineHeight');
   const noteLineHeightValue = byId('noteLineHeightValue');
-  const noteTypingAnimation = byId('noteTypingAnimation');
   const noteToolbarPosition = byId('noteToolbarPosition');
   const noteToolbarShowLabels = byId('noteToolbarShowLabels');
   const noteHeadingSizes = {
@@ -3163,7 +3160,6 @@
     if (!['classic', 'modern', 'accent'].includes(uiSettings.noteHeadingStyle)) uiSettings.noteHeadingStyle = defaultUISettings.noteHeadingStyle;
     if (!['top', 'bottom'].includes(uiSettings.noteToolbarPosition)) uiSettings.noteToolbarPosition = defaultUISettings.noteToolbarPosition;
     uiSettings.noteToolbarShowLabels = Boolean(uiSettings.noteToolbarShowLabels);
-    if (!['rise', 'glow', 'off'].includes(uiSettings.noteTypingAnimation)) uiSettings.noteTypingAnimation = defaultUISettings.noteTypingAnimation;
     root.style.setProperty('--note-body-size', `${uiSettings.noteBaseSize}px`);
     root.style.setProperty('--note-heading-h1-size', `${uiSettings.noteHeadingH1Size}px`);
     root.style.setProperty('--note-heading-h2-size', `${uiSettings.noteHeadingH2Size}px`);
@@ -3172,7 +3168,6 @@
     root.dataset.noteHeadingStyle = uiSettings.noteHeadingStyle;
     root.dataset.noteToolbarPosition = uiSettings.noteToolbarPosition;
     root.dataset.noteToolbarLabels = uiSettings.noteToolbarShowLabels ? 'show' : 'hide';
-    root.dataset.noteTypingAnimation = uiSettings.noteTypingAnimation;
     noteBaseSize.value = String(uiSettings.noteBaseSize);
     noteBaseSizeValue.textContent = `${uiSettings.noteBaseSize} px`;
     noteHeadingH1Size.value = String(uiSettings.noteHeadingH1Size);
@@ -3181,7 +3176,6 @@
     noteHeadingStyle.value = uiSettings.noteHeadingStyle;
     noteLineHeight.value = String(uiSettings.noteLineHeight);
     noteLineHeightValue.textContent = String(uiSettings.noteLineHeight);
-    noteTypingAnimation.value = uiSettings.noteTypingAnimation;
     noteToolbarPosition.value = uiSettings.noteToolbarPosition;
     noteToolbarShowLabels.checked = uiSettings.noteToolbarShowLabels;
   }
@@ -3224,11 +3218,6 @@
   });
   noteLineHeight.addEventListener('change', () => {
     uiSettings.noteLineHeight = normalizeNoteLineHeight(noteLineHeight.value);
-    applyNoteEditorSettings();
-    saveUISettings();
-  });
-  noteTypingAnimation.addEventListener('change', () => {
-    uiSettings.noteTypingAnimation = noteTypingAnimation.value;
     applyNoteEditorSettings();
     saveUISettings();
   });
