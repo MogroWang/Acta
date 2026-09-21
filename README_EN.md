@@ -110,6 +110,10 @@ The desktop build merges a platform-specific config over the shared base. Platfo
 
 The macOS build targets Apple Silicon (`aarch64-apple-darwin`), set by the `macos:build` script in `package.json`. For Intel or universal binaries, switch the target to `x86_64-apple-darwin` or `universal-apple-darwin`.
 
+### Continuous integration
+
+Builds run automatically through GitHub Actions (`.github/workflows/build.yml`): every push to `main` and every `v*` tag triggers a build of the Windows portable exe, macOS DMG, and Android APK, with artifacts attached to the workflow run. `v*` tag builds are additionally published as a GitHub Release; consecutive pushes to the same branch cancel the previous unfinished build.
+
 ### Data and synchronization
 
 - Core data stays on the device by default; browser settings use `localStorage`, while directory handles use IndexedDB. Since v3.0.0 the desktop app keeps its software data next to the program by default (the `data` folder beside the exe), or in a location you choose, mirrored into `settings.json` there so it survives cache clears.

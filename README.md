@@ -110,6 +110,10 @@ Web 端采用 Vite 8 + Vue 3 + TypeScript：根 `index.html` 是 Vite 入口（S
 
 macOS 构建目标为 Apple 芯片（`aarch64-apple-darwin`），由 `package.json` 的 `macos:build` 脚本指定；如需 Intel 或通用架构，请改用 `x86_64-apple-darwin` 或 `universal-apple-darwin` 目标。
 
+### 持续集成
+
+构建由 GitHub Actions（`.github/workflows/build.yml`）自动执行：每次推送到 `main` 或推送 `v*` 标签都会触发，构建 Windows 便携版、macOS DMG 与 Android APK，产物可在对应 workflow run 的 Artifacts 中下载。`v*` 标签构建还会把产物发布为 GitHub Release；同一分支的连续推送会自动取消上一次尚未完成的构建。
+
 ### 数据与同步
 
 - 核心资料默认保存在设备本地；浏览器设置使用 `localStorage`，目录句柄使用 IndexedDB。桌面端从 v3.0.0 起软件数据默认跟随程序（exe 同级的 `data` 文件夹），也可自选位置并镜像写入其中的 `settings.json`，清空缓存后可自动恢复。
