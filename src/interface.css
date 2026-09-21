@@ -1981,6 +1981,8 @@ body.trash-view .list-footer { background: color-mix(in srgb, var(--note-soft) 1
   .cloud-mode-fields .settings-row { align-items: stretch; flex-direction: column; }
   .cloud-mode-fields .settings-row > span:first-child { width: 100%; }
   .cloud-mode-fields .settings-button { width: 100%; justify-content: center; }
+  /* 下拉刷新指示器仅在移动端启用 */
+  .pull-refresh-indicator { display: grid; }
   /* 含宽控件的设置行堆叠：文案独占整行，不再被滑块/按钮/文本输入挤成窄条竖排 */
   .settings-row:has(> .font-size-control),
   .settings-row:has(> .settings-button),

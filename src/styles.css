@@ -227,6 +227,19 @@ html[data-desktop-platform="darwin"] .brand { padding-left: 84px; }
 .clear-list-filters span { display: none; }
 
 .item-list { flex: 1; overflow: hidden auto; padding: 10px; }
+
+/* 移动端下拉刷新：包装层承载指示器（列表内容每次渲染重建，不能内嵌）。
+   静止时位移 -46px 且透明；下拉时 JS 用阻尼曲线驱动 --pull-shift 跟手，
+   松手后 transform 恢复过渡，走带回弹的非线性弹簧曲线。 */
+.item-list-frame { position: relative; flex: 1; min-height: 0; display: flex; }
+.item-list-frame .item-list { flex: 1; }
+.pull-refresh-indicator { position: absolute; top: 10px; left: 50%; z-index: 6; width: 34px; height: 34px; margin-left: -17px; border-radius: 50%; background: var(--white); color: var(--muted); box-shadow: 0 3px 10px -2px rgba(34,38,33,.18), 0 0 0 1px var(--line); display: none; place-items: center; pointer-events: none; opacity: 0; transform: translateY(calc(-46px + var(--pull-shift, 0px))) scale(var(--pull-grow, .88)); transition: transform .55s cubic-bezier(.24,1.36,.4,1), opacity .3s ease, color .18s ease, background .18s ease, box-shadow .18s ease; }
+.pull-refresh-indicator svg { width: 15px; transform: rotate(var(--pull-spin, 0deg)); }
+.pull-refresh-indicator.is-pulling { transition: color .18s ease, background .18s ease, box-shadow .18s ease; }
+.pull-refresh-indicator.is-ready { color: var(--sage); background: color-mix(in srgb, var(--sage) 10%, var(--white)); box-shadow: 0 4px 12px -2px color-mix(in srgb, var(--sage) 30%, transparent), 0 0 0 1px color-mix(in srgb, var(--sage) 30%, var(--line)); }
+.pull-refresh-indicator.is-refreshing { opacity: 1; }
+.pull-refresh-indicator.is-refreshing svg { animation: pull-refresh-spin .92s cubic-bezier(.55,.08,.45,.92) infinite; }
+@keyframes pull-refresh-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .item-card {
   position: relative; width: 100%; min-height: 101px; padding: 13px 13px 11px; border: 1px solid transparent; border-radius: 12px;
   background: transparent; text-align: left; cursor: pointer; display: flex; flex-direction: column;

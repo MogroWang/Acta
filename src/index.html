@@ -292,7 +292,10 @@
               <svg><use href="#i-close"/></svg><span data-i18n="clearFilters">清除</span>
             </button>
           </div>
-          <div class="item-list" id="itemList"></div>
+          <div class="item-list-frame">
+            <div class="pull-refresh-indicator" id="pullRefreshIndicator" aria-hidden="true"><svg><use href="#i-refresh"/></svg></div>
+            <div class="item-list" id="itemList"></div>
+          </div>
           <div class="list-footer"><span id="itemCountLabel">0 个项目</span><span data-i18n="localFirst">本地优先</span></div>
           <div class="list-resizer" id="listResizer" role="separator" aria-orientation="vertical" aria-label="调整列表宽度"></div>
         </section>

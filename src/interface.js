@@ -2775,6 +2775,87 @@
   applySidebarCollapse(uiSettings.sidebarCollapsed);
   updateDataRefreshLabel();
   dataRefreshButtons.forEach(button => button.addEventListener('click', refreshCurrentData));
+
+  /* ===================== 移动端下拉刷新当前行记数据 =====================
+     列表顶端下拉 → 阻尼跟手 → 越过阈值松手触发 refreshCurrentData（与刷新按钮同一数据链路，
+     只读不回写）。跟随与回弹均为非线性：前段线性后段越拉越重的阻尼映射 + 带回弹的弹簧过渡。 */
+  const pullIndicator = byId('pullRefreshIndicator');
+  const pullList = byId('itemList');
+  if (pullIndicator && pullList) {
+    const pullMobileQuery = window.matchMedia('(max-width: 760px)');
+    const PULL_ENGAGE = 7;    // 确认向下意图的死区，避免误触
+    const PULL_TRIGGER = 48;  // 触发刷新的位移
+    const PULL_HOLD = 46;     // 刷新中驻留位置
+    let pullStartY = 0, pullStartX = 0, pullArmed = false, pullEngaged = false;
+    let pullShift = 0, pullBusy = false, pullFrame = 0;
+
+    // 阻尼映射：前 24px 线性跟手，之后越拉越重，渐进收敛。
+    const pullDamped = raw => {
+      const soft = 24;
+      if (raw <= soft) return raw;
+      const extra = raw - soft;
+      return soft + extra * (soft / (soft + extra * 0.55));
+    };
+    const pullPaint = () => {
+      pullFrame = 0;
+      pullIndicator.style.setProperty('--pull-shift', `${pullShift.toFixed(1)}px`);
+      pullIndicator.style.setProperty('--pull-spin', `${(pullShift * 3.4).toFixed(1)}deg`);
+      pullIndicator.style.setProperty('--pull-grow', (0.88 + 0.12 * Math.min(1, pullShift / PULL_TRIGGER)).toFixed(3));
+      pullIndicator.style.opacity = Math.min(1, pullShift / 40).toFixed(3);
+      pullIndicator.classList.toggle('is-ready', pullShift >= PULL_TRIGGER);
+    };
+    const pullPaintSoon = () => { if (!pullFrame) pullFrame = requestAnimationFrame(pullPaint); };
+    const pullReset = () => {
+      pullShift = 0;
+      pullPaint();
+    };
+    pullList.addEventListener('touchstart', event => {
+      if (!pullMobileQuery.matches || pullBusy) return;
+      if (pullList.scrollTop > 0) { pullArmed = false; return; }
+      pullArmed = true;
+      pullStartY = event.touches[0].clientY;
+      pullStartX = event.touches[0].clientX;
+    }, { passive: true });
+    pullList.addEventListener('touchmove', event => {
+      if (!pullArmed || pullBusy) return;
+      const touch = event.touches[0];
+      const dy = touch.clientY - pullStartY;
+      const dx = touch.clientX - pullStartX;
+      if (!pullEngaged) {
+        if (dy <= PULL_ENGAGE) return;
+        if (Math.abs(dx) > dy * 0.9) { pullArmed = false; return; } // 横向滑动不进入下拉
+        pullEngaged = true;
+        pullIndicator.classList.add('is-pulling');
+      }
+      event.preventDefault(); // 下拉期间接管滚动
+      pullShift = pullDamped(dy - PULL_ENGAGE);
+      pullPaintSoon();
+    }, { passive: false });
+    const pullFinish = async () => {
+      if (!pullEngaged) { pullArmed = false; return; }
+      pullEngaged = false;
+      pullArmed = false;
+      pullIndicator.classList.remove('is-pulling'); // 恢复过渡，回弹走弹簧曲线
+      if (pullShift >= PULL_TRIGGER && !dataRefreshBusy) {
+        pullBusy = true;
+        pullShift = PULL_HOLD;
+        pullPaint();
+        pullIndicator.classList.add('is-refreshing');
+        try {
+          await refreshCurrentData();
+          await new Promise(resolve => setTimeout(resolve, 380)); // 驻留片刻，完成状态可见
+        } finally {
+          pullIndicator.classList.remove('is-refreshing', 'is-ready');
+          pullReset();
+          setTimeout(() => { pullBusy = false; }, 500); // 等回弹收尾再放行下一次
+        }
+      } else {
+        pullReset();
+      }
+    };
+    pullList.addEventListener('touchend', pullFinish, { passive: true });
+    pullList.addEventListener('touchcancel', pullFinish, { passive: true });
+  }
   sidebarToggle.addEventListener('click', () => {
     byId('createMenu').classList.remove('open');
     applySidebarCollapse(!uiSettings.sidebarCollapsed);
