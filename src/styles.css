@@ -35,6 +35,8 @@ html, body {
   overflow: hidden;
 }
 
+html { -webkit-tap-highlight-color: transparent; }
+
 body {
   color: var(--ink);
   background: var(--sidebar);
@@ -46,7 +48,7 @@ body {
 
 button, input, textarea { font: inherit; }
 button { color: inherit; }
-button, [contenteditable] { -webkit-tap-highlight-color: transparent; }
+button, [contenteditable] { -webkit-tap-highlight-color: transparent; } /* 根元素已全局声明，此处保留兼容旧 WebView */
 button:focus-visible, input:focus-visible, textarea:focus-visible, [contenteditable]:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--sage) 35%, transparent);
   outline-offset: 2px;
