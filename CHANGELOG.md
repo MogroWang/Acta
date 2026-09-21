@@ -1,5 +1,15 @@
 # Acta · 行记 更新日志
 
+## 未发布
+
+### 变更
+
+- **技术栈升级：引入 Vite 8 + Vue 3 + TypeScript 构建管线**：项目从「无构建器的原生 HTML/JS」迁移为标准 Vite 工程，界面行为与数据链路不受影响（全量冒烟测试通过）。根 `index.html` 成为 Vite 入口，只保留内联脚本、SVG 图标雪碧图与 `#app` 挂载点；应用外壳（启动画面、工作区、设置窗口、OOBE 引导、提示层，约 700 行标记）整体成为 `src/App.vue` 的模板，由新的 `src/main.ts` 同步挂载后再引导业务模块，保证模块按 id 绑定节点时 DOM 已经就绪，启动画面的 `.splash-screen ~ .app-shell` 交接选择器也因两者同属挂载点而继续成立。既有业务模块（interface.js、note-export.js、custom-select.js、custom-datetime.js、splash.js、tauri-bridge.js）本体零改写，移入 `src/legacy/` 由 `src/boot.ts` 按原脚本顺序以 ES 模块加载；`renderer.js` 因顶层导出页面级全局绑定（`library`、`settings`、`$`、`renderAll` 等，冒烟测试与模块间通信都依赖）继续以经典脚本原样加载，现位于 `public/legacy/`。theme-boot.js、manifest、Service Worker、图标与 vendor 库（purify、pdf-lib、fontkit）移入 `public/` 原样复制。新增 `tsconfig.json` 严格类型检查（`npm run typecheck`，vue-tsc）、`vite.config.ts`（相对 base，使同一份 dist 适配 Tauri、Capacitor 与 Pages）与 `src/vite-env.d.ts`；TypeScript 采用 5.9（最新的 7.x 已是原生编译器，vue-tsc 语言工具链尚未适配，实测报 `./lib/tsc` 导出缺失）
+- **Capacitor 升级至 8.5.2，接入构建产物**：`@capacitor/core`、`cli`、`android` 从 8.4.2 升至 8.5.2，`local-notifications` 升至 8.3.1；配置从 `capacitor.config.json` 迁移为等价的 `capacitor.config.ts`，`webDir` 由 `src` 改为 `dist`。`npm run android:sync` 现在先执行 `vite build` 再 `cap sync android`（CI 与 `android:build` 自动获得新鲜产物），Android 工程本身无需改动
+- **Tauri 接入 Vite 工作流**：`tauri.conf.json` 的 `frontendDist` 由 `../src` 改为 `../dist`，新增 `devUrl`、`beforeDevCommand` 与 `beforeBuildCommand`——`npm start` 会自动拉起 Vite dev server，桌面构建自动先产出最新 Web 资源，Windows/macOS CI 流程不变
+- **Service Worker 适配打包产物**：预缓存清单只保留固定路径（页面、theme-boot、renderer.js、vendor 库与图标）；经 Vite 打包的 JS/CSS 文件名带内容哈希，改由既有的运行时缓存承接（同源 200 响应均写入缓存）。缓存名升级为 `acta-3.1.0-vite`，旧缓存会在激活时清除
+- **脚本与文档同步**：`npm run dev` / `build` / `preview` / `typecheck` / `build:pages`（构建 Pages 站点到 `docs/`）加入命令表；冒烟测试与预览截图脚本改为程序化启动 Vite dev server 后经 HTTP 加载（file:// 无法运行 ES 模块），并移除「Android 内置资源与源码逐字节一致」断言——资源现在是打包产物，新鲜度由 `android:sync` 与 CI 的「先同步后构建」顺序保证；README 的快速开始、命令表与项目架构说明已更新
+
 ## v3.1.0（2026-09-21）
 
 ### 新增

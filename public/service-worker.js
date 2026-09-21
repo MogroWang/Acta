@@ -1,7 +1,9 @@
-const CACHE_NAME = 'acta-3.1.0';
+const CACHE_NAME = 'acta-3.1.0-vite';
+// 应用外壳只预缓存固定路径的文件；经 Vite 构建的 JS/CSS 带内容哈希、文件名
+// 每次构建都会变化，交给下方 fetch 的运行时缓存（同源 200 响应均会写入）。
 const APP_SHELL = [
-  './', './index.html', './styles.css', './interface.css', './renderer.js', './note-export.js', './interface.js', './splash.js', './theme-boot.js', './lib/purify.min.js', './lib/pdf-lib.min.js', './lib/fontkit.umd.min.js', './manifest.webmanifest',
-  './custom-select.js', './custom-datetime.js',
+  './', './index.html', './theme-boot.js', './manifest.webmanifest',
+  './legacy/renderer.js', './lib/purify.min.js', './lib/pdf-lib.min.js', './lib/fontkit.umd.min.js',
   './icons/Acta_weblogo.png', './icons/flag-cn.svg', './icons/flag-us.svg',
   './icons/app-icon-positive-page.png', './icons/app-icon-outlined-page.png', './icons/app-icon-original-simple.png',
   './icons/icon-96.png', './icons/icon-192.png', './icons/icon-512.png'

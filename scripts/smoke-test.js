@@ -2,7 +2,6 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { pathToFileURL } = require('node:url');
 const puppeteer = require('puppeteer-core');
 
 const testData = fs.mkdtempSync(path.join(os.tmpdir(), 'acta-smoke-'));
@@ -25,7 +24,18 @@ function findBrowser() {
 
 async function main() {
   let browser;
+  let server;
   try {
+    // 应用入口现在是 Vite（根 index.html + src/main.ts），测试通过编程方式
+    // 启动 Vite dev server，从 HTTP 加载页面（file:// 无法运行 ES 模块）。
+    const { createServer } = await import('vite');
+    server = await createServer({
+      root: path.join(__dirname, '..'),
+      logLevel: 'error',
+      server: { port: 0, strictPort: false }
+    });
+    await server.listen();
+    const appUrl = `http://localhost:${server.config.server.port}/`;
     browser = await puppeteer.launch({
       executablePath:findBrowser(),
       headless:true,
@@ -48,7 +58,7 @@ async function main() {
       height,
       deviceScaleFactor:1
     }));
-    await page.goto(pathToFileURL(path.join(__dirname, '..', 'src', 'index.html')).href, { waitUntil:'load' });
+    await page.goto(appUrl, { waitUntil:'load' });
     // 版本号断言跟随 package.json，升级版本时无需再改测试。
     const expectedVersion = require('../package.json').version;
     const smokeRun = page.evaluate(`(async () => {
@@ -1622,12 +1632,9 @@ async function main() {
       return source.split(/\r?\n/).filter(line => /font(?:-size)?\s*:[^;{}]*\b\d+(?:\.\d+)?px\b/.test(line)
         && !line.includes('var(--acta-font-scale'));
     });
-    const nativeWebAssets = ['renderer.js', 'interface.js', 'interface.css', 'index.html', 'service-worker.js', 'tauri-bridge.js'];
-    nativeWebAssets.forEach(fileName => {
-      const webSource = fs.readFileSync(path.join(__dirname, '..', 'src', fileName));
-      const nativeSource = fs.readFileSync(path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'assets', 'public', fileName));
-      assert.deepEqual(nativeSource, webSource, `Android web asset is stale: ${fileName}`);
-    });
+    // Android 工程的 assets 由 `android:sync`（vite build + cap sync）生成，
+    // 是带内容哈希的打包产物，与原始源码不再逐字节对应；资源新鲜度由该命令
+    // 本身与 CI 的「先 sync 后构建」顺序保证，这里不再做源码比对。
     const androidManifest = fs.readFileSync(path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8');
     const androidIconPlugin = fs.readFileSync(path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'java', 'com', 'acta', 'xingji', 'ActaSyncPlugin.java'), 'utf8');
     [
@@ -1639,7 +1646,7 @@ async function main() {
       assert.match(androidManifest, new RegExp(`android:name="\\.${alias}"`));
       assert.match(androidIconPlugin, new RegExp(`case "${preset}": return "${alias}"`));
     });
-    const appIconInterfaceSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'interface.js'), 'utf8');
+    const appIconInterfaceSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'legacy', 'interface.js'), 'utf8');
     assert.doesNotMatch(appIconInterfaceSource, /appIconPreset === 'custom'\s*\?\s*'default'/);
     assert.match(appIconInterfaceSource, /自定义图标仅支持 PC 本地客户端/);
     assert.match(appIconInterfaceSource, /const webOnly = !desktopIcon && !mobileIcon/);
@@ -1960,7 +1967,7 @@ async function main() {
         }
       };
     });
-    await bridgePage.goto(pathToFileURL(path.join(__dirname, '..', 'src', 'index.html')).href, { waitUntil:'load' });
+    await bridgePage.goto(appUrl, { waitUntil:'load' });
     const bridgeResult = await bridgePage.evaluate(async () => {
       const folder = await window.actaDesktop.chooseSyncFolder();
       await window.actaDesktop.uploadLibrary(folder, { version:1 });
@@ -2007,7 +2014,7 @@ async function main() {
         window:{ getCurrentWindow:() => null }
       };
     });
-    await featurePage.goto(pathToFileURL(path.join(__dirname, '..', 'src', 'index.html')).href, { waitUntil:'load' });
+    await featurePage.goto(appUrl, { waitUntil:'load' });
     const featureResult = await featurePage.evaluate(`(async () => {
       const waitFor = async predicate => {
         for (let attempt = 0; attempt < 120; attempt += 1) {
@@ -2087,6 +2094,7 @@ async function main() {
     console.log('Acta smoke test passed: Tauri bridge, unclassified task defaults, select-only item classification, nonlinear property-panel closing, mobile calendar views, quick capture, data profiles, OOBE onboarding, custom select menus, and Markdown round-trip.');
   } finally {
     if (browser) await browser.close();
+    if (server) await server.close();
     try { fs.rmSync(testData, { recursive:true, force:true }); }
     catch { /* A browser process can briefly retain files on Windows; the OS temp cleaner will remove them. */ }
   }

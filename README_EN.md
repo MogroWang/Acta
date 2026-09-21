@@ -35,23 +35,29 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 
 ## Quick start
 
-Desktop development requires Node.js, npm, Rust stable, and the Tauri system dependencies for the host platform.
+Web development only needs Node.js 22+ and npm; desktop development additionally requires Rust stable and the Tauri system dependencies for the host platform.
 
 ```bash
 npm install
-npm start
+npm run dev        # Vite dev server, open http://localhost:5173
+npm start          # Tauri desktop app (starts the Vite dev server automatically)
 ```
 
 Common commands:
 
 | Command | Purpose |
 | --- | --- |
+| `npm run dev` | Start the Vite dev server for web development |
+| `npm run build` | Build the shared web assets into `dist/` |
+| `npm run preview` | Preview the built output locally |
+| `npm run typecheck` | Run strict type checking via vue-tsc |
 | `npm start` | Start the Tauri desktop app |
-| `npm test` | Run the headless smoke test with local Edge/Chrome |
-| `npm run desktop:build` | Build the desktop app for the current platform |
+| `npm test` | Run the headless smoke test through a Vite dev server (local Edge/Chrome) |
+| `npm run desktop:build` | Build the desktop app for the current platform (runs `vite build` first) |
 | `npm run windows:build` | Build the Windows x64 NSIS installer |
 | `npm run macos:build` | Build an Apple Silicon (aarch64) macOS App and DMG on macOS |
-| `npm run android:sync` | Sync shared web assets into the Android project |
+| `npm run build:pages` | Build the PWA site into `docs/` (GitHub Pages) |
+| `npm run android:sync` | Build the web assets and sync them into the Android project |
 | `npm run android:build` | Sync assets and build an Android debug APK |
 
 Android builds require JDK 21, Android SDK 36, and Node.js 22 (Capacitor 8 requirements). The debug APK is generated at `android/app/build/outputs/apk/debug/app-debug.apk` and is not committed to the source repository.
@@ -62,7 +68,7 @@ Acta follows a “shared web core + platform adapters” design. Notes, tasks, v
 
 ```mermaid
 flowchart TB
-    Core["Shared web core<br/>HTML · CSS · JavaScript"]
+    Core["Shared web core<br/>Vue 3 + TypeScript · Built with Vite"]
     Model["Data and UI logic<br/>Notes · Tasks · Search · Sync adapters"]
     PWA["Browser / PWA<br/>Web APIs · Service Worker"]
     Tauri["Tauri WebView<br/>Windows · macOS"]
@@ -79,12 +85,17 @@ flowchart TB
 
 ### Repository layout
 
+The web app uses Vite 8 + Vue 3 + TypeScript: the root `index.html` is the Vite entry (SVG icon sprite + the `#app` mount point), the entire application shell is the template of `src/App.vue`, mounted by `src/main.ts`. The existing business modules keep their original form and are booted in the original script order by `src/boot.ts`; `public/legacy/renderer.js` stays a classic script because it exports page-level global bindings (`library`, `settings`, `renderAll`, …) and serves as the shared data layer. New code should live under `src/` (Vue SFCs or TypeScript), gradually replacing modules in `src/legacy/`.
+
 | Path | Responsibility |
 | --- | --- |
-| `src/` | Shared UI, core application logic, PWA manifest, service worker, and icons |
-| `src/tauri-bridge.js` | Adapts Tauri commands, system dialogs, and window controls to the shared desktop API |
+| `index.html` | Vite entry page: inline scripts, icon sprite, and the mount point |
+| `src/` | Vue 3 + TypeScript app source: `App.vue` shell template, `main.ts` / `boot.ts` boot chain, shared styles |
+| `src/legacy/` | Existing business modules (loaded as ES modules, files unchanged) |
+| `public/` | Static assets copied verbatim: `legacy/renderer.js`, vendor libraries, icons, manifest, service worker, theme-boot |
+| `dist/` | `vite build` output (the input for Capacitor `webDir` and Tauri `frontendDist`, not committed) |
 | `src-tauri/` | Tauri 2 configuration, Rust commands, desktop permissions, and Windows/macOS icons |
-| `android/` | Capacitor Android project and the native `ActaSyncPlugin` file bridge |
+| `android/` | Capacitor Android project and the native `ActaSyncPlugin` file bridge (Capacitor config: `capacitor.config.ts` at the repository root) |
 | `scripts/` | Headless-browser smoke tests, preview screenshots, and Android icon generation |
 
 ### Platform build configuration
@@ -112,7 +123,7 @@ The macOS build targets Apple Silicon (`aarch64-apple-darwin`), set by the `maco
 npm test
 ```
 
-The smoke test covers default task classification, creation/start/due times, mobile calendar interaction, week-list scrolling, direct task/subtask completion, IME composition, strict view filtering, bidirectional links, OOBE onboarding, custom select menus, MWS themes, launch-animation speed semantics, the app-icon preset fallback, and Markdown round-trips.
+The smoke test starts a Vite dev server programmatically and then drives the app in headless Edge/Chrome. It covers default task classification, creation/start/due times, mobile calendar interaction, week-list scrolling, direct task/subtask completion, IME composition, strict view filtering, bidirectional links, OOBE onboarding, custom select menus, MWS themes, launch-animation speed semantics, the app-icon preset fallback, and Markdown round-trips.
 
 ## Troubleshooting
 

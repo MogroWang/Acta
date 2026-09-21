@@ -4,7 +4,10 @@
   "version": "3.1.0",
   "identifier": "com.mws.acta",
   "build": {
-    "frontendDist": "../src"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
   },
   "app": {
     "withGlobalTauri": true,

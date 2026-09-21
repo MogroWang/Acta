@@ -35,23 +35,29 @@ Acta 是一个本地优先的笔记与待办应用，把记录、行动和资料
 
 ## 快速开始
 
-桌面开发需要 Node.js、npm、Rust stable，以及当前平台对应的 Tauri 系统依赖。
+Web 开发只需要 Node.js 22+ 与 npm；桌面开发另需 Rust stable 和当前平台对应的 Tauri 系统依赖。
 
 ```bash
 npm install
-npm start
+npm run dev        # Vite dev server，浏览器打开 http://localhost:5173
+npm start          # Tauri 桌面应用（自动拉起 Vite dev server）
 ```
 
 常用命令：
 
 | 命令 | 用途 |
 | --- | --- |
+| `npm run dev` | 启动 Vite dev server 进行 Web 开发 |
+| `npm run build` | 构建共享 Web 资源到 `dist/` |
+| `npm run preview` | 本地预览构建产物 |
+| `npm run typecheck` | 运行 vue-tsc 严格类型检查 |
 | `npm start` | 启动 Tauri 桌面应用 |
-| `npm test` | 使用本机 Edge/Chrome 运行无头冒烟测试 |
-| `npm run desktop:build` | 构建当前平台桌面应用 |
+| `npm test` | 经 Vite dev server 运行无头冒烟测试（本机 Edge/Chrome） |
+| `npm run desktop:build` | 构建当前平台桌面应用（先执行 `vite build`） |
 | `npm run windows:build` | 生成 Windows x64 NSIS 安装程序 |
 | `npm run macos:build` | 在 macOS 上生成 Apple 芯片（aarch64）App 与 DMG |
-| `npm run android:sync` | 将共享 Web 资源同步到 Android 工程 |
+| `npm run build:pages` | 构建 PWA 站点到 `docs/`（GitHub Pages） |
+| `npm run android:sync` | 构建 Web 资源并同步到 Android 工程 |
 | `npm run android:build` | 同步资源并构建 Android debug APK |
 
 Android 构建需要 JDK 21、Android SDK 36 和 Node.js 22（Capacitor 8 要求）。生成的 debug APK 位于 `android/app/build/outputs/apk/debug/app-debug.apk`，不会提交到源码仓库。
@@ -62,7 +68,7 @@ Acta 采用“共享 Web 核心 + 平台适配层”的结构。笔记、待办�
 
 ```mermaid
 flowchart TB
-    Core["共享 Web 核心<br/>HTML · CSS · JavaScript"]
+    Core["共享 Web 核心<br/>Vue 3 + TypeScript · Vite 构建"]
     Model["数据与界面逻辑<br/>笔记 · 待办 · 搜索 · 同步适配器"]
     PWA["浏览器 / PWA<br/>Web APIs · Service Worker"]
     Tauri["Tauri WebView<br/>Windows · macOS"]
@@ -79,12 +85,17 @@ flowchart TB
 
 ### 目录说明
 
+Web 端采用 Vite 8 + Vue 3 + TypeScript：根 `index.html` 是 Vite 入口（SVG 图标雪碧图 + `#app` 挂载点），应用外壳整体是 `src/App.vue` 的模板，由 `src/main.ts` 挂载。既有业务模块保留原有写法，由 `src/boot.ts` 按原脚本顺序引导；`public/legacy/renderer.js` 因导出页面级全局绑定（`library`、`settings`、`renderAll` 等）继续作为经典脚本加载，是各模块共享的数据层。新增代码建议写在 `src/` 下（Vue SFC 或 TypeScript），逐步替换 `src/legacy/` 中的模块。
+
 | 路径 | 职责 |
 | --- | --- |
-| `src/` | 共享界面、核心业务逻辑、PWA manifest、Service Worker 和图标 |
-| `src/tauri-bridge.js` | 把 Tauri 命令、系统对话框和窗口控制适配为共享桌面 API |
+| `index.html` | Vite 入口页面：内联脚本、图标雪碧图与挂载点 |
+| `src/` | Vue 3 + TypeScript 应用源码：`App.vue` 外壳模板、`main.ts` / `boot.ts` 启动链、共享样式 |
+| `src/legacy/` | 既有业务模块（ES 模块加载，文件本体保持原样） |
+| `public/` | 原样复制的静态资源：`legacy/renderer.js`、vendor 库、图标、manifest、Service Worker、theme-boot |
+| `dist/` | `vite build` 产物（Capacitor `webDir` 与 Tauri `frontendDist` 的输入，不入库） |
 | `src-tauri/` | Tauri 2 配置、Rust 原生命令、桌面权限与 Windows/macOS 图标 |
-| `android/` | Capacitor Android 工程和 `ActaSyncPlugin` 原生文件桥 |
+| `android/` | Capacitor Android 工程和 `ActaSyncPlugin` 原生文件桥（Capacitor 配置见根目录 `capacitor.config.ts`） |
 | `scripts/` | 无头浏览器冒烟测试、预览截图和 Android 图标生成脚本 |
 
 ### 平台构建配置
@@ -112,7 +123,7 @@ macOS 构建目标为 Apple 芯片（`aarch64-apple-darwin`），由 `package.js
 npm test
 ```
 
-冒烟测试覆盖待办默认归类、创建/开始/截止时间、日历移动端交互、周列表滚动、待办与子待办快捷完成、输入法组合输入、视图筛选、双向关联、OOBE 引导、自定义下拉菜单、MWS 主题、启动动画速度语义、应用图标预设兜底和 Markdown 往返转换。
+冒烟测试先以编程方式启动 Vite dev server，再用本机 Edge/Chrome 无头访问，覆盖待办默认归类、创建/开始/截止时间、日历移动端交互、周列表滚动、待办与子待办快捷完成、输入法组合输入、视图筛选、双向关联、OOBE 引导、自定义下拉菜单、MWS 主题、启动动画速度语义、应用图标预设兜底和 Markdown 往返转换。
 
 ## 故障排除
 
