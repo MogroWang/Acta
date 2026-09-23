@@ -1399,7 +1399,15 @@
       } else closeItemMetaPopover();
       return;
     }
-    if (!event.target.closest?.('#itemMetaPopover')) closeItemMetaPopover();
+    // 日期时间选择器（.acdt-panel）与自定义下拉（.acx-menu）的弹层挂在
+    // 面板外（body/dialog），点击它们属于面板内的选择操作，不应收起面板。
+    // 弹层会在 click 处理中同步重建内容（原 target 脱离 DOM，closest 失效），
+    // 因此改用事件派发时的传播路径快照 composedPath 判断归属。
+    const path = event.composedPath?.();
+    const insideSurface = path
+      ? path.some(node => node instanceof Element && (node.id === 'itemMetaPopover' || node.classList.contains('acdt-panel') || node.classList.contains('acx-menu')))
+      : Boolean(event.target.closest?.('#itemMetaPopover, .acdt-panel, .acx-menu'));
+    if (!insideSurface) closeItemMetaPopover();
   });
   document.addEventListener('keydown', event => {
     if (isImeComposing(event)) return;

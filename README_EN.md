@@ -26,7 +26,7 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 - Deleting offers move-to-trash or delete-now; the trash is never emptied automatically and supports restore, delete-forever, and empty-all
 - Folders, smart views, combinable task/note filters, and unified search
 - Rich-text editing and UTF-8 Markdown import/export for individual notes
-- A desktop context menu with cut, copy, paste, and select all for text, plus copy for any selected text
+- A desktop context menu on an opaque panel, with cut, copy, paste, and select all for text, plus copy for any selected text
 - Simplified Chinese, Traditional Chinese, and English interfaces with theme and font settings
 - All dropdown menus, scrollbars, sliders, date-time pickers, and settings toggles are custom-drawn controls; hover feedback uses scale instead of shifting, keeping motion restrained and smooth
 - Local data folders and WebDAV sync
