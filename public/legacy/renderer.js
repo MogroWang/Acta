@@ -24,6 +24,10 @@ const dictionaries = {
     selectItem: '选择一项开始编辑', selectItemHint: '你的想法与行动会在这里展开。', untitledNote: '无标题笔记', untitledTodo: '新的待办',
     created: '创建于', updated: '更新于', dueDate: '截止日期', priority: '优先级', tags: '标签', high: '高', medium: '中', low: '低',
     progress: '任务进度', done: '已完成', addTask: '添加子任务', taskPlaceholder: '输入一个具体行动…', description: '补充说明',
+    checkinTodo: '打卡待办', checkinTodoHint: '每天打卡，养成习惯', checkinToday: '今日打卡', checkinDone: '今日已打卡', checkinTodoYet: '今日未打卡',
+    checkinStreak: '连续', checkinTotal: '累计', checkinDays: '天', checkinRecent: '最近 7 天', checkinUndo: '取消打卡', checkinMarkedToast: '打卡成功，继续保持',
+    orderedTasks: '顺序执行', unorderedTasks: '无序子任务', taskOrderHint: '开启后子任务按顺序执行，可上下移动调整先后',
+    taskMoveUp: '上移', taskMoveDown: '下移',
     descriptionPlaceholder: '写下背景、上下文或任何需要记住的细节…', notePlaceholder: '从一个想法开始…', words: '字', chars: '字符',
     folderPrompt: '新归类的名称', folderDefault: '新归类', folderAdded: '归类已添加', itemCreated: '已创建', deleted: '已删除',
     deleteConfirm: '确定要删除这一项吗？', synced: '已同步', syncReady: '已连接', uploadDone: '已上传到网盘', downloadDone: '已从网盘恢复',
@@ -66,6 +70,10 @@ const dictionaries = {
     selectItem: 'Select something to edit', selectItemHint: 'Your thoughts and actions will unfold here.', untitledNote: 'Untitled note', untitledTodo: 'New task',
     created: 'Created', updated: 'Updated', dueDate: 'Due date', priority: 'Priority', tags: 'Tags', high: 'High', medium: 'Medium', low: 'Low',
     progress: 'Task progress', done: 'complete', addTask: 'Add subtask', taskPlaceholder: 'Type a concrete action…', description: 'Notes',
+    checkinTodo: 'Check-in task', checkinTodoHint: 'Check in daily to build a habit', checkinToday: "Today's check-in", checkinDone: 'Checked in today', checkinTodoYet: 'Not checked in yet',
+    checkinStreak: 'streak', checkinTotal: 'total', checkinDays: 'days', checkinRecent: 'Last 7 days', checkinUndo: 'Undo check-in', checkinMarkedToast: 'Checked in — keep it going',
+    orderedTasks: 'In order', unorderedTasks: 'Any order', taskOrderHint: 'Subtasks run in order; use the arrows to reorder',
+    taskMoveUp: 'Move up', taskMoveDown: 'Move down',
     descriptionPlaceholder: 'Add context, background, or anything worth remembering…', notePlaceholder: 'Start with an idea…', words: 'words', chars: 'characters',
     folderPrompt: 'Name your new classification', folderDefault: 'New classification', folderAdded: 'Classification added', itemCreated: 'Created', deleted: 'Deleted',
     deleteConfirm: 'Delete this item?', synced: 'Synced', syncReady: 'Connected', uploadDone: 'Uploaded to cloud', downloadDone: 'Restored from cloud',
@@ -1912,7 +1920,22 @@ function renderList() {
       <p>${escapeHTML(itemPreview(item))}</p>
       <div class="card-bottom"><span class="mini-folder"><i class="folder-dot" style="background:${escapeHTML(folder?.color || '#999')}"></i>${escapeHTML(folderName(folder))}</span>
       ${linkedCount ? `<span class="link-count"><svg><use href="#i-link"/></svg>${linkedCount}</span>` : ''}
-      ${item.type === 'todo' ? `<span>${completed}/${total}</span><span class="mini-progress"><i style="width:${progress}%"></i></span>` : ''}</div>
+      ${item.type === 'todo' ? (item.checkin
+        ? (() => {
+            const checkins = item.checkins || {};
+            const todayKey = todayISO();
+            const streakCursor = new Date();
+            if (!checkins[todayKey]) streakCursor.setDate(streakCursor.getDate() - 1);
+            let streak = 0;
+            const offsetMs = streakCursor.getTimezoneOffset() * 60000;
+            while (checkins[new Date(streakCursor - offsetMs).toISOString().slice(0, 10)]) {
+              streak += 1;
+              streakCursor.setDate(streakCursor.getDate() - 1);
+            }
+            const on = Boolean(checkins[todayKey]);
+            return `<span class="checkin-badge${on ? ' on' : ''}"><svg><use href="#i-check"/></svg>${escapeHTML(on ? t('checkinDone') : t('checkinTodoYet'))}</span>${streak ? `<span class="checkin-streak">${escapeHTML(t('checkinStreak'))} ${streak} ${escapeHTML(t('checkinDays'))}</span>` : ''}`;
+          })()
+        : `<span>${completed}/${total}</span><span class="mini-progress"><i style="width:${progress}%"></i></span>`) : ''}</div>
     </button>`;
   }).join('');
 }

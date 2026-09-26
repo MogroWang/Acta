@@ -18,6 +18,8 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 
 - Bidirectional links between notes and tasks, with navigation and unlinking from either editor
 - High, medium, and low task priorities, plus subtasks, progress, immutable creation time, and optional start/due times
+- Check-in tasks: generate from the create menu, check in daily in the editor with streak/total counters and a last-7-days strip, and a today badge on list cards
+- Ordered subtasks: turn on "In order" to arrange subtasks by number and reorder them with arrow buttons; the default stays unordered
 - A year/month/week/day calendar replacing Today: week numbers in the compact month view, independently scrollable desktop/mobile week layouts, and direct task/subtask completion in week and day views
 - A summary page (formerly statistics) as a notes-and-tasks list: gather items created in a chosen period, list every subtask in full, tick some, and make a list picture in one click; a "Data statistics" dialog in the sidebar's lower-left dock reports the profile's total file size, file count, notes, tasks, classifications, and trash count
 - A note base font-size slider that scales body text and every heading level together; heading size and heading font remain independently adjustable (serif, rounded, monospace, or a custom font), with separate sliders for in-paragraph line spacing and paragraph spacing; Markdown syntax typed in the visual editor (headings, lists, quotes, bold/italic, and more) applies instantly
@@ -127,7 +129,7 @@ Builds run automatically through GitHub Actions (`.github/workflows/build.yml`):
 npm test
 ```
 
-The smoke test starts a Vite dev server programmatically and then drives the app in headless Edge/Chrome. It covers default task classification, creation/start/due times, mobile calendar interaction, week-list scrolling, direct task/subtask completion, IME composition, strict view filtering, bidirectional links, OOBE onboarding, custom select menus, MWS themes, launch-animation speed semantics, the app-icon preset fallback, and Markdown round-trips.
+The smoke test starts a Vite dev server programmatically and then drives the app in headless Edge/Chrome. It covers default task classification, creation/start/due times, mobile calendar interaction, week-list scrolling, direct task/subtask completion, IME composition, strict view filtering, bidirectional links, OOBE onboarding, custom select menus, MWS themes, launch-animation speed semantics, the app-icon preset fallback, check-in tasks, ordered subtasks, and Markdown round-trips.
 
 ## Troubleshooting
 

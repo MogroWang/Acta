@@ -5,7 +5,7 @@
     customPaper: '#fbfaf6', customSidebar: '#ebe7dc', customAccent: '#526b55',
     customTodo: '#4f86a8', customTodoSoft: '#dceef8', customNote: '#987329', customNoteSoft: '#fff0bd', customCalendar: '#4f7656', customCalendarSoft: '#dcebdd',
     appIconPreset: 'default', customAppIcon: '',
-    splashAnimationEnabled: true, splashAnimationPreset: 'acta-lines', splashAnimationSpeed: 1,
+    splashAnimationEnabled: true, splashAnimationPreset: 'acta-lines', splashAnimationSpeed: 1, inputFocusAnimation: true,
     appFont: 'system', customFont: 'Inter', appFontSize: 14,
     noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteBaseSize: 17, noteHeadingFont: 'serif', noteHeadingCustomFont: '', noteLineHeight: 1.6, noteParagraphGap: 1,
     noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
@@ -1020,16 +1020,20 @@
 
   createItem = function createItemWithSchedule(type) {
     if (type === 'quick') { openQuickCapture(); return; }
-    if (type !== 'note' && type !== 'todo') return;
+    if (type !== 'note' && type !== 'todo' && type !== 'checkin') return;
     const now = new Date().toISOString();
     const currentFolder = currentView.startsWith('folder:') ? currentView.split(':')[1] : 'ideas';
     const base = {
-      id: uid(), type, folderId:type === 'todo' ? '' : (getFolder(currentFolder) ? currentFolder : library.folders[0]?.id),
-      title: type === 'note' ? t('untitledNote') : t('untitledTodo'), linkedIds: [], createdAt: now, updatedAt: now
+      id: uid(), type: type === 'checkin' ? 'todo' : type, folderId: type === 'note' ? (getFolder(currentFolder) ? currentFolder : library.folders[0]?.id) : '',
+      title: type === 'note' ? t('untitledNote') : (type === 'checkin' ? t('checkinTodo') : t('untitledTodo')), linkedIds: [], createdAt: now, updatedAt: now
     };
     const item = type === 'note'
       ? { ...base, body: '<p><br></p>' }
-      : { ...base, startAt:now, dueAt:'', priority:'medium', notes:'', tasks:[{ id:uid(), text:'', done:false }], completed:false };
+      : type === 'checkin'
+        // 打卡式待办：checkins 以本地日期（todayISO 同款 YYYY-MM-DD）为键
+        // 记录每天的打卡状态，不设开始/截止时间，也不参与子任务进度。
+        ? { ...base, priority:'medium', notes:'', tasks:[], completed:false, checkin:true, checkins:{} }
+        : { ...base, startAt:now, dueAt:'', priority:'medium', notes:'', tasks:[{ id:uid(), text:'', done:false }], completed:false };
     library.items.unshift(item);
     selectedId = item.id;
     mobileEditorOpen = true;
@@ -1193,6 +1197,31 @@
     </article>`;
   };
 
+  // 打卡式待办的日期与连击统计：checkins 以本地日期为键，跨天/时区口径
+  // 与 renderer.js 的 todayISO() 一致。streak 从今天（未打卡则从昨天）
+  // 起往回数连续打卡的天数。
+  const localDateKey = date => {
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date - offset).toISOString().slice(0, 10);
+  };
+  const checkinStats = item => {
+    const checkins = item.checkins || {};
+    const todayKey = localDateKey(new Date());
+    let streak = 0;
+    const cursor = new Date();
+    if (!checkins[todayKey]) cursor.setDate(cursor.getDate() - 1);
+    while (checkins[localDateKey(cursor)]) { streak += 1; cursor.setDate(cursor.getDate() - 1); }
+    const total = Object.keys(checkins).filter(key => checkins[key]).length;
+    const week = [];
+    for (let index = 6; index >= 0; index -= 1) {
+      const day = new Date();
+      day.setDate(day.getDate() - index);
+      const key = localDateKey(day);
+      week.push({ key, day, hit: Boolean(checkins[key]), today: index === 0 });
+    }
+    return { todayKey, todayDone: Boolean(checkins[todayKey]), streak, total, week };
+  };
+
   todoEditor = function enhancedTodoEditor(item) {
     const tasks = item.tasks || [];
     const completed = tasks.filter(task => task.done).length;
@@ -1200,7 +1229,32 @@
     const metaCopy = todoMetaText();
     const startLabel = item.startAt ? formatDateTimeSeconds(item.startAt) : metaCopy.notSet;
     const dueLabel = item.dueAt ? formatDateTimeSeconds(item.dueAt) : metaCopy.notSet;
-    return `<article class="editor-wrap todo-editor" data-editor-id="${escapeHTML(item.id)}">
+    const ordered = item.taskOrder === 'ordered';
+    if (item.checkin) {
+      const stats = checkinStats(item);
+      return `<article class="editor-wrap todo-editor checkin-editor" data-editor-id="${escapeHTML(item.id)}">
+      ${editorTop(item)}
+      <textarea class="editor-title" id="editorTitle" rows="1" placeholder="${t('untitledTodo')}">${escapeHTML(item.title)}</textarea>
+      <div class="editor-subline todo-time-line" aria-label="${escapeHTML(metaCopy.schedule)}">
+        <time id="todoCreatedAtSummary" datetime="${escapeHTML(item.createdAt)}"><svg><use href="#i-calendar"/></svg><b>${escapeHTML(metaCopy.created)}</b><span>${escapeHTML(formatDateTimeSeconds(item.createdAt))}</span></time>
+      </div>
+      ${linkedItemsSection(item)}
+      <section class="checkin-section" aria-label="${escapeHTML(t('checkinTodo'))}">
+        <div class="checkin-main">
+          <button class="checkin-button${stats.todayDone ? ' done' : ''}" id="checkinToggle" type="button" aria-pressed="${stats.todayDone}" title="${stats.todayDone ? escapeHTML(t('checkinUndo')) : escapeHTML(t('checkinToday'))}"><svg><use href="#i-check"/></svg></button>
+          <div class="checkin-summary">
+            <b>${escapeHTML(stats.todayDone ? t('checkinDone') : t('checkinTodoYet'))}</b>
+            <span>${escapeHTML(t('checkinStreak'))} <em>${stats.streak}</em> ${escapeHTML(t('checkinDays'))} · ${escapeHTML(t('checkinTotal'))} ${stats.total} ${escapeHTML(t('checkinDays'))}</span>
+          </div>
+        </div>
+        <div class="checkin-week" role="img" aria-label="${escapeHTML(t('checkinRecent'))}">
+          ${stats.week.map(entry => `<i class="${entry.hit ? 'hit' : ''}${entry.today ? ' today' : ''}" title="${escapeHTML(entry.key)}">${entry.day.getDate()}</i>`).join('')}
+        </div>
+      </section>
+      <section class="note-block"><h2>${t('description')}</h2><div class="todo-notes" id="todoNotes" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('descriptionPlaceholder')}">${escapeHTML(item.notes || '').replace(/\n/g, '<br>')}</div></section>
+    </article>`;
+    }
+    return `<article class="editor-wrap todo-editor${ordered ? ' ordered-tasks' : ''}" data-editor-id="${escapeHTML(item.id)}">
       ${editorTop(item)}
       <textarea class="editor-title" id="editorTitle" rows="1" placeholder="${t('untitledTodo')}">${escapeHTML(item.title)}</textarea>
       <div class="editor-subline todo-time-line" aria-label="${escapeHTML(metaCopy.schedule)}">
@@ -1209,12 +1263,14 @@
         <time id="todoDueAtSummary" datetime="${escapeHTML(item.dueAt || '')}" ${item.dueAt ? '' : 'hidden'}><svg><use href="#i-clock"/></svg><b>${escapeHTML(metaCopy.due)}</b><span>${escapeHTML(dueLabel)}</span></time>
       </div>
       ${linkedItemsSection(item)}
-      <div class="progress-head"><h2>${t('progress')}</h2><span>${completed} / ${tasks.length} · ${progress}% ${t('done')}</span></div>
+      <div class="progress-head"><h2>${t('progress')}</h2><span>${completed} / ${tasks.length} · ${progress}% ${t('done')}</span><button class="task-order-toggle${ordered ? ' active' : ''}" id="taskOrderToggle" type="button" aria-pressed="${ordered}" title="${escapeHTML(t('taskOrderHint'))}" aria-label="${escapeHTML(t('taskOrderHint'))}"><svg><use href="#i-ordered-list"/></svg></button></div>
       <div class="progress-track"><i style="width:${progress}%"></i></div>
       <div class="task-list" id="taskList">
-        ${tasks.map((task, index) => `<div class="task-row ${task.done ? 'done' : ''}" data-task-id="${escapeHTML(task.id)}" style="animation-delay:${index * 35}ms">
+        ${tasks.map((task, index) => `<div class="task-row${ordered ? ' is-ordered' : ''} ${task.done ? 'done' : ''}" data-task-id="${escapeHTML(task.id)}" style="animation-delay:${index * 35}ms">
+          ${ordered ? `<i class="task-order-index" aria-hidden="true">${index + 1}</i>` : ''}
           <button class="task-check"><svg><use href="#i-check"/></svg></button>
           <div class="task-text" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('taskPlaceholder')}">${escapeHTML(task.text)}</div>
+          ${ordered ? `<span class="task-move"><button class="move-task-up" type="button" title="${escapeHTML(t('taskMoveUp'))}" aria-label="${escapeHTML(t('taskMoveUp'))}"><svg><use href="#i-chevron"/></svg></button><button class="move-task-down" type="button" title="${escapeHTML(t('taskMoveDown'))}" aria-label="${escapeHTML(t('taskMoveDown'))}"><svg><use href="#i-chevron"/></svg></button></span>` : ''}
           <button class="remove-task"><svg><use href="#i-close"/></svg></button>
         </div>`).join('')}
       </div>
@@ -1318,29 +1374,63 @@
       renderList();
     }));
 
-    $$('.task-row').forEach(row => {
-      const task = item.tasks.find(entry => entry.id === row.dataset.taskId);
-      $('.task-check', row).addEventListener('click', () => {
-        task.done = !task.done;
-        item.completed = (item.tasks || []).length > 0 && item.tasks.every(entry => entry.done);
-        row.classList.toggle('done', task.done);
-        row.classList.remove('task-toggle-motion');
-        requestAnimationFrame(() => row.classList.add('task-toggle-motion'));
+    if (item.checkin) {
+      byId('checkinToggle').addEventListener('click', event => {
+        const button = event.currentTarget;
+        const checkins = item.checkins || (item.checkins = {});
+        const undo = Boolean(checkins[localDateKey(new Date())]);
+        if (undo) delete checkins[localDateKey(new Date())];
+        else checkins[localDateKey(new Date())] = true;
         touchItem(item);
-        setTimeout(() => { renderEditor(); renderList(); renderSidebar(); }, 220);
+        showTodoBurst(button, undo);
+        renderEditor(); renderList();
       });
-      $('.task-text', row).addEventListener('input', event => { task.text = event.target.textContent; touchItem(item); updateCard(item); });
-      $('.task-text', row).addEventListener('keydown', event => {
-        if (isImeComposing(event)) return;
-        if (event.key === 'Enter') { event.preventDefault(); addTask(item); }
+    } else {
+      const ordered = item.taskOrder === 'ordered';
+      const moveTask = (taskId, direction) => {
+        const index = item.tasks.findIndex(entry => entry.id === taskId);
+        const target = index + direction;
+        if (index < 0 || target < 0 || target >= item.tasks.length) return;
+        const [entry] = item.tasks.splice(index, 1);
+        item.tasks.splice(target, 0, entry);
+        touchItem(item);
+        renderEditor(); renderList();
+        const rows = $$('.task-row');
+        rows[target]?.classList.add('is-new');
+      };
+      byId('taskOrderToggle').addEventListener('click', () => {
+        item.taskOrder = ordered ? 'unordered' : 'ordered';
+        touchItem(item);
+        renderEditor(); renderList();
       });
-      $('.remove-task', row).addEventListener('click', () => {
-        item.tasks = item.tasks.filter(entry => entry.id !== task.id);
-        item.completed = item.tasks.length > 0 && item.tasks.every(entry => entry.done);
-        touchItem(item); renderEditor(); renderList(); renderSidebar();
+      $$('.task-row').forEach(row => {
+        const task = item.tasks.find(entry => entry.id === row.dataset.taskId);
+        $('.task-check', row).addEventListener('click', () => {
+          task.done = !task.done;
+          item.completed = (item.tasks || []).length > 0 && item.tasks.every(entry => entry.done);
+          row.classList.toggle('done', task.done);
+          row.classList.remove('task-toggle-motion');
+          requestAnimationFrame(() => row.classList.add('task-toggle-motion'));
+          touchItem(item);
+          setTimeout(() => { renderEditor(); renderList(); renderSidebar(); }, 220);
+        });
+        $('.task-text', row).addEventListener('input', event => { task.text = event.target.textContent; touchItem(item); updateCard(item); });
+        $('.task-text', row).addEventListener('keydown', event => {
+          if (isImeComposing(event)) return;
+          if (event.key === 'Enter') { event.preventDefault(); addTask(item); }
+        });
+        if (ordered) {
+          $('.move-task-up', row).addEventListener('click', () => moveTask(task.id, -1));
+          $('.move-task-down', row).addEventListener('click', () => moveTask(task.id, 1));
+        }
+        $('.remove-task', row).addEventListener('click', () => {
+          item.tasks = item.tasks.filter(entry => entry.id !== task.id);
+          item.completed = item.tasks.length > 0 && item.tasks.every(entry => entry.done);
+          touchItem(item); renderEditor(); renderList(); renderSidebar();
+        });
       });
-    });
-    byId('addTask').addEventListener('click', () => addTask(item));
+      byId('addTask').addEventListener('click', () => addTask(item));
+    }
     byId('todoNotes').addEventListener('input', event => {
       // innerText (unlike textContent) keeps the line breaks the user sees, so re-rendering
       // the editor (e.g. after adding a subtask) no longer collapses them.
@@ -1353,6 +1443,29 @@
   const rendererBindEditor = bindEditor;
   bindEditor = function bindSelectableClassification(item) {
     rendererBindEditor(item);
+  };
+
+  // 新建子待办的入场动效：addTask 会整体重建编辑器，其余行被
+  // acta-steady 抑制重放，这里单独给新行（列表最后一行）叠加一次
+  // 滑入加高亮的入场动画；顺序模式下的移动复用同一动画落位。
+  const rendererAddTask = addTask;
+  addTask = function addTaskWithMotion(item) {
+    rendererAddTask(item);
+    const row = $$('.task-row').at(-1);
+    if (!row) return;
+    row.classList.add('is-new');
+    row.addEventListener('animationend', () => row.classList.remove('is-new'), { once: true });
+  };
+
+  // 打卡式待办的卡片预览显示今天的打卡状态与连续天数。
+  const rendererItemPreview = itemPreview;
+  itemPreview = function checkinAwareItemPreview(item) {
+    if (item?.type === 'todo' && item.checkin) {
+      const stats = checkinStats(item);
+      const status = stats.todayDone ? t('checkinDone') : t('checkinTodoYet');
+      return stats.streak ? `${status} · ${t('checkinStreak')} ${stats.streak} ${t('checkinDays')}` : status;
+    }
+    return rendererItemPreview(item);
   };
 
   const closeItemMetaPopover = (restoreFocus = false) => {
@@ -3517,6 +3630,20 @@
     applySplashSettings();
     saveUISettings();
   });
+  // 输入框选中动画：开 = 边框与光环平滑淡入；关 = 恢复瞬跳。持久化在
+  // <html data-input-focus-animation>，CSS 据此启停过渡与展开动画。
+  const focusAnimationSetting = byId('focusAnimationSetting');
+  const applyFocusAnimation = () => {
+    if (uiSettings.inputFocusAnimation !== false) delete document.documentElement.dataset.inputFocusAnimation;
+    else document.documentElement.dataset.inputFocusAnimation = 'off';
+  };
+  focusAnimationSetting.checked = uiSettings.inputFocusAnimation !== false;
+  focusAnimationSetting.addEventListener('change', () => {
+    uiSettings.inputFocusAnimation = focusAnimationSetting.checked;
+    applyFocusAnimation();
+    saveUISettings();
+  });
+  applyFocusAnimation();
   byId('previewSplashAnimation').addEventListener('click', () => {
     const button = byId('previewSplashAnimation');
     button.classList.add('is-busy');

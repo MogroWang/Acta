@@ -182,6 +182,28 @@ body:not(.acta-steady) .settings-content::-webkit-scrollbar-thumb { background-c
 .app-icon-option b { max-width: 100%; overflow: hidden; text-align: center; text-overflow: ellipsis; white-space: nowrap; font-size: calc(8px * var(--acta-font-scale)); }
 .app-icon-settings .settings-actions { margin-top: 12px; }
 .app-icon-settings .settings-status { margin-bottom: 0; }
+
+/* 打卡式待办：编辑器打卡区与列表卡片徽标。 */
+.checkin-section { margin-top: 16px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--white) 54%, transparent); display: grid; gap: 16px; }
+.checkin-main { display: flex; align-items: center; gap: 15px; }
+.checkin-button { flex: 0 0 auto; width: 62px; height: 62px; border: 1.5px solid color-mix(in srgb, var(--sage) 34%, var(--line)); border-radius: 50%; background: transparent; color: var(--sage); display: grid; place-items: center; cursor: pointer; transition: border-color .2s ease, background .2s ease, color .2s ease, transform .18s var(--ease-out); }
+.checkin-button svg { width: 26px; height: 26px; stroke-width: 2.2; transition: transform .3s var(--ease-out), opacity .2s ease; transform: scale(.4); opacity: .3; }
+.checkin-button:hover { border-color: var(--sage); transform: scale(1.05); }
+.checkin-button:active { transform: scale(.97); }
+.checkin-button.done { border-color: var(--sage); background: var(--sage); color: #fff; }
+.checkin-button.done svg { transform: scale(1) rotate(0); opacity: 1; }
+.checkin-summary { min-width: 0; display: grid; gap: 4px; }
+.checkin-summary b { font-size: calc(13px * var(--acta-font-scale)); color: var(--ink); }
+.checkin-summary span { color: var(--muted); font-size: calc(10px * var(--acta-font-scale)); }
+.checkin-summary em { font-style: normal; color: var(--sage); font-weight: 700; }
+.checkin-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.checkin-week i { min-width: 0; height: 34px; border-radius: 9px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--faint); font-size: calc(9px * var(--acta-font-scale)); font-style: normal; font-variant-numeric: tabular-nums; transition: border-color .2s ease, background .2s ease, color .2s ease; }
+.checkin-week i.hit { border-color: color-mix(in srgb, var(--sage) 46%, var(--line)); background: color-mix(in srgb, var(--sage) 15%, transparent); color: var(--sage); font-weight: 700; }
+.checkin-week i.today { box-shadow: 0 0 0 2px color-mix(in srgb, var(--sage) 22%, transparent); }
+.checkin-badge { display: inline-flex; align-items: center; gap: 4px; color: var(--faint); }
+.checkin-badge svg { width: 11px; height: 11px; }
+.checkin-badge.on { color: var(--sage); font-weight: 700; }
+.checkin-streak { color: var(--muted); font-variant-numeric: tabular-nums; }
 .settings-button { min-height: 37px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--ink); color: var(--paper); display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer; font-size: calc(9px * var(--acta-font-scale)); font-weight: 650; transition: background .15s ease, transform .1s ease; }
 .settings-button:hover { transform: scale(1.03); background: #30362f; box-shadow: 0 5px 12px -4px rgba(35,40,34,.14); }
 .settings-button:active { transform: scale(.98); transition-duration: .08s; }
@@ -740,7 +762,7 @@ body { font-size: calc(14px * var(--acta-font-scale)); }
 .card-schedule-date time { overflow: hidden; text-overflow: ellipsis; }
 .card-schedule-date i { flex: 0 0 auto; font-style: normal; }
 .todo-time-line { align-items: flex-start; flex-wrap: wrap; gap: 7px 14px; }
-.todo-time-line time { min-width: 0; display: inline-flex; align-items: center; gap: 5px; color: var(--faint); }
+.todo-time-line time { min-width: 0; display: inline-flex; align-items: center; gap: 5px; color: var(--faint); font-variant-numeric: tabular-nums; }
 .todo-time-line time b { flex: 0 0 auto; color: var(--muted); font-size: inherit; font-weight: 700; }
 .todo-time-line time span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item-card > p {
@@ -808,7 +830,7 @@ body.suppress-task-refresh .todo-editor, body.suppress-task-refresh .todo-editor
 .schedule-created-row { min-height: 44px; padding: 8px 10px; border-radius: 9px; background: color-mix(in srgb, var(--panel) 72%, var(--white)); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .schedule-created-row > span, .schedule-display > span { min-width: 0; display: grid; gap: 3px; }
 .schedule-created-row b, .schedule-display b { color: var(--faint); font-size: calc(8px * var(--acta-font-scale)); }
-.schedule-created-row time, .schedule-display time { color: var(--ink); font: 650 calc(10px * var(--acta-font-scale))/1.35 "SFMono-Regular", Consolas, monospace; }
+.schedule-created-row time, .schedule-display time { color: var(--ink); font: 650 calc(10px * var(--acta-font-scale))/1.35 inherit; font-variant-numeric: tabular-nums; }
 .schedule-created-row small { max-width: 120px; color: var(--faint); text-align: right; font-size: calc(8px * var(--acta-font-scale)); line-height: 1.35; }
 .schedule-display { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
 .schedule-display > span { min-height: 46px; padding: 8px 10px; border: 1px solid color-mix(in srgb, var(--todo-accent) 13%, var(--line)); border-radius: 9px; background: color-mix(in srgb, var(--todo-soft) 42%, var(--white)); }
@@ -1510,7 +1532,7 @@ body.calendar-view .list-footer { background: color-mix(in srgb, var(--calendar-
 .calendar-todo.is-complete .calendar-todo-title { text-decoration: line-through; }
 .calendar-todo-content { min-width: 0; display: grid; gap: 4px; }
 .calendar-todo-heading { min-width: 0; display: flex; align-items: center; gap: 5px; }
-.calendar-todo-heading time { flex: 0 0 auto; color: var(--faint); font: 700 calc(9px * var(--acta-font-scale))/1.2 ui-monospace, Consolas, monospace; }
+.calendar-todo-heading time { flex: 0 0 auto; color: var(--faint); font: 700 calc(9px * var(--acta-font-scale))/1.2 inherit; font-variant-numeric: tabular-nums; }
 .calendar-todo-title { min-width: 0; padding: 0; border: 0; background: transparent; color: var(--ink); overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; font-size: calc(10px * var(--acta-font-scale)); font-weight: 700; cursor: pointer; }
 .calendar-todo-full .calendar-todo-title { font-size: calc(13px * var(--acta-font-scale)); }
 .calendar-todo-title:hover { color: var(--calendar-accent); }

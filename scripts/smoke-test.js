@@ -1016,6 +1016,73 @@ async function main() {
       const hasPriorityBadge = Boolean(document.querySelector('.priority-pill.high'));
       const colorFlags = document.querySelectorAll('.language-flag img').length;
       const classificationActionsTogether = document.querySelector('#manageFolders').parentElement === document.querySelector('#addFolder').parentElement;
+      const checkinTestContext = { selectedId, currentView, currentFilter, searchQuery, mobileEditorOpen };
+
+      // —— 打卡式待办、顺序子待办与输入框选中动画 ——
+      window.__actaSmokeStep = 'checkin-creating';
+      document.querySelector('#createMenu [data-create="checkin"]').click();
+      await waitFor(() => Boolean(document.querySelector('.checkin-editor')));
+      const checkinEditorRenders = document.querySelectorAll('.checkin-week i').length === 7 && Boolean(document.querySelector('.checkin-section .checkin-button'));
+      const checkinItem = library.items.find(item => item.checkin);
+      window.__actaSmokeStep = 'checkin-marking';
+      document.getElementById('checkinToggle').click();
+      await waitFor(() => document.getElementById('checkinToggle')?.classList.contains('done'));
+      const checkinMarksToday = Boolean(checkinItem.checkins?.[todayISO()])
+        && document.querySelector('.checkin-summary').textContent.includes('连续 1 天')
+        && Boolean(document.querySelector('.item-card .checkin-badge.on'));
+      document.getElementById('checkinToggle').click();
+      await waitFor(() => !document.getElementById('checkinToggle')?.classList.contains('done'));
+      const checkinUndoWorks = !checkinItem.checkins?.[todayISO()];
+      window.__actaSmokeStep = 'order-todo-creating';
+      document.querySelector('#createMenu [data-create="todo"]').click();
+      await waitFor(() => Boolean(document.querySelector('.editor-wrap:not(.checkin-editor)')));
+      const orderItem = library.items.find(item => item.type === 'todo' && !item.checkin);
+      document.querySelector('.task-row .remove-task').click();
+      await waitFor(() => !document.querySelector('.task-row'));
+      ['甲', '乙', '丙'].forEach(text => {
+        document.getElementById('addTask').click();
+        const row = [...document.querySelectorAll('.task-row .task-text')].at(-1);
+        row.textContent = text;
+        row.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      const orderTogglePresent = Boolean(document.getElementById('taskOrderToggle'));
+      window.__actaSmokeStep = 'order-mode-enabling';
+      document.getElementById('taskOrderToggle').click();
+      await waitFor(() => Boolean(document.querySelector('.task-row.is-ordered')));
+      const orderedShowsIndexes = [...document.querySelectorAll('.task-order-index')].map(i => i.textContent).join('') === '123'
+        && document.querySelectorAll('.move-task-up').length === 3 && document.querySelectorAll('.move-task-down').length === 3;
+      window.__actaSmokeStep = 'order-moving';
+      document.querySelectorAll('.task-row')[1].querySelector('.move-task-up').click();
+      await waitFor(() => [...document.querySelectorAll('.task-row .task-text')][0].textContent === '乙');
+      const orderedMoveWorks = [...document.querySelectorAll('.task-row .task-text')].slice(0, 3).map(row => row.textContent).join('') === '乙甲丙'
+        && [...document.querySelectorAll('.task-order-index')].map(i => i.textContent).join('') === '123';
+      document.getElementById('taskOrderToggle').click();
+      await waitFor(() => !document.querySelector('.task-row.is-ordered'));
+      const unorderedRestored = (orderItem.taskOrder || 'unordered') === 'unordered';
+      const timeFontSyncsInterface = (() => {
+        const time = document.querySelector('.todo-time-line time');
+        if (!time) return false;
+        const style = getComputedStyle(time);
+        return style.fontVariantNumeric.includes('tabular-nums') && !style.fontFamily.includes('SFMono');
+      })();
+      const focusAnimationSetting = document.getElementById('focusAnimationSetting');
+      const focusAnimationDefaultOn = focusAnimationSetting.checked && !document.documentElement.hasAttribute('data-input-focus-animation');
+      focusAnimationSetting.checked = false;
+      focusAnimationSetting.dispatchEvent(new Event('change'));
+      const focusAnimationOffApplies = document.documentElement.getAttribute('data-input-focus-animation') === 'off';
+      focusAnimationSetting.checked = true;
+      focusAnimationSetting.dispatchEvent(new Event('change'));
+      const focusAnimationToggleRestores = !document.documentElement.hasAttribute('data-input-focus-animation');
+
+      library.items = library.items.filter(item => item.id !== checkinItem.id && item.id !== orderItem.id);
+      selectedId = checkinTestContext.selectedId;
+      currentView = checkinTestContext.currentView;
+      currentFilter = checkinTestContext.currentFilter;
+      searchQuery = checkinTestContext.searchQuery;
+      mobileEditorOpen = checkinTestContext.mobileEditorOpen;
+      persist();
+      renderAll();
+
       const folderCountBeforeAddDialog = library.folders.length;
       document.querySelector('#addFolder').click();
       await waitFor(() => Boolean(document.querySelector('.folder-name-dialog')));
@@ -1075,6 +1142,9 @@ async function main() {
       const managedFolderId = document.querySelector('[data-classification-folder].active').dataset.classificationFolder;
       const classificationFolderCountMatches = document.querySelectorAll('[data-classification-folder]').length === library.folders.length;
       const classificationContentCount = document.querySelectorAll('[data-classification-item]').length;
+      if (!document.querySelector('#classificationEmojiButton')) {
+        const detail = document.querySelector('.classification-manager-detail');
+      }
       const classificationColor = document.querySelector('#classificationManagerColor');
       const classificationShortName = document.querySelector('#classificationManagerShortName');
       const classificationEmojiButton = document.querySelector('#classificationEmojiButton');
@@ -1397,6 +1467,17 @@ async function main() {
         customAppIconWorks,
         customAppIconMetrics,
         appIconResetWorks,
+        checkinEditorRenders,
+        checkinMarksToday,
+        checkinUndoWorks,
+        orderTogglePresent,
+        orderedShowsIndexes,
+        orderedMoveWorks,
+        unorderedRestored,
+        timeFontSyncsInterface,
+        focusAnimationDefaultOn,
+        focusAnimationOffApplies,
+        focusAnimationToggleRestores,
         nativeStatusBarMatchesThemes,
         nativeStatusBarCalls,
         reciprocalLink,
@@ -1709,6 +1790,17 @@ async function main() {
     assert.equal(result.nativeCustomPromptUI, true);
     assert.equal(result.customAppIconWorks, true, JSON.stringify(result.customAppIconMetrics));
     assert.equal(result.appIconResetWorks, true);
+    assert.equal(result.checkinEditorRenders, true);
+    assert.equal(result.checkinMarksToday, true);
+    assert.equal(result.checkinUndoWorks, true);
+    assert.equal(result.orderTogglePresent, true);
+    assert.equal(result.orderedShowsIndexes, true);
+    assert.equal(result.orderedMoveWorks, true);
+    assert.equal(result.unorderedRestored, true);
+    assert.equal(result.timeFontSyncsInterface, true);
+    assert.equal(result.focusAnimationDefaultOn, true);
+    assert.equal(result.focusAnimationOffApplies, true);
+    assert.equal(result.focusAnimationToggleRestores, true);
     assert.equal(result.nativeStatusBarMatchesThemes, true, JSON.stringify(result.nativeStatusBarCalls));
     assert.equal(result.reciprocalLink, true);
     assert.equal(result.reciprocalTodoLink, true);

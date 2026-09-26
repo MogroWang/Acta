@@ -47,6 +47,25 @@ body {
 }
 
 button, input, textarea { font: inherit; }
+
+/* 输入框选中动画：焦点进入时光环从零展开、边框平滑过渡（外观设置可关）。
+   动画只覆盖进场一瞬，稳态焦点样式仍由各组件自己的 :focus 规则定义。 */
+html:not([data-input-focus-animation="off"]) input:not([type="checkbox"]):not([type="range"]):not([type="color"]),
+html:not([data-input-focus-animation="off"]) textarea,
+html:not([data-input-focus-animation="off"]) select,
+html:not([data-input-focus-animation="off"]) [contenteditable="true"] {
+  transition: border-color .22s var(--ease-out), box-shadow .22s var(--ease-out), background-color .22s var(--ease-out), color .22s var(--ease-out);
+}
+html:not([data-input-focus-animation="off"]) input:not([type="checkbox"]):not([type="range"]):not([type="color"]):focus,
+html:not([data-input-focus-animation="off"]) textarea:focus,
+html:not([data-input-focus-animation="off"]) select:focus,
+html:not([data-input-focus-animation="off"]) [contenteditable="true"]:focus {
+  animation: focusRingIn .3s var(--ease-out);
+}
+@keyframes focusRingIn {
+  /* 只声明起点，终点取元素自身 :focus 光环，光环从零平滑展开。 */
+  from { box-shadow: 0 0 0 0 transparent; }
+}
 button { color: inherit; }
 button, [contenteditable] { -webkit-tap-highlight-color: transparent; } /* 根元素已全局声明，此处保留兼容旧 WebView */
 button:focus-visible, input:focus-visible, textarea:focus-visible, [contenteditable]:focus-visible {
@@ -154,6 +173,7 @@ html[data-desktop-platform="darwin"] .brand { padding-left: 84px; }
 .menu-icon.note { color: var(--violet); background: var(--violet-soft); }
 .menu-icon.todo { color: var(--sage); background: var(--sage-2); }
 .menu-icon.import { color: var(--amber); background: var(--amber-soft); }
+.menu-icon.checkin { color: var(--sage); background: color-mix(in srgb, var(--sage) 16%, transparent); }
 .menu-icon svg { width: 16px; }
 
 .nav-section { display: flex; flex-direction: column; gap: 3px; }
@@ -335,10 +355,38 @@ html[data-desktop-platform="darwin"] .brand { padding-left: 84px; }
 .progress-head { display: flex; justify-content: space-between; align-items: flex-end; margin: 27px 0 9px; }
 .progress-head h2, .note-block h2 { margin: 0; font-size: calc(11px * var(--acta-font-scale)); font-weight: 700; letter-spacing: .03em; }
 .progress-head span { color: var(--muted); font-size: calc(9px * var(--acta-font-scale)); }
+.progress-head:has(.task-order-toggle) { justify-content: flex-start; align-items: center; gap: 9px; }
+.task-order-toggle { margin-left: auto; width: 28px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--faint); display: grid; place-items: center; cursor: pointer; transition: border-color .18s ease, color .18s ease, background .18s ease, transform .18s var(--ease-out); }
+.task-order-toggle svg { width: 14px; height: 14px; }
+.task-order-toggle:hover { color: var(--sage); border-color: color-mix(in srgb, var(--sage) 40%, var(--line)); transform: scale(1.05); }
+.task-order-toggle.active { color: var(--sage); border-color: var(--sage); background: color-mix(in srgb, var(--sage) 10%, transparent); }
 .progress-track { height: 5px; background: #e8e7e0; border-radius: 10px; overflow: hidden; }
 .progress-track i { display: block; height: 100%; background: var(--sage); border-radius: inherit; transition: width .7s var(--ease-out); }
 .task-list { margin-top: 14px; }
 .task-row { min-height: 45px; display: grid; grid-template-columns: 22px 1fr 25px; gap: 9px; align-items: center; border-bottom: 1px solid rgba(47,52,45,.07); animation: taskIn .45s var(--ease-out) both; }
+/* 顺序子待办：行首序号 + 文本后上下移动按钮；无序模式保持原两列布局。 */
+.task-row.is-ordered { grid-template-columns: 15px 22px 1fr 21px 25px; }
+.task-order-index { min-width: 0; color: var(--faint); font-size: calc(10px * var(--acta-font-scale)); font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.task-move { display: grid; grid-template-rows: 1fr 1fr; gap: 1px; }
+.task-move button { width: 20px; height: 19px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--faint); display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .15s ease, background .15s ease, color .15s ease, transform .15s var(--ease-out); }
+.task-move button svg { width: 11px; height: 11px; }
+.task-move .move-task-up svg { transform: rotate(-90deg); }
+.task-move .move-task-down svg { transform: rotate(90deg); }
+.task-row:hover .task-move button, .task-row:focus-within .task-move button { opacity: 1; }
+.task-move button:hover { background: color-mix(in srgb, var(--sage) 12%, transparent); color: var(--sage); }
+.task-move button:first-child { border-radius: 6px 6px 2px 2px; }
+.task-move button:last-child { border-radius: 2px 2px 6px 6px; }
+.task-move button:first-child:hover { transform: translateY(-1px); }
+.task-move button:last-child:hover { transform: translateY(1px); }
+.task-row:first-child .move-task-up, .task-row:last-child .move-task-down { visibility: hidden; }
+/* 新建/移动子待办的入场动画：acta-steady 抑制列表重渲染时的级联重放，
+   is-new 用更高优先级单独生效，动画结束由 JS 移除类名。 */
+.task-row.is-new { animation: taskRowNew .55s var(--ease-out) !important; }
+@keyframes taskRowNew {
+  from { opacity: 0; transform: translateY(-9px); background-color: color-mix(in srgb, var(--sage) 14%, transparent); }
+  60% { background-color: color-mix(in srgb, var(--sage) 7%, transparent); }
+  to { opacity: 1; transform: translateY(0); background-color: transparent; }
+}
 .task-check { width: 19px; height: 19px; padding: 0; line-height: 0; border: 1.5px solid #babdb4; border-radius: 6px; background: transparent; display: grid; place-items: center; cursor: pointer; transition: background .2s ease, border-color .2s ease, transform .18s var(--ease-out); }
 .task-check:hover { transform: scale(1.12); border-color: var(--sage); }
 .task-check svg { display:block; width: 12px; height: 12px; margin: 0; opacity: 0; color: white; stroke-width: 2.4; transform: scale(.4) rotate(-18deg); transition: opacity .15s, transform .34s var(--ease-out); }
