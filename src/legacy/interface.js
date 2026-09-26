@@ -1299,7 +1299,7 @@
       <div class="progress-track"><i style="width:${progress}%"></i></div>
       <div class="task-list" id="taskList">
         ${tasks.map((task, index) => `<div class="task-row${ordered ? ' is-ordered' : ''} ${task.done ? 'done' : ''}" data-task-id="${escapeHTML(task.id)}" style="animation-delay:${index * 35}ms">
-          ${task.done && task.completedAt && uiSettings.subtaskCompletedDates !== false ? `<i class="task-done-date" title="${escapeHTML(formatDateTimeSeconds(task.completedAt))}">${escapeHTML(formatMonthDay(task.completedAt))}</i>` : ''}
+          <i class="task-done-date"${task.done && task.completedAt && uiSettings.subtaskCompletedDates !== false ? ` title="${escapeHTML(formatDateTimeSeconds(task.completedAt))}">${escapeHTML(formatMonthDay(task.completedAt))}</i>` : ' aria-hidden="true"></i>'}
           ${ordered ? `<i class="task-order-index" aria-hidden="true">${index + 1}</i>` : ''}
           <button class="task-check"><svg><use href="#i-check"/></svg></button>
           <div class="task-text" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('taskPlaceholder')}">${escapeHTML(task.text)}</div>

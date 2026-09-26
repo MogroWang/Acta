@@ -384,14 +384,16 @@ html[data-desktop-platform="darwin"] .brand { padding-left: 84px; }
 .task-list { margin-top: 14px; }
 .task-row { min-height: 45px; display: grid; grid-template-columns: 22px 1fr 25px; gap: 9px; align-items: center; border-bottom: 1px solid rgba(47,52,45,.07); animation: taskIn .45s var(--ease-out) both; }
 /* 顺序子待办：行首序号 + 文本后上下移动按钮；无序模式保持原两列布局。 */
-.task-row.is-ordered { grid-template-columns: 15px 22px 1fr 21px 25px; }
 /* 已完成子任务在勾选框左侧显示完成日期（mm/dd，悬停看精确时刻）。 */
+.task-row { grid-template-columns: 0px 22px 1fr 25px; transition: grid-template-columns .26s var(--ease-out); }
+.task-row.is-ordered { grid-template-columns: 0px 15px 22px 1fr 21px 25px; }
 .task-row.done { grid-template-columns: 34px 22px 1fr 25px; }
 .task-row.done.is-ordered { grid-template-columns: 34px 15px 22px 1fr 21px 25px; }
-.task-done-date { min-width: 0; color: var(--faint); font-size: calc(8px * var(--acta-font-scale)); text-align: center; font-variant-numeric: tabular-nums; cursor: default; white-space: nowrap; }
+.task-done-date { min-width: 0; overflow: hidden; color: var(--faint); font-size: calc(8px * var(--acta-font-scale)); text-align: center; font-variant-numeric: tabular-nums; cursor: default; white-space: nowrap; opacity: 0; transition: opacity .22s ease; }
+.task-row.done .task-done-date { opacity: 1; }
 html[data-subtask-dates="off"] .task-done-date { display: none; }
-html[data-subtask-dates="off"] .task-row.done { grid-template-columns: 22px 1fr 25px; }
-html[data-subtask-dates="off"] .task-row.done.is-ordered { grid-template-columns: 15px 22px 1fr 21px 25px; }
+html[data-subtask-dates="off"] .task-row { grid-template-columns: 22px 1fr 25px; }
+html[data-subtask-dates="off"] .task-row.is-ordered { grid-template-columns: 15px 22px 1fr 21px 25px; }
 .task-order-index { min-width: 0; color: var(--faint); font-size: calc(10px * var(--acta-font-scale)); font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
 .task-move { display: grid; grid-template-rows: 1fr 1fr; gap: 1px; }
 .task-move button { width: 20px; height: 19px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--faint); display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .15s ease, background .15s ease, color .15s ease, transform .15s var(--ease-out); }
