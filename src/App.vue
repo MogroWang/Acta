@@ -99,6 +99,7 @@
             <div class="sidebar-dock-actions" role="group" aria-label="侧栏操作">
               <button class="sidebar-dock-action" id="dataRefreshButton" type="button" title="刷新数据" aria-label="刷新数据"><svg><use href="#i-refresh"/></svg></button>
               <button class="sidebar-dock-action" id="dataStatsButton" type="button" title="数据统计" aria-label="数据统计"><svg><use href="#i-chart"/></svg></button>
+              <button class="sidebar-dock-action" id="historyButton" type="button" title="历史记录" aria-label="历史记录"><svg><use href="#i-undo"/></svg></button>
               <button class="sidebar-dock-action" id="settingsButton" type="button" title="设置" aria-label="设置"><svg><use href="#i-settings"/></svg></button>
               <button class="sidebar-dock-action sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="true" aria-controls="primarySidebar" title="收起左侧功能栏"><svg><use href="#i-chevron"/></svg></button>
             </div>
@@ -466,6 +467,16 @@
         </div>
         <code class="app-data-path data-stats-path" id="dataStatsPath">—</code>
         <p class="settings-status" id="dataStatsStatus" role="status"></p>
+      </div>
+    </dialog>
+    <dialog class="relation-dialog history-dialog" id="historyDialog" aria-labelledby="historyTitle">
+      <header class="relation-dialog-head"><span><svg><use href="#i-undo"/></svg></span><div><h3 id="historyTitle">历史记录</h3><small id="historySubtitle">最近的操作一览，最多保留 500 条</small></div><button class="relation-dialog-close" id="closeHistory" type="button" aria-label="关闭"><svg><use href="#i-close"/></svg></button></header>
+      <div class="history-body">
+        <ol class="history-list" id="historyList"></ol>
+        <p class="settings-status" id="historyEmpty" role="status">还没有可回溯的操作记录。</p>
+      </div>
+      <div class="history-actions">
+        <button class="settings-button secondary" id="clearHistory" type="button"><svg><use href="#i-trash"/></svg><span>清空历史记录</span></button>
       </div>
     </dialog>
 

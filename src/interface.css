@@ -206,6 +206,25 @@ body:not(.acta-steady) .settings-content::-webkit-scrollbar-thumb { background-c
 .checkin-streak { color: var(--muted); font-variant-numeric: tabular-nums; }
 .checkin-schedule-edit { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); font-size: calc(9px * var(--acta-font-scale)); font-weight: 600; cursor: pointer; margin-left: auto; transition: border-color .18s ease, color .18s ease, background .18s ease, transform .18s var(--ease-out); }
 .checkin-schedule-edit svg { width: 11px; height: 11px; }
+/* 删除子待办的二级确认：删除按钮原地替换为确认/取消一对，浮于行尾。 */
+.remove-task-zone { position: relative; display: grid; place-items: center; }
+.remove-task-confirm { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; padding: 3px 5px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); box-shadow: 0 2px 8px -2px rgba(30,35,29,.18); animation: removeArmIn .18s var(--ease-out); }
+.remove-task-confirm[hidden] { display: none; }
+.confirm-remove-task, .cancel-remove-task { width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent; display: grid; place-items: center; cursor: pointer; }
+.confirm-remove-task { color: #a35e4c; background: #f5e6e1; }
+.confirm-remove-task:hover { background: #efdad2; }
+.cancel-remove-task { color: var(--faint); }
+.cancel-remove-task:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.confirm-remove-task svg, .cancel-remove-task svg { width: 12px; height: 12px; }
+@keyframes removeArmIn { from { opacity: 0; transform: translateY(-50%) scale(.92); } }
+/* 历史记录弹窗 */
+.history-body { display: grid; gap: 9px; align-content: start; max-height: min(430px, 56vh); overflow: auto; padding: 2px 4px 2px 2px; }
+.history-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.history-entry { display: grid; grid-template-columns: auto 1fr; gap: 11px; align-items: baseline; padding: 7px 10px; border: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-radius: 9px; background: color-mix(in srgb, var(--white) 46%, transparent); }
+.history-entry time { color: var(--faint); font-size: calc(8px * var(--acta-font-scale)); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.history-entry span { min-width: 0; color: var(--ink); font-size: calc(9px * var(--acta-font-scale)); line-height: 1.5; }
+.history-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+.history-actions .is-danger { color: #a35e4c; border-color: color-mix(in srgb, #a35e4c 40%, var(--line)); background: #f5e6e1; }
 .task-date-tip { position: fixed; z-index: 220; max-width: 280px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); color: var(--ink); font-size: calc(9px * var(--acta-font-scale)); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; box-shadow: 0 3px 9px -2px rgba(30,35,29,.14), 0 12px 28px -10px rgba(30,35,29,.2); pointer-events: none; animation: taskDateTipIn .16s var(--ease-out); }
 @keyframes taskDateTipIn { from { opacity: 0; transform: translateY(3px); } }
 .checkin-schedule-edit:hover { color: var(--sage); border-color: color-mix(in srgb, var(--sage) 40%, var(--line)); background: color-mix(in srgb, var(--sage) 8%, transparent); transform: scale(1.04); }

@@ -61,6 +61,7 @@ async function main() {
     await page.goto(appUrl, { waitUntil:'load' });
     // 版本号断言跟随 package.json，升级版本时无需再改测试。
     const expectedVersion = require('../package.json').version;
+    page.on('pageerror', error => console.error('[pageerror]', error.message));
     const smokeRun = page.evaluate(`(async () => {
       window.__actaSmokeStep = 'started';
       window.resizeTo = (width, height) => window.__actaResizeTo(width, height);
@@ -194,7 +195,10 @@ async function main() {
       document.querySelector('#addTask').click();
       const todoNotesSurvivesSubtask = document.querySelector('#todoNotes')?.innerHTML.includes('第一行<br>')
         && library.items.find(item => item.id === 'launch-plan').tasks.length === taskBeforeImeEnter + 1;
-      [...document.querySelectorAll('.task-row .remove-task')].at(-1).click();
+      const removeTargetRow = [...document.querySelectorAll('.task-row')].at(-1);
+      removeTargetRow.querySelector('.remove-task').click();
+      await waitFor(() => !removeTargetRow.querySelector('.remove-task-confirm').hidden);
+      removeTargetRow.querySelector('.confirm-remove-task').click();
       task.notes = '测试待办';
       persist();
       document.querySelector('#itemMetaButton').click();
@@ -1037,7 +1041,10 @@ async function main() {
       document.querySelector('#createMenu [data-create="todo"]').click();
       await waitFor(() => Boolean(document.querySelector('.editor-wrap:not(.checkin-editor)')));
       const orderItem = library.items.find(item => item.type === 'todo' && !item.checkin);
-      document.querySelector('.task-row .remove-task').click();
+      const removeRow = document.querySelector('.task-row');
+      removeRow.querySelector('.remove-task').click();
+      await waitFor(() => !removeRow.querySelector('.remove-task-confirm').hidden);
+      removeRow.querySelector('.confirm-remove-task').click();
       await waitFor(() => !document.querySelector('.task-row'));
       ['甲', '乙', '丙'].forEach(text => {
         document.getElementById('addTask').click();
@@ -1082,6 +1089,26 @@ async function main() {
       focusAnimationSetting.checked = true;
       focusAnimationSetting.dispatchEvent(new Event('change'));
       const focusAnimationToggleRestores = !document.documentElement.hasAttribute('data-input-focus-animation');
+
+      // 删除子待办的二级确认:展开确认后取消恢复,确认才删除。
+      window.__actaSmokeStep = 'remove-confirm';
+      const confirmRow = [...document.querySelectorAll('.task-row')].at(-1);
+      confirmRow.querySelector('.remove-task').click();
+      await waitFor(() => !confirmRow.querySelector('.remove-task-confirm').hidden);
+      const removeConfirmShows = !confirmRow.querySelector('.remove-task-confirm').hidden;
+      const tasksBeforeRemove = library.items.find(entry => entry.id === orderItem.id).tasks.length;
+      confirmRow.querySelector('.cancel-remove-task').click();
+      await waitFor(() => confirmRow.querySelector('.remove-task-confirm').hidden);
+      const removeCancelRestores = confirmRow.querySelector('.remove-task-confirm').hidden
+        && library.items.find(entry => entry.id === orderItem.id).tasks.length === tasksBeforeRemove;
+      const historyBeforeRemove = historyEntries.length;
+      confirmRow.querySelector('.remove-task').click();
+      await waitFor(() => !confirmRow.querySelector('.remove-task-confirm').hidden);
+      confirmRow.querySelector('.confirm-remove-task').click();
+      await waitFor(() => library.items.find(entry => entry.id === orderItem.id).tasks.length === tasksBeforeRemove - 1);
+      const removeConfirmDeletes = library.items.find(entry => entry.id === orderItem.id).tasks.length === tasksBeforeRemove - 1
+        && historyEntries.length === historyBeforeRemove + 1
+        && historyEntries[0].type === 'subtask-removed';
 
       // 编辑区粘贴默认取纯文本：contenteditable 收到富文本剪贴板时按
       // text/plain 插入（字面文本，不带格式）。
@@ -1513,6 +1540,9 @@ async function main() {
         focusAnimationOffApplies,
         focusAnimationToggleRestores,
         pastePlaintextOnly,
+        removeConfirmShows,
+        removeCancelRestores,
+        removeConfirmDeletes,
         quickCheckinTypeSelectable,
         quickCheckinCreated,
         nativeStatusBarMatchesThemes,
@@ -1840,6 +1870,9 @@ async function main() {
     assert.equal(result.focusAnimationOffApplies, true);
     assert.equal(result.focusAnimationToggleRestores, true);
     assert.equal(result.pastePlaintextOnly, true);
+    assert.equal(result.removeConfirmShows, true);
+    assert.equal(result.removeCancelRestores, true);
+    assert.equal(result.removeConfirmDeletes, true);
     assert.equal(result.quickCheckinTypeSelectable, true);
     assert.equal(result.quickCheckinCreated, true);
     assert.equal(result.nativeStatusBarMatchesThemes, true, JSON.stringify(result.nativeStatusBarCalls));

@@ -120,6 +120,44 @@ const formatMonthDay = value => {
   return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
 };
 
+// 操作历史：本地保留最近 500 条（超出淘汰最旧），按类型词典渲染为
+// 当前语言的描述，detail 携带目标标题等原文。
+const HISTORY_KEY = 'acta.history.v1';
+const HISTORY_LIMIT = 500;
+let historyEntries = (() => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(HISTORY_KEY));
+    return Array.isArray(raw) ? raw.slice(0, HISTORY_LIMIT) : [];
+  } catch { return []; }
+})();
+const historyMessages = {
+  zh: {
+    'note-created': '创建了笔记《{detail}》', 'todo-created': '创建了待办《{detail}》', 'checkin-created': '创建了打卡待办《{detail}》',
+    'item-trashed': '把《{detail}》移入回收站', 'item-destroyed': '彻底删除了《{detail}》',
+    'todo-completed': '完成了待办《{detail}》', 'todo-reopened': '重新打开了待办《{detail}》',
+    'checkin': '为《{detail}》打卡', 'checkin-undo': '取消了《{detail}》的今日打卡',
+    'subtask-added': '在《{detail}》中添加了子任务', 'subtask-completed': '完成了《{detail}》中的一个子任务', 'subtask-reopened': '重新打开了《{detail}》中的一个子任务', 'subtask-removed': '删除了《{detail}》中的一个子任务',
+    'folder-created': '新建了归类「{detail}」', 'folder-deleted': '删除了归类「{detail}」'
+  },
+  en: {
+    'note-created': 'Created note “{detail}”', 'todo-created': 'Created task “{detail}”', 'checkin-created': 'Created check-in task “{detail}”',
+    'item-trashed': 'Moved “{detail}” to trash', 'item-destroyed': 'Permanently deleted “{detail}”',
+    'todo-completed': 'Completed task “{detail}”', 'todo-reopened': 'Reopened task “{detail}”',
+    'checkin': 'Checked in “{detail}”', 'checkin-undo': 'Undid today’s check-in for “{detail}”',
+    'subtask-added': 'Added a subtask to “{detail}”', 'subtask-completed': 'Completed a subtask in “{detail}”', 'subtask-reopened': 'Reopened a subtask in “{detail}”', 'subtask-removed': 'Removed a subtask from “{detail}”',
+    'folder-created': 'Created classification “{detail}”', 'folder-deleted': 'Deleted classification “{detail}”'
+  }
+};
+function historyText(entry) {
+  const dict = historyMessages[settings.language] || historyMessages.zh;
+  return (dict[entry.type] || entry.type).replace('{detail}', entry.detail || '');
+}
+function logHistory(type, detail = '') {
+  historyEntries.unshift({ id: uid(), type, detail: String(detail || ''), at: new Date().toISOString() });
+  if (historyEntries.length > HISTORY_LIMIT) historyEntries.length = HISTORY_LIMIT;
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(historyEntries)); } catch { /* 存储满时静默，历史为辅助信息 */ }
+}
+
 const daysFromToday = (days) => {
   const date = new Date();
   date.setDate(date.getDate() + days);
@@ -1721,6 +1759,7 @@ function bindTrashList() {
     if (!item) return;
     const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
     if (!await askDestroyConfirm({ itemLabel: `${t(item.type)} · ${title}`, message: t('deleteDestroyHint') })) return;
+    logHistory('item-destroyed', item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote')));
     destroyItems([item.id]);
     showToast(t('destroyed'));
   }));
@@ -2113,6 +2152,7 @@ function bindEditor(item) {
     const choice = await askItemDelete(item);
     if (!choice) return;
     if (choice === 'trash') {
+      logHistory('item-trashed', item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote')));
       item.deletedAt = new Date().toISOString();
       unlinkForTrash(item);
       const nextSelection = getVisibleItems().find(entry => entry.id !== item.id) || activeItems()[0];
@@ -3160,7 +3200,9 @@ function bindShell() {
     if (!name) return;
     const palette = ['#6f8a72', '#b68b54', '#7a7799', '#a87876', '#668792'];
     const folder = { id: uid(), name, color: palette[library.folders.length % palette.length] };
-    library.folders.push(folder); currentView = `folder:${folder.id}`;
+    library.folders.push(folder);
+    logHistory('folder-created', folder.name);
+    currentView = `folder:${folder.id}`;
     persist(); renderAll(); showToast(t('folderAdded'));
   });
   matchMedia('(max-width: 800px)').addEventListener?.('change', () => {

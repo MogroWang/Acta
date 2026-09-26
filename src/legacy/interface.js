@@ -305,21 +305,21 @@
       invalidLibrary:'这不是有效的 Acta 完整数据文件夹。', localFolder:'本地文件夹', unsupportedFolder:'当前平台不支持完整文件夹读写，请使用最新版 Chrome、Edge 或客户端文件夹选择器。', noFolderPermission:'没有获得文件夹读写权限。',
       localWorkspace:'本地行记数据', demoWorkspace:'演示行记数据', actaData:'行记数据', noFolderNoSave:'尚未选择文件夹；本次修改不会保存。', noSaveChanges:'不会保存更改', demoSave:'演示模式 · 不保存', demoStatus:'当前是演示行记数据。关闭或刷新页面后，演示内容会恢复，不会写入浏览器本地资料库。',
       savedTo:'已保存完整数据文件夹到 {0} / {1}', saveFailed:'保存失败：{0}', loaded:'已完整载入 {0} / {1}', created:'已在 {0} 创建完整数据文件夹：{1}', savedNow:'完整数据文件夹已立即保存。', reloadConfirm:'从数据文件夹重载会覆盖当前尚未保存的界面状态，是否继续？', reloaded:'已从完整数据文件夹重新载入。', exportedFolder:'完整数据文件夹已导出到 {0}。',
-      settingsStored:'设置会自动保存在当前设备。', defaultSaved:'默认启动页面已保存。', compactUpdated:'列表密度已更新。', motionUpdated:'动态效果偏好已更新。',
+      settingsStored:'设置会自动保存在当前设备。', defaultSaved:'默认启动页面已保存。', compactUpdated:'列表密度已更新。', motionUpdated:'动态效果偏好已更新。', historySubtitle:'最近的操作一览', historyClear:'清空历史记录', historyClearConfirm:'再次点击确认清空',
       linkTitle:'关联项目', close:'关闭', linkHint:'选择一个项目建立双向关联；已有关系会显示在编辑器中。', restoreWorkspaceFailed:'无法恢复工作区：{0}', reauthorize:'浏览器需要重新授权工作区文件夹，请点击“选择本地文件夹”。', restoredOneDrive:'已恢复 OneDrive 同步文件夹连接。', restoreOneDriveFailed:'无法恢复 OneDrive 文件夹：{0}'
     },
     en: {
       invalidLibrary:'This is not a valid complete Acta data folder.', localFolder:'Local folder', unsupportedFolder:'This platform cannot read and write complete folders. Use the latest Chrome, Edge, or the client folder picker.', noFolderPermission:'Folder read/write permission was not granted.',
       localWorkspace:'Local Acta Data', demoWorkspace:'Demo Acta Data', actaData:'Acta Data', noFolderNoSave:'No folder selected; changes in this session will not be saved.', noSaveChanges:'Changes are not saved', demoSave:'Demo mode · Not saved', demoStatus:'This is demo Acta Data. Its content resets when you close or refresh the page and is not written to browser storage.',
       savedTo:'Saved the complete data folder to {0} / {1}', saveFailed:'Save failed: {0}', loaded:'Fully loaded {0} / {1}', created:'Created the complete data folder in {0}: {1}', savedNow:'Complete data folder saved now.', reloadConfirm:'Reloading from the data folder will replace the current unsaved interface state. Continue?', reloaded:'Reloaded from the complete data folder.', exportedFolder:'Complete data folder exported to {0}.',
-      settingsStored:'Settings are saved automatically on this device.', defaultSaved:'Default startup view saved.', compactUpdated:'List density updated.', motionUpdated:'Motion preference updated.',
+      settingsStored:'Settings are saved automatically on this device.', defaultSaved:'Default startup view saved.', compactUpdated:'List density updated.', motionUpdated:'Motion preference updated.', historySubtitle:'A look back at recent actions', historyClear:'Clear history', historyClearConfirm:'Click again to confirm',
       linkTitle:'Link item', close:'Close', linkHint:'Choose an item to create a two-way link. Existing links appear in the editor.', restoreWorkspaceFailed:'Could not restore the workspace: {0}', reauthorize:'The browser needs folder permission again. Click “Choose local folder”.', restoredOneDrive:'Restored the OneDrive sync folder connection.', restoreOneDriveFailed:'Could not restore the OneDrive folder: {0}'
     },
     'zh-Hant': {
       invalidLibrary:'這不是有效的 Acta 完整資料資料夾。', localFolder:'本機資料夾', unsupportedFolder:'目前平台不支援完整資料夾讀寫，請使用最新版 Chrome、Edge 或用戶端資料夾選擇器。', noFolderPermission:'未取得資料夾讀寫權限。',
       localWorkspace:'本機行記資料', demoWorkspace:'示範行記資料', actaData:'行記資料', noFolderNoSave:'尚未選擇資料夾；本次修改不會儲存。', noSaveChanges:'不會儲存變更', demoSave:'示範模式 · 不儲存', demoStatus:'目前是示範行記資料。關閉或重新整理頁面後，示範內容會還原，不會寫入瀏覽器本機資料庫。',
       savedTo:'已儲存完整資料資料夾到 {0} / {1}', saveFailed:'儲存失敗：{0}', loaded:'已完整載入 {0} / {1}', created:'已在 {0} 建立完整資料資料夾：{1}', savedNow:'完整資料資料夾已立即儲存。', reloadConfirm:'從資料資料夾重新載入會覆蓋目前尚未儲存的介面狀態，是否繼續？', reloaded:'已從完整資料資料夾重新載入。', exportedFolder:'完整資料資料夾已匯出到 {0}。',
-      settingsStored:'設定會自動儲存在目前裝置。', defaultSaved:'預設啟動頁面已儲存。', compactUpdated:'清單密度已更新。', motionUpdated:'動態效果偏好已更新。',
+      settingsStored:'設定會自動儲存在目前裝置。', defaultSaved:'預設啟動頁面已儲存。', compactUpdated:'清單密度已更新。', motionUpdated:'動態效果偏好已更新。', historySubtitle:'最近的操作一覽', historyClear:'清空歷史記錄', historyClearConfirm:'再次點擊確認清空',
       linkTitle:'關聯項目', close:'關閉', linkHint:'選擇一個項目建立雙向關聯；已有關係會顯示在編輯器中。', restoreWorkspaceFailed:'無法還原工作區：{0}', reauthorize:'瀏覽器需要重新授權工作區資料夾，請點擊「選擇本機資料夾」。', restoredOneDrive:'已還原 OneDrive 同步資料夾連接。', restoreOneDriveFailed:'無法還原 OneDrive 資料夾：{0}'
     }
   };
@@ -386,6 +386,16 @@
   // 可编辑区粘贴统一取纯文本：input/textarea 本身只收纯文本，这里拦截
   // contenteditable 的富文本粘贴（子任务、补充说明、笔记正文），经
   // insertText 走原生撤销栈，与右键菜单的粘贴行为保持一致。
+  // 点击确认区之外时复位所有待删除确认态（点击取消/确认按钮自身除外，
+  // 它们在元素 handler 内自行处理）。
+  document.addEventListener('click', event => {
+    if (!(event.target instanceof Element) || event.target.closest('.remove-task-zone')) return;
+    document.querySelectorAll('.remove-task-zone.armed').forEach(zone => {
+      zone.classList.remove('armed');
+      const group = zone.querySelector('.remove-task-confirm');
+      if (group) group.hidden = true;
+    });
+  });
   document.addEventListener('paste', event => {
     const target = event.target instanceof Element ? event.target.closest('[contenteditable="true"]') : null;
     if (!target) return;
@@ -667,6 +677,7 @@
     library.items.unshift(item);
     persist();
     renderAll();
+    logHistory(item.checkin ? 'checkin-created' : item.type === 'note' ? 'note-created' : 'todo-created', item.title);
     closeAnimatedDialog(quickCaptureDialog);
     showToast(`${t('itemCreated')} · ${item.checkin ? t('checkinTodo') : t(item.type)}`);
   });
@@ -1098,8 +1109,9 @@
     byId('searchInput').value = '';
     persist();
     renderAll();
+    logHistory(type === 'note' ? 'note-created' : type === 'checkin' ? 'checkin-created' : 'todo-created', item.title);
     byId('createMenu').classList.remove('open');
-    showToast(`${t('itemCreated')} · ${t(type)}`);
+    showToast(`${t('itemCreated')} · ${type === 'checkin' ? t('checkinTodo') : t(type)}`);
     requestAnimationFrame(() => byId('editorTitle')?.select());
   };
 
@@ -1330,7 +1342,13 @@
           <button class="task-check"><svg><use href="#i-check"/></svg></button>
           <div class="task-text" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('taskPlaceholder')}">${escapeHTML(task.text)}</div>
           ${ordered ? `<span class="task-move"><button class="move-task-up" type="button" title="${escapeHTML(t('taskMoveUp'))}" aria-label="${escapeHTML(t('taskMoveUp'))}"><svg><use href="#i-chevron"/></svg></button><button class="move-task-down" type="button" title="${escapeHTML(t('taskMoveDown'))}" aria-label="${escapeHTML(t('taskMoveDown'))}"><svg><use href="#i-chevron"/></svg></button></span>` : ''}
-          <button class="remove-task"><svg><use href="#i-close"/></svg></button>
+          <span class="remove-task-zone">
+            <button class="remove-task" type="button"><svg><use href="#i-close"/></svg></button>
+            <span class="remove-task-confirm" hidden>
+              <button class="confirm-remove-task" type="button" title="${escapeHTML(t('confirm'))}" aria-label="${escapeHTML(t('confirm'))}"><svg><use href="#i-check"/></svg></button>
+              <button class="cancel-remove-task" type="button" title="${escapeHTML(t('cancel'))}" aria-label="${escapeHTML(t('cancel'))}"><svg><use href="#i-close"/></svg></button>
+            </span>
+          </span>
         </div>`).join('')}
       </div>
       <button class="add-task" id="addTask"><span><svg><use href="#i-plus"/></svg></span>${t('addTask')}</button>
@@ -1447,6 +1465,7 @@
         const undo = Boolean(checkins[localDateKey(new Date())]);
         if (undo) delete checkins[localDateKey(new Date())];
         else checkins[localDateKey(new Date())] = true;
+        logHistory(undo ? 'checkin-undo' : 'checkin', item.title || t('checkinTodo'));
         touchItem(item);
         showTodoBurst(button, undo);
         renderEditor(); renderList();
@@ -1484,6 +1503,7 @@
               if (entryIndex >= taskIndex || entry.done) return;
               entry.done = true;
               entry.completedAt = new Date().toISOString();
+              logHistory('subtask-completed', item.title || t('untitledTodo'));
               const earlierRow = taskRows[entryIndex];
               earlierRow?.classList.add('done');
               const earlierDate = earlierRow?.querySelector('.task-done-date');
@@ -1506,6 +1526,8 @@
             dateEl.dataset.time = task.completedAt;
             dateEl.textContent = formatMonthDay(task.completedAt);
           }
+          if (task.done) logHistory('subtask-completed', item.title || t('untitledTodo'));
+          else logHistory('subtask-reopened', item.title || t('untitledTodo'));
           row.classList.remove('task-toggle-motion');
           requestAnimationFrame(() => row.classList.add('task-toggle-motion'));
           touchItem(item);
@@ -1530,7 +1552,28 @@
           $('.move-task-up', row).addEventListener('click', () => moveTask(task.id, -1));
           $('.move-task-down', row).addEventListener('click', () => moveTask(task.id, 1));
         }
+        const zone = $('.remove-task-zone', row);
+        const confirmGroup = $('.remove-task-confirm', row);
+        // armed 切换同时控制确认组的 hidden 属性（CSS 依赖它隐藏/显示）。
+        const setArmed = on => {
+          zone.classList.toggle('armed', on);
+          if (confirmGroup) confirmGroup.hidden = !on;
+        };
+        const disarmRow = () => setArmed(false);
         $('.remove-task', row).addEventListener('click', () => {
+          // 同一时刻只允许一行处于确认态：展开新确认前复位其他行。
+          taskRows.forEach(other => {
+            if (other === row) return;
+            other.classList.remove('armed');
+            const otherGroup = other.querySelector('.remove-task-confirm');
+            if (otherGroup) otherGroup.hidden = true;
+          });
+          setArmed(true);
+          $('.confirm-remove-task', row).focus();
+        });
+        $('.cancel-remove-task', row).addEventListener('click', disarmRow);
+        $('.confirm-remove-task', row).addEventListener('click', () => {
+          logHistory('subtask-removed', item.title || t('untitledTodo'));
           item.tasks = item.tasks.filter(entry => entry.id !== task.id);
           item.completed = item.tasks.length > 0 && item.tasks.every(entry => entry.done);
           touchItem(item); renderEditor(); renderList(); renderSidebar();
@@ -1603,6 +1646,7 @@
   const rendererAddTask = addTask;
   addTask = function addTaskWithMotion(item) {
     rendererAddTask(item);
+    logHistory('subtask-added', item.title || t('untitledTodo'));
     const row = $$('.task-row').at(-1);
     if (!row) return;
     row.classList.add('is-new');
@@ -3211,6 +3255,47 @@
     }
   };
   byId('dataStatsButton').addEventListener('click', () => void openDataStats());
+  // 历史记录弹窗：倒序展示操作日志，清空按钮需二次点击确认。
+  const historyDialog = byId('historyDialog');
+  const historyList = byId('historyList');
+  const historyEmpty = byId('historyEmpty');
+  let clearHistoryArmed = false;
+  let clearHistoryTimer = null;
+  const renderHistory = () => {
+    historyList.innerHTML = historyEntries.map(entry => `<li class="history-entry"><time datetime="${escapeHTML(entry.at)}">${escapeHTML(formatDateTimeSeconds(entry.at))}</time><span>${escapeHTML(historyText(entry))}</span></li>`).join('');
+    historyEmpty.hidden = historyEntries.length > 0;
+    byId('historySubtitle').textContent = `${uiText('historySubtitle')} · ${historyEntries.length} / 500`;
+  };
+  byId('historyButton').addEventListener('click', () => {
+    clearHistoryArmed = false;
+    byId('clearHistory').classList.remove('is-danger');
+    byId('clearHistory').querySelector('span')?.replaceChildren(document.createTextNode(uiText('historyClear')));
+    renderHistory();
+    openAnimatedDialog(historyDialog);
+  });
+  byId('closeHistory').addEventListener('click', () => closeAnimatedDialog(historyDialog));
+  historyDialog.addEventListener('click', event => { if (event.target === historyDialog) closeAnimatedDialog(historyDialog); });
+  historyDialog.addEventListener('cancel', event => { event.preventDefault(); closeAnimatedDialog(historyDialog); });
+  byId('clearHistory').addEventListener('click', () => {
+    if (!clearHistoryArmed) {
+      clearHistoryArmed = true;
+      byId('clearHistory').classList.add('is-danger');
+      byId('clearHistory').querySelector('span')?.replaceChildren(document.createTextNode(uiText('historyClearConfirm')));
+      clearTimeout(clearHistoryTimer);
+      clearHistoryTimer = setTimeout(() => {
+        clearHistoryArmed = false;
+        byId('clearHistory').classList.remove('is-danger');
+        byId('clearHistory').querySelector('span')?.replaceChildren(document.createTextNode(uiText('historyClear')));
+      }, 3000);
+      return;
+    }
+    historyEntries.length = 0;
+    try { localStorage.removeItem('acta.history.v1'); } catch { }
+    clearHistoryArmed = false;
+    byId('clearHistory').classList.remove('is-danger');
+    byId('clearHistory').querySelector('span')?.replaceChildren(document.createTextNode(uiText('historyClear')));
+    renderHistory();
+  });
   byId('closeDataStats').addEventListener('click', () => closeAnimatedDialog(dataStatsDialog));
   dataStatsDialog.addEventListener('click', event => {
     if (event.target === dataStatsDialog) closeAnimatedDialog(dataStatsDialog);
