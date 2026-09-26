@@ -62,7 +62,7 @@ html:not([data-input-focus-animation="off"]) [contenteditable="true"] {
 html:not([data-input-focus-animation="off"]) :is(input:not([type="checkbox"]):not([type="range"]):not([type="color"]), textarea, select):not(:is(.search-box, .filter-select, .link-picker, .data-profile-name-field, .classification-manager-field, .quick-capture-field) input):not(.editor-title):not(.note-markdown-source):not(.data-profile-edit-name):focus {
   border-color: color-mix(in srgb, var(--sage) 38%, var(--line));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--sage) 13%, transparent);
-  border-radius: 10px;
+  border-radius: 14px;
 }
 /* 无边框的小型可编辑区（子任务、补充说明）以主题色微染提示聚焦；
    笔记正文等大面积沉浸编辑区不染色。 */
@@ -71,13 +71,13 @@ html:not([data-input-focus-animation="off"]) [contenteditable="true"]:not(.note-
 }
 /* 光环展开动画与稳态环同一排除范围：自带聚焦样式的组件只走自身过渡。 */
 html:not([data-input-focus-animation="off"]) :is(input:not([type="checkbox"]):not([type="range"]):not([type="color"]), textarea, select):not(:is(.search-box, .filter-select, .link-picker, .data-profile-name-field, .classification-manager-field, .quick-capture-field) input):not(.editor-title):not(.note-markdown-source):not(.data-profile-edit-name):focus {
-  animation: focusRingIn .38s cubic-bezier(.24, .9, .32, 1);
+  animation: focusRingIn .5s cubic-bezier(.24, .9, .32, 1);
 }
 @keyframes focusRingIn {
-  /* 涟漪式两段展开：光环先泛起略宽的一圈再收拢到稳态宽度，配合
-     轻超调缓动曲线；背景与边框的淡入交给 transition，不进关键帧。 */
+  /* 涟漪式两段展开：光环先泛起明显更宽的一圈再收拢到稳态宽度；
+     背景与边框的淡入交给 transition，不进关键帧。 */
   0% { box-shadow: 0 0 0 0 transparent; }
-  55% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--sage) 15%, transparent); }
+  40% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--sage) 26%, transparent); }
 }
 button { color: inherit; }
 button, [contenteditable] { -webkit-tap-highlight-color: transparent; } /* 根元素已全局声明，此处保留兼容旧 WebView */
@@ -234,7 +234,7 @@ html[data-desktop-platform="darwin"] .brand { padding-left: 84px; }
 .icon-button:hover { background: rgba(255,255,255,.8); color: var(--ink); transform: scale(1.07); }
 .icon-button svg { width: 17px; }
 .search-box { margin: 9px 18px 12px; height: 38px; border: 1px solid rgba(42,48,41,.08); border-radius: 10px; background: rgba(255,255,255,.66); display: flex; align-items: center; padding: 0 10px; gap: 8px; transition: background .2s, box-shadow .25s, border-color .25s; }
-.search-box:focus-within { background: var(--white); border-color: rgba(82,107,85,.28); box-shadow: 0 0 0 3px rgba(82,107,85,.07); }
+.search-box:focus-within { background: var(--white); border-color: rgba(82,107,85,.28); box-shadow: 0 0 0 3px rgba(82,107,85,.07); border-radius: 14px; }
 .search-box svg { width: 15px; color: var(--faint); }
 .search-box input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: calc(11px * var(--acta-font-scale)); }
 .search-box input::placeholder { color: var(--faint); }
@@ -251,7 +251,7 @@ html[data-desktop-platform="darwin"] .brand { padding-left: 84px; }
 .filter-row button:hover { transform: scale(1.04); color: var(--ink); background: rgba(255,255,255,.5); }
 .filter-row button.active { background: var(--ink); color: var(--white); }
 .filter-select { min-width: 0; height: 30px; padding: 0 6px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.5); color: var(--muted); display: flex; align-items: center; gap: 4px; transition: border-color .2s, background .2s, box-shadow .2s; }
-.filter-select:focus-within { border-color: rgba(82,107,85,.3); background: var(--white); box-shadow: 0 0 0 2px rgba(82,107,85,.06); }
+.filter-select:focus-within { border-color: rgba(82,107,85,.3); background: var(--white); box-shadow: 0 0 0 2px rgba(82,107,85,.06); border-radius: 14px; }
 .filter-select svg { width: 12px; height: 12px; flex: 0 0 auto; color: var(--faint); }
 .filter-select select { width: 100%; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: inherit; font-size: calc(9px * var(--acta-font-scale)); text-overflow: ellipsis; cursor: pointer; }
 .filter-row .clear-list-filters { width: 29px; flex: 0 0 auto; padding: 0; border: 1px solid var(--line); background: var(--white); display: inline-flex; align-items: center; justify-content: center; gap: 4px; }

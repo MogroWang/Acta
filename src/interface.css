@@ -404,7 +404,7 @@ input[type="range"]:disabled::-webkit-slider-thumb { opacity: .45; transform: no
 .classification-manager-field { display: grid; gap: 7px; }
 .classification-manager-field label { color: var(--muted); font-size: calc(9px * var(--acta-font-scale)); font-weight: 700; }
 .classification-manager-field input { width: 100%; height: 40px; box-sizing: border-box; padding: 0 11px; border: 1px solid var(--line); border-radius: 10px; outline: 0; background: var(--white); color: var(--ink); font-size: calc(12px * var(--acta-font-scale)); }
-.classification-manager-field input:focus { border-color: var(--sage); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sage) 14%, transparent); }
+.classification-manager-field input:focus { border-color: var(--sage); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sage) 14%, transparent); border-radius: 14px; }
 .classification-manager-short-field { position: relative; }
 .classification-short-control { min-width: 0; display: grid; grid-template-columns: minmax(0,1fr) 40px; gap: 5px; }
 .classification-manager-short-field input { min-width: 0; text-align: center; font-weight: 700; letter-spacing: .08em; }
@@ -912,7 +912,7 @@ html[data-acta-theme="mono-dark"] .classification-emoji-picker > header button {
 .folder-name-dialog { width: min(400px, calc(100vw - 32px)); }
 .folder-name-form { display: grid; gap: 12px; }
 .folder-name-input { width: 100%; height: 40px; box-sizing: border-box; padding: 0 11px; border: 1px solid var(--line); border-radius: 10px; outline: 0; background: var(--white); color: var(--ink); font-size: calc(12px * var(--acta-font-scale)); transition: border-color .2s, box-shadow .2s; }
-.folder-name-input:focus { border-color: var(--sage); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sage) 13%, transparent); }
+.folder-name-input:focus { border-color: var(--sage); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sage) 13%, transparent); border-radius: 14px; }
 .folder-name-form .settings-actions { margin: 0; justify-content: flex-end; }
 
 :root {
@@ -1087,7 +1087,7 @@ html[data-acta-palette="neon-ocean"] .sync-icon { box-shadow: 0 0 14px color-mix
 .quick-capture-field input, .quick-capture-field select, .quick-capture-field textarea { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--line); border-radius: 10px; outline: 0; color: var(--ink); background: var(--quick-field-bg); font: inherit; font-weight: 500; transition: border-color .2s ease, box-shadow .2s ease, background .2s ease; }
 .quick-capture-field input, .quick-capture-field select { height: 40px; padding: 0 11px; }
 .quick-capture-field textarea { min-height: 94px; padding: 10px 11px; resize: vertical; line-height: 1.55; }
-.quick-capture-field input:focus, .quick-capture-field select:focus, .quick-capture-field textarea:focus { border-color: var(--quick-accent); background: var(--white); box-shadow: 0 0 0 3px color-mix(in srgb, var(--quick-accent) 13%, transparent); }
+.quick-capture-field input:focus, .quick-capture-field select:focus, .quick-capture-field textarea:focus { border-color: var(--quick-accent); background: var(--white); box-shadow: 0 0 0 3px color-mix(in srgb, var(--quick-accent) 13%, transparent); border-radius: 14px; }
 .quick-capture-field > small { color: var(--faint); font-size: calc(9px * var(--acta-font-scale)); font-weight: 500; line-height: 1.4; }
 .quick-capture-field[hidden] { display: none; }
 .quick-capture-schedule-hint { margin: -2px 0 0; padding: 8px 10px; border-radius: 9px; color: #96613e; background: color-mix(in srgb, #d99a58 13%, transparent); font-size: calc(9px * var(--acta-font-scale)); font-weight: 600; line-height: 1.45; }
