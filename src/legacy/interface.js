@@ -1480,6 +1480,14 @@
           // 弹出）：不重建编辑器，快速撤回时过渡从当前插值状态连续反向，
           // 而不是被重建瞬跳到终态。进度数字、进度条与列表卡片就地更新。
           row.classList.toggle('done', task.done);
+          // 就地同步日期元素：勾选时写入 mm/dd 与原始时刻（编辑器不再
+          // 重建，模板不会重渲染，必须在展开的占位列里填上内容）；撤回
+          // 时保留文本，让它随列收合与透明度一起淡出即可。
+          const dateEl = row.querySelector('.task-done-date');
+          if (dateEl && task.done && task.completedAt && uiSettings.subtaskCompletedDates !== false) {
+            dateEl.dataset.time = task.completedAt;
+            dateEl.textContent = formatMonthDay(task.completedAt);
+          }
           row.classList.remove('task-toggle-motion');
           requestAnimationFrame(() => row.classList.add('task-toggle-motion'));
           touchItem(item);
