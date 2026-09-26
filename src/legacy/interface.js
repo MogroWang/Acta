@@ -398,6 +398,32 @@
     document.execCommand('insertText', false, text);
   });
 
+  // 子任务完成日期的自定义悬浮框：悬停 mm/dd 日期时以浮层显示精确到秒
+  // 的完成时刻（替代原生 title），离开或滚动即隐藏。
+  const taskDateTip = document.createElement('div');
+  taskDateTip.className = 'task-date-tip';
+  taskDateTip.hidden = true;
+  document.body.appendChild(taskDateTip);
+  const hideTaskDateTip = () => { taskDateTip.hidden = true; };
+  document.addEventListener('mouseover', event => {
+    const dateEl = event.target instanceof Element ? event.target.closest('.task-done-date') : null;
+    if (!dateEl || !dateEl.dataset.time) { hideTaskDateTip(); return; }
+    taskDateTip.textContent = formatDateTimeSeconds(dateEl.dataset.time);
+    taskDateTip.hidden = false;
+    const rect = dateEl.getBoundingClientRect();
+    const tipRect = taskDateTip.getBoundingClientRect();
+    let x = rect.left + rect.width / 2 - tipRect.width / 2;
+    let y = rect.top - tipRect.height - 8;
+    if (y < 8) y = rect.bottom + 8;
+    x = Math.max(8, Math.min(x, window.innerWidth - tipRect.width - 8));
+    taskDateTip.style.left = `${x}px`;
+    taskDateTip.style.top = `${y}px`;
+  });
+  document.addEventListener('mouseout', event => {
+    if (event.target instanceof Element && event.target.closest('.task-done-date')) hideTaskDateTip();
+  });
+  document.addEventListener('scroll', hideTaskDateTip, true);
+
   const clearLegacyTags = snapshot => {
     snapshot?.items?.forEach(item => { delete item.tags; });
     return snapshot;
@@ -1299,7 +1325,7 @@
       <div class="progress-track"><i style="width:${progress}%"></i></div>
       <div class="task-list" id="taskList">
         ${tasks.map((task, index) => `<div class="task-row${ordered ? ' is-ordered' : ''} ${task.done ? 'done' : ''}" data-task-id="${escapeHTML(task.id)}" style="animation-delay:${index * 35}ms">
-          <i class="task-done-date"${task.done && task.completedAt && uiSettings.subtaskCompletedDates !== false ? ` title="${escapeHTML(formatDateTimeSeconds(task.completedAt))}">${escapeHTML(formatMonthDay(task.completedAt))}</i>` : ' aria-hidden="true"></i>'}
+          <i class="task-done-date"${task.done && task.completedAt && uiSettings.subtaskCompletedDates !== false ? ` data-time="${escapeHTML(task.completedAt)}">${escapeHTML(formatMonthDay(task.completedAt))}</i>` : ' aria-hidden="true"></i>'}
           ${ordered ? `<i class="task-order-index" aria-hidden="true">${index + 1}</i>` : ''}
           <button class="task-check"><svg><use href="#i-check"/></svg></button>
           <div class="task-text" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('taskPlaceholder')}">${escapeHTML(task.text)}</div>
@@ -3701,6 +3727,20 @@
     renderEditor();
   });
   applySubtaskDates();
+  // 「显示已完成待办」与筛选栏的开关共用同一设置（renderer 的
+  // settings.showCompletedTodos），两处 UI 双向同步。
+  const showCompletedSetting = byId('showCompletedSetting');
+  if (showCompletedSetting) {
+    showCompletedSetting.checked = Boolean(settings.showCompletedTodos);
+    showCompletedSetting.addEventListener('change', () => {
+      settings.showCompletedTodos = showCompletedSetting.checked;
+      persist();
+      refreshFilteredList();
+      const filterBox = document.getElementById('todoShowCompleted');
+      if (filterBox) filterBox.checked = settings.showCompletedTodos;
+      document.getElementById('todoCompletedToggle')?.classList.toggle('is-active', settings.showCompletedTodos);
+    });
+  }
   byId('previewSplashAnimation').addEventListener('click', () => {
     const button = byId('previewSplashAnimation');
     button.classList.add('is-busy');

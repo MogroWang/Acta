@@ -3144,6 +3144,12 @@ function bindShell() {
     persist();
     refreshFilteredList();
   });
+  // 设置页「显示已完成待办」与筛选栏双向同步。
+  const showCompletedSettingSync = () => {
+    const settingBox = document.getElementById('showCompletedSetting');
+    if (settingBox) settingBox.checked = settings.showCompletedTodos;
+  };
+  $('#todoCompletedToggle')?.addEventListener('click', () => setTimeout(showCompletedSettingSync, 0));
   $('#searchInput').addEventListener('input', event => {
     searchQuery = event.target.value.trim(); renderList();
     const visible = getVisibleItems();
