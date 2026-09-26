@@ -343,6 +343,7 @@
                 <div class="settings-row splash-preset-row"><span><b>动画预设</b><small>启动画面的演绎方式，点右侧按钮立即预览</small></span><span class="splash-preset-controls"><select id="splashPresetSetting"><option value="acta-lines">Acta 线构（默认）</option><option value="calm-fade">静谧淡入</option><option value="focus-zoom">聚焦缩放</option></select><button class="icon-button splash-preview-button" id="previewSplashAnimation" type="button" title="预览启动动画" aria-label="预览启动动画"><svg><use href="#i-spark"/></svg></button></span></div>
                 <label class="settings-row"><span><b>动画速度</b><small>启动动画的播放速度倍率，数值越大播放越快</small></span><span class="font-size-control"><input id="splashSpeedSetting" type="range" min="0.5" max="2" step="0.1"/><output id="splashSpeedValue">1.0×</output></span></label>
                 <label class="settings-row"><span><b>输入框选中动画</b><small>选中输入框、编辑器和子任务时，边框与光环流畅淡入</small></span><input id="focusAnimationSetting" type="checkbox" checked/></label>
+                <label class="settings-row"><span><b>子待办完成时间</b><small>已完成的子任务在勾选框旁显示完成日期，悬停查看精确时刻</small></span><input id="subtaskDatesSetting" type="checkbox" checked/></label>
               </div>
               <div class="settings-group" style="margin-top:18px">
                 <label class="settings-row"><span><b>界面字体</b><small>同时应用到列表、编辑器和设置页面</small></span><select id="appFontSetting"><option value="system">系统默认</option><option value="serif">衬线字体</option><option value="rounded">圆体</option><option value="mono">等宽字体</option><option value="custom">自定义字体</option></select></label>

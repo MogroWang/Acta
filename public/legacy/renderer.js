@@ -113,6 +113,13 @@ const todayISO = () => {
   return new Date(now - offset).toISOString().slice(0, 10);
 };
 
+// 子待办完成时刻的短日期（mm/dd，本地时区），悬停 title 给出精确到秒的时刻。
+const formatMonthDay = value => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+};
+
 const daysFromToday = (days) => {
   const date = new Date();
   date.setDate(date.getDate() + days);
@@ -1134,7 +1141,7 @@ function syncListFilterUI() {
 
   const completedToggle = $('#todoCompletedToggle');
   if (completedToggle) {
-    completedToggle.hidden = currentView !== 'todos';
+    completedToggle.hidden = currentView !== 'todos' && !currentView.startsWith('folder:');
     completedToggle.classList.toggle('is-active', settings.showCompletedTodos);
     const box = $('#todoShowCompleted');
     if (box) box.checked = settings.showCompletedTodos;
@@ -1155,7 +1162,8 @@ function getVisibleItems() {
   if (currentView === 'today') items = items.filter(item => item.type === 'todo' && todoScheduleDate(item) === todayISO() && !isTodoComplete(item));
   if (currentView === 'todos') items = items.filter(item => item.type === 'todo' && (settings.showCompletedTodos || !isTodoComplete(item)));
   if (currentView === 'notes') items = items.filter(item => item.type === 'note');
-  if (currentView.startsWith('folder:')) items = items.filter(item => item.folderId === currentView.split(':')[1]);
+  if (currentView.startsWith('folder:')) items = items.filter(item => item.folderId === currentView.split(':')[1]
+    && (item.type === 'note' || settings.showCompletedTodos || !isTodoComplete(item)));
   const viewContext = listViewContext();
   const filterContext = listFilterContext();
   if (viewContext === 'mixed' && currentFilter !== 'all') items = items.filter(item => item.type === currentFilter);
@@ -2058,7 +2066,11 @@ function syncEditorModifiedTime(item) {
 function setTodoCompletion(item, complete) {
   if (!item || item.type !== 'todo') return;
   item.completed = Boolean(complete);
-  (item.tasks || []).forEach(task => { task.done = Boolean(complete); });
+  (item.tasks || []).forEach(task => {
+    task.done = Boolean(complete);
+    if (complete) { task.completedAt = task.completedAt || new Date().toISOString(); }
+    else { delete task.completedAt; }
+  });
   touchItem(item);
 }
 
@@ -2067,6 +2079,8 @@ function toggleCalendarSubtask(item, taskId) {
   const task = (item.tasks || []).find(entry => entry.id === taskId);
   if (!task) return;
   task.done = !task.done;
+  if (task.done) task.completedAt = new Date().toISOString();
+  else delete task.completedAt;
   item.completed = item.tasks.length > 0 && item.tasks.every(entry => entry.done);
   touchItem(item);
 }

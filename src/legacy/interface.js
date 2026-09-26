@@ -5,7 +5,7 @@
     customPaper: '#fbfaf6', customSidebar: '#ebe7dc', customAccent: '#526b55',
     customTodo: '#4f86a8', customTodoSoft: '#dceef8', customNote: '#987329', customNoteSoft: '#fff0bd', customCalendar: '#4f7656', customCalendarSoft: '#dcebdd',
     appIconPreset: 'default', customAppIcon: '',
-    splashAnimationEnabled: true, splashAnimationPreset: 'acta-lines', splashAnimationSpeed: 1, inputFocusAnimation: true,
+    splashAnimationEnabled: true, splashAnimationPreset: 'acta-lines', splashAnimationSpeed: 1, inputFocusAnimation: true, subtaskCompletedDates: true,
     appFont: 'system', customFont: 'Inter', appFontSize: 14,
     noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteBaseSize: 17, noteHeadingFont: 'serif', noteHeadingCustomFont: '', noteLineHeight: 1.6, noteParagraphGap: 1,
     noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
@@ -1299,6 +1299,7 @@
       <div class="progress-track"><i style="width:${progress}%"></i></div>
       <div class="task-list" id="taskList">
         ${tasks.map((task, index) => `<div class="task-row${ordered ? ' is-ordered' : ''} ${task.done ? 'done' : ''}" data-task-id="${escapeHTML(task.id)}" style="animation-delay:${index * 35}ms">
+          ${task.done && task.completedAt && uiSettings.subtaskCompletedDates !== false ? `<i class="task-done-date" title="${escapeHTML(formatDateTimeSeconds(task.completedAt))}">${escapeHTML(formatMonthDay(task.completedAt))}</i>` : ''}
           ${ordered ? `<i class="task-order-index" aria-hidden="true">${index + 1}</i>` : ''}
           <button class="task-check"><svg><use href="#i-check"/></svg></button>
           <div class="task-text" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('taskPlaceholder')}">${escapeHTML(task.text)}</div>
@@ -1446,6 +1447,8 @@
         const task = item.tasks.find(entry => entry.id === row.dataset.taskId);
         $('.task-check', row).addEventListener('click', () => {
           task.done = !task.done;
+          if (task.done) task.completedAt = new Date().toISOString();
+          else delete task.completedAt;
           item.completed = (item.tasks || []).length > 0 && item.tasks.every(entry => entry.done);
           row.classList.toggle('done', task.done);
           row.classList.remove('task-toggle-motion');
@@ -3683,6 +3686,21 @@
     saveUISettings();
   });
   applyFocusAnimation();
+  // 子待办完成时间：开启时已完成子任务在勾选框旁显示完成日期（悬停看
+  // 精确时刻），关闭后隐藏；显示偏好持久化在 <html data-subtask-dates>。
+  const subtaskDatesSetting = byId('subtaskDatesSetting');
+  const applySubtaskDates = () => {
+    if (uiSettings.subtaskCompletedDates !== false) delete document.documentElement.dataset.subtaskDates;
+    else document.documentElement.dataset.subtaskDates = 'off';
+  };
+  subtaskDatesSetting.checked = uiSettings.subtaskCompletedDates !== false;
+  subtaskDatesSetting.addEventListener('change', () => {
+    uiSettings.subtaskCompletedDates = subtaskDatesSetting.checked;
+    applySubtaskDates();
+    saveUISettings();
+    renderEditor();
+  });
+  applySubtaskDates();
   byId('previewSplashAnimation').addEventListener('click', () => {
     const button = byId('previewSplashAnimation');
     button.classList.add('is-busy');
