@@ -3526,7 +3526,7 @@
   applySplashSettings();
 
   const appIconPresets = Object.freeze({
-    default: './icons/icon-512.png',
+    default: './icons/icon-512-square.png',
     positive: './icons/app-icon-positive-page.png',
     outline: './icons/app-icon-outlined-page.png',
     original: './icons/app-icon-original-simple.png'

@@ -31,7 +31,7 @@
                   </g>
               </g>
           </svg>
-          <span class="brand-version" aria-label="当前版本 3.1.0">3.1.0</span>
+          <span class="brand-version" aria-label="当前版本 3.2.0">3.2.0</span>
           <span class="logo-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
           <img class="brand-mini-logo" src="/icons/Acta_weblogo.png" alt="" aria-hidden="true" />
         </div>
@@ -324,11 +324,11 @@
               <div class="appearance-subsection app-icon-settings">
                 <header><b>应用图标</b><small>应用于 Tauri 桌面客户端和 Capacitor 移动客户端；网页标签页图标保持默认。</small></header>
                 <div class="app-icon-options">
-                  <label class="app-icon-option"><input type="radio" name="actaAppIcon" value="default"/><span><img data-app-icon-preview="default" src="/icons/icon-512.png" alt=""/><b>默认书页</b></span></label>
+                  <label class="app-icon-option"><input type="radio" name="actaAppIcon" value="default"/><span><img data-app-icon-preview="default" src="/icons/icon-512-square.png" alt=""/><b>默认书页</b></span></label>
                   <label class="app-icon-option"><input type="radio" name="actaAppIcon" value="positive"/><span><img data-app-icon-preview="positive" src="/icons/app-icon-positive-page.png" alt=""/><b>正·书页</b></span></label>
                   <label class="app-icon-option"><input type="radio" name="actaAppIcon" value="outline"/><span><img data-app-icon-preview="outline" src="/icons/app-icon-outlined-page.png" alt=""/><b>勾勒·书页</b></span></label>
                   <label class="app-icon-option"><input type="radio" name="actaAppIcon" value="original"/><span><img data-app-icon-preview="original" src="/icons/app-icon-original-simple.png" alt=""/><b>初版简洁</b></span></label>
-                  <label class="app-icon-option" data-desktop-app-icon-only><input type="radio" name="actaAppIcon" value="custom"/><span><img id="customAppIconPreview" data-app-icon-preview="custom" src="/icons/icon-512.png" alt=""/><b>自定义图标</b></span></label>
+                  <label class="app-icon-option" data-desktop-app-icon-only><input type="radio" name="actaAppIcon" value="custom"/><span><img id="customAppIconPreview" data-app-icon-preview="custom" src="/icons/icon-512-square.png" alt=""/><b>自定义图标</b></span></label>
                 </div>
                 <input id="customAppIconFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden/>
                 <div class="settings-actions">
@@ -376,7 +376,7 @@
               <div class="about-mark"><img src="/images/Acta Poster.jpg" alt="Acta 行记" /></div>
               <div class="about-meta">
                 <div><small>产品</small><b>Acta · 行记</b></div>
-              <div><small>版本</small><b id="aboutVersion">3.1.0</b></div>
+              <div><small>版本</small><b id="aboutVersion">3.2.0</b></div>
               <div><small>本版更新日期</small><b>2026-09-15</b></div>
                 <div><small>桌面框架</small><b>Tauri（Windows/macOS），Capacitor（Android）</b></div>
               </div>
@@ -686,11 +686,11 @@
             <h3>选择应用图标</h3>
             <p>应用于 Tauri 桌面客户端（Windows/macOS）；之后可以在「设置 → 外观设置」中更改或上传自定义图标。</p>
             <div class="app-icon-options" id="oobeIconGrid">
-              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="default"/><span><img src="/icons/icon-512.png" alt=""/><b>默认书页</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="default"/><span><img src="/icons/icon-512-square.png" alt=""/><b>默认书页</b></span></label>
               <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="positive"/><span><img src="/icons/app-icon-positive-page.png" alt=""/><b>正·书页</b></span></label>
               <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="outline"/><span><img src="/icons/app-icon-outlined-page.png" alt=""/><b>勾勒·书页</b></span></label>
               <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="original"/><span><img src="/icons/app-icon-original-simple.png" alt=""/><b>初版简洁</b></span></label>
-              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="custom"/><span><img id="oobeCustomIconPreview" src="/icons/icon-512.png" alt=""/><b>自定义图标</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="custom"/><span><img id="oobeCustomIconPreview" src="/icons/icon-512-square.png" alt=""/><b>自定义图标</b></span></label>
             </div>
           </section>
           <section class="oobe-step oobe-welcome-step" data-oobe-step="welcome">

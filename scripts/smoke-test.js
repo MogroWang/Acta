@@ -1004,7 +1004,7 @@ async function main() {
       const resetIconSettings = readAppearanceSettings();
       const appIconResetWorks = resetIconSettings.appIconPreset === 'default'
         && resetIconSettings.customAppIcon === ''
-        && document.querySelector('[data-app-icon-preview="default"]').src.endsWith('/icons/icon-512.png')
+        && document.querySelector('[data-app-icon-preview="default"]').src.endsWith('/icons/icon-512-square.png')
         && document.querySelector('.brand-mini-logo').src === fixedBrandIcon
         && document.querySelector('link[rel="icon"]').href === fixedFavicon
         && nativeAppIconCalls.at(-1)?.preset === 'default'

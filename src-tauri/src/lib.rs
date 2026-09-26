@@ -769,7 +769,11 @@ fn decode_app_icon(data_url: &str) -> Result<Vec<u8>, String> {
 /// 预设名，由 Rust 侧用这份内置资产兜底应用并持久化。
 fn app_icon_preset_bytes(preset: &str) -> Option<&'static [u8]> {
     match preset {
-        "default" => Some(include_bytes!("../../public/icons/icon-512.png").as_slice()),
+        // "default" 用打包 macOS 图标同一份 full-bleed 资产：无透明边距、
+        // 无烘焙圆角，macOS 26+ 的系统 Liquid Glass 遮罩与 Windows 的
+        // 原样显示都以此为基准。icon-512.png 是 PWA 图标（自带圆角，
+        // manifest 的 "any" 尺寸继续引用），不能作桌面预设源。
+        "default" => Some(include_bytes!("../../public/icons/icon-512-square.png").as_slice()),
         "positive" => Some(include_bytes!("../../public/icons/app-icon-positive-page.png").as_slice()),
         "outline" => Some(include_bytes!("../../public/icons/app-icon-outlined-page.png").as_slice()),
         "original" => Some(include_bytes!("../../public/icons/app-icon-original-simple.png").as_slice()),
@@ -911,11 +915,12 @@ fn set_macos_dock_icon(bytes: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
-/// macOS 26 (Tahoe) 起系统会为 Dock 图标统一叠加 Liquid Glass 圆角遮罩。
-/// 内置预设与用户上传的图标是带透明边距的传统版式，直接交给系统遮罩
-/// 会被二次收小一圈。这里在 26+ 上把非透明内容铺满画布（full-bleed），
-/// 让遮罩裁出的尺寸与新系统应用一致；更早的系统不渲染该遮罩，保留原始
-/// 资产。只影响本次设置 Dock 的位图，持久化的仍是用户选择的原始数据，
+/// macOS 26 (Tahoe) 起系统会为 Dock 图标统一叠加 Liquid Glass 圆角遮罩，
+/// 两类传统资产会被二次加工：带透明边距的版式被整体收小一圈；烘焙了圆角
+/// （四角透明）的资产与系统遮罩叠出双重圆角。分别处理：前者裁掉透明边距
+/// 铺满画布（full-bleed），后者中心放大 1.25 倍让烘焙圆角退到遮罩之外，
+/// 让遮罩裁出的尺寸与形状和新系统应用一致；更早的系统不渲染该遮罩，保留
+/// 原始资产。只影响本次设置 Dock 的位图，持久化的仍是用户选择的原始数据，
 /// 图标切换与启动恢复链路不变。
 #[cfg(target_os = "macos")]
 fn macos_full_bleed_dock_bytes(bytes: &[u8]) -> Vec<u8> {
@@ -948,17 +953,54 @@ fn macos_full_bleed_dock_bytes(bytes: &[u8]) -> Vec<u8> {
     }
     let content_width = right - left + 1;
     let content_height = bottom - top + 1;
-    // 内容已铺满（或近乎铺满）画布时无需处理。
+    let encode = |image: image::DynamicImage| -> Option<Vec<u8>> {
+        let mut output = Vec::new();
+        match image.write_to(&mut std::io::Cursor::new(&mut output), image::ImageFormat::Png) {
+            Ok(()) if !output.is_empty() => Some(output),
+            _ => None,
+        }
+    };
+    // 内容已铺满（或近乎铺满）画布时，只有四角透明（烘焙圆角）需要处理：
+    // 系统遮罩与烘焙圆角叠加会裁出双重圆角，四角露出透明缺缝。
     if content_width * 100 >= width * 98 && content_height * 100 >= height * 98 {
-        return bytes.to_vec();
-    }
-    let cropped = image::imageops::crop_imm(&rgba, left, top, content_width, content_height).to_image();
-    let full_bleed = image::DynamicImage::ImageRgba8(cropped)
-        .resize_exact(TARGET_EDGE, TARGET_EDGE, image::imageops::FilterType::Lanczos3);
-    let mut output = Vec::new();
-    match full_bleed.write_to(&mut std::io::Cursor::new(&mut output), image::ImageFormat::Png) {
-        Ok(()) if !output.is_empty() => output,
-        _ => bytes.to_vec(),
+        let alpha_at = |x: u32, y: u32| rgba.get_pixel(x, y).0[3];
+        let corner_transparent = [
+            alpha_at(2, 2),
+            alpha_at(width.saturating_sub(3), 2),
+            alpha_at(2, height.saturating_sub(3)),
+            alpha_at(width.saturating_sub(3), height.saturating_sub(3)),
+        ]
+        .into_iter()
+        .all(|alpha| alpha <= ALPHA_THRESHOLD);
+        if !corner_transparent {
+            return bytes.to_vec();
+        }
+        // 中心放大 1.25 倍（5/4）再裁回画布：烘焙圆角被推到系统遮罩之外，
+        // 18%–25% 圆角一次覆盖；边缘中段本就不透明，放大后仍然铺满。
+        // 非方形源先取中央正方形，避免放大时拉伸变形。
+        let side = width.min(height);
+        let square = if width == height {
+            rgba
+        } else {
+            image::imageops::crop_imm(&rgba, (width - side) / 2, (height - side) / 2, side, side)
+                .to_image()
+        };
+        let zoom_edge = TARGET_EDGE * 5 / 4;
+        let zoomed = image::DynamicImage::ImageRgba8(square)
+            .resize_exact(zoom_edge, zoom_edge, image::imageops::FilterType::Lanczos3)
+            .to_rgba8();
+        let (zoomed_width, zoomed_height) = zoomed.dimensions();
+        let offset_x = zoomed_width.saturating_sub(TARGET_EDGE) / 2;
+        let offset_y = zoomed_height.saturating_sub(TARGET_EDGE) / 2;
+        let cropped =
+            image::imageops::crop_imm(&zoomed, offset_x, offset_y, TARGET_EDGE, TARGET_EDGE)
+                .to_image();
+        encode(image::DynamicImage::ImageRgba8(cropped)).unwrap_or_else(|| bytes.to_vec())
+    } else {
+        let cropped = image::imageops::crop_imm(&rgba, left, top, content_width, content_height).to_image();
+        let full_bleed = image::DynamicImage::ImageRgba8(cropped)
+            .resize_exact(TARGET_EDGE, TARGET_EDGE, image::imageops::FilterType::Lanczos3);
+        encode(full_bleed).unwrap_or_else(|| bytes.to_vec())
     }
 }
 
@@ -975,6 +1017,68 @@ fn macos_version_major() -> Option<u32> {
         let version = String::from_utf8_lossy(&output.stdout);
         version.trim().split('.').next()?.parse().ok()
     })
+}
+
+/// Windows 任务栏与 Alt-Tab 显示的是窗口的 ICON_BIG（任务栏图标），而
+/// Tauri 的 `set_icon` 只设置 ICON_SMALL——即标题栏小图标，主窗口无边框
+/// 本就没有标题栏。任务栏图标必须自行向窗口发送 WM_SETICON 才会更新，
+/// 否则预设/自定义图标的切换在 Windows 上没有任何可见效果。
+/// HICON 由本函数创建并在下一次替换时销毁（窗口不再引用旧值）。
+#[cfg(target_os = "windows")]
+fn set_windows_taskbar_icon(window: &WebviewWindow, bytes: &[u8]) -> Result<(), String> {
+    use windows::Win32::Foundation::{LPARAM, WPARAM};
+    use windows::Win32::UI::WindowsAndMessaging::{
+        CreateIcon, DestroyIcon, GetSystemMetrics, SendMessageW, HICON, ICON_BIG, SM_CXICON,
+        WM_SETICON,
+    };
+
+    static LAST_TASKBAR_ICON: std::sync::Mutex<Option<isize>> = std::sync::Mutex::new(None);
+
+    let hwnd = window.hwnd().map_err(|error| error.to_string())?;
+    let decoded = image::load_from_memory(bytes).map_err(|error| error.to_string())?;
+    // 按系统当前的 DPI 尺寸生成，避免任务栏渲染时二次缩放发虚。
+    let edge = unsafe { GetSystemMetrics(SM_CXICON) }.max(16) as u32;
+    let resized = decoded
+        .resize_exact(edge, edge, image::imageops::FilterType::Lanczos3)
+        .to_rgba8();
+    let (width, height) = resized.dimensions();
+    let mut rgba = resized.into_raw();
+    // CreateIcon 的 XOR 平面是 BGRA，AND 平面取反转的 alpha 作透明掩码。
+    let mut and_mask = Vec::with_capacity(rgba.len() / 4);
+    for pixel in rgba.chunks_exact_mut(4) {
+        and_mask.push(u8::MAX - pixel[3]);
+        pixel.swap(0, 2);
+    }
+    let icon = unsafe {
+        CreateIcon(
+            None,
+            width as i32,
+            height as i32,
+            1,
+            32,
+            and_mask.as_ptr(),
+            rgba.as_ptr(),
+        )
+    }
+    .map_err(|error| error.to_string())?;
+    unsafe {
+        SendMessageW(
+            hwnd,
+            WM_SETICON,
+            Some(WPARAM(ICON_BIG as usize)),
+            Some(LPARAM(icon.0 as isize)),
+        );
+    }
+    let previous = LAST_TASKBAR_ICON
+        .lock()
+        .ok()
+        .and_then(|mut guarded| guarded.replace(icon.0 as isize));
+    if let Some(previous) = previous {
+        unsafe {
+            let _ = DestroyIcon(HICON(previous as *mut core::ffi::c_void));
+        }
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -1019,7 +1123,13 @@ async fn set_app_icon(
         .await
         .map_err(|error| error.to_string())??;
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    {
+        let image = tauri::image::Image::from_bytes(&bytes).map_err(|error| error.to_string())?;
+        window.set_icon(image).map_err(|error| error.to_string())?;
+        set_windows_taskbar_icon(&window, &bytes)?;
+    }
+    #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
     {
         let image =
             tauri::image::Image::from_bytes(&bytes).map_err(|error| error.to_string())?;
@@ -1212,7 +1322,18 @@ pub fn run() {
                 {
                     let _ = set_macos_dock_icon(&bytes);
                 }
-                #[cfg(not(target_os = "macos"))]
+                #[cfg(target_os = "windows")]
+                {
+                    if let Some(window) = app.get_webview_window("main") {
+                        if let Ok(image) = tauri::image::Image::from_bytes(&bytes) {
+                            let _ = window.set_icon(image);
+                        }
+                        // 任务栏图标与 macOS Dock 图标同属启动可见面，恢复
+                        // 失败不阻塞启动，交由设置里的重新应用兜底。
+                        let _ = set_windows_taskbar_icon(&window, &bytes);
+                    }
+                }
+                #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
                 {
                     if let Some(window) = app.get_webview_window("main") {
                         if let Ok(image) = tauri::image::Image::from_bytes(&bytes) {

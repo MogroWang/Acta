@@ -48,11 +48,12 @@ const main = () => {
   for (const name of fromMac) copyFileSync(join(macOutDir, name), join(iconsDir, name));
   for (const name of fromWin) copyFileSync(join(winOutDir, name), join(iconsDir, name));
 
-  // Refresh the default app-icon preset source as well: the previous
-  // src/icons/icon-512.png carried a semi-transparent halo at its edges
-  // (alpha ~221), which would show as fringing once the macOS 26+ squircle
-  // mask crops a full-bleed icon. Downscale the fully opaque source instead.
-  const presetSource = join(root, 'src', 'icons', 'icon-512.png');
+  // Refresh the desktop default-icon preset as well: public/icons/icon-512.png
+  // stays the PWA "any" icon (its baked-in rounded corners would double up
+  // under the macOS 26+ squircle mask), so the fully opaque downscale lands
+  // on public/icons/icon-512-square.png - the source the desktop preset chain
+  // (frontend canvas plus the Rust embedded fallback) uses.
+  const presetSource = join(root, 'public', 'icons', 'icon-512-square.png');
   writeFileSync(presetSource, encodePNG(downscale2x(source)));
   console.log(`Default preset source: ${presetSource} (opaque 512px)`);
   console.log(`macOS (full-bleed): ${fromMac.join(', ')}`);

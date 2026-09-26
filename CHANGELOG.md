@@ -1,6 +1,16 @@
 # Acta · 行记 更新日志
 
-## 未发布
+## v3.2.0（2026-09-26）
+
+### 修复
+
+- **Windows 桌面端应用图标无法切换**：在 Windows 上点选预设或上传自定义图标后，任务栏与应用视图里的图标纹丝不动——Tauri 的 `set_icon` 只写窗口的 ICON_SMALL（标题栏小图标），而任务栏与 Alt-Tab 显示的是窗口的 ICON_BIG（任务栏图标），且主窗口本身无边框、没有标题栏，切换因此没有任何可见效果。现在切换与启动恢复时会按系统当前 DPI 尺寸重采样图标、经 `WM_SETICON` 写入 ICON_BIG，任务栏图标即时更新；反复切换时销毁上一枚 HICON 不泄漏，预设与自定义图标的持久化和恢复链路不变
+- **macOS 26+ 图标与新系统规格不符**：macOS 26（Tahoe）会为 Dock 图标统一叠加 Liquid Glass 圆角遮罩，而「默认书页」预设源此前用的是自带烘焙圆角的 PWA 图标（`public/icons/icon-512.png`），系统遮罩与烘焙圆角叠加裁出双重圆角，图标四角露出透明缺缝、明显小于系统图标。现在桌面端默认预设改用与打包 macOS 图标同源的 full-bleed 资产（`icon-512-square.png`，无透明边距、无烘焙圆角），设置界面预览与实际 Dock 图标一致；Rust 侧的 macOS 26 适配新增四角透明检测——自定义上传的烘焙圆角图标会被中心放大 1.25 倍让烘焙圆角退到系统遮罩之外，带透明边距的图标维持原有裁边铺满逻辑，26 以下系统与 Windows（无系统遮罩，画布自绘圆角）不受影响
+
+### 变更
+
+- **桌面图标资产与生成脚本修正**：Vite 迁移后 `scripts/generate-desktop-icons.mjs` 的预设源仍指向已删除的 `src/icons/icon-512.png`（写入必然失败，打包图标集自迁移起无法再生成），现指向 `public/icons/icon-512-square.png`；`icon-512.png` 保留给 PWA manifest 的 "any" 尺寸，桌面端默认预设源与设置/OOBE 预览、Service Worker 预缓存、冒烟测试的「恢复默认图标」断言同步到新资产
+- **版本号更新至 3.2.0**：`package.json`、`tauri.conf.json`、`Cargo.toml` 与应用内版本显示同步；Web 端 Service Worker 缓存名升级为 `acta-3.2.0-vite`，重新打开页面即取得新资源
 
 ### 修复
 
