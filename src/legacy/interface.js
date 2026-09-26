@@ -305,21 +305,21 @@
       invalidLibrary:'这不是有效的 Acta 完整数据文件夹。', localFolder:'本地文件夹', unsupportedFolder:'当前平台不支持完整文件夹读写，请使用最新版 Chrome、Edge 或客户端文件夹选择器。', noFolderPermission:'没有获得文件夹读写权限。',
       localWorkspace:'本地行记数据', demoWorkspace:'演示行记数据', actaData:'行记数据', noFolderNoSave:'尚未选择文件夹；本次修改不会保存。', noSaveChanges:'不会保存更改', demoSave:'演示模式 · 不保存', demoStatus:'当前是演示行记数据。关闭或刷新页面后，演示内容会恢复，不会写入浏览器本地资料库。',
       savedTo:'已保存完整数据文件夹到 {0} / {1}', saveFailed:'保存失败：{0}', loaded:'已完整载入 {0} / {1}', created:'已在 {0} 创建完整数据文件夹：{1}', savedNow:'完整数据文件夹已立即保存。', reloadConfirm:'从数据文件夹重载会覆盖当前尚未保存的界面状态，是否继续？', reloaded:'已从完整数据文件夹重新载入。', exportedFolder:'完整数据文件夹已导出到 {0}。',
-      settingsStored:'设置会自动保存在当前设备。', defaultSaved:'默认启动页面已保存。', compactUpdated:'列表密度已更新。', motionUpdated:'动态效果偏好已更新。', historySubtitle:'最近的操作一览', historyClear:'清空历史记录', historyClearConfirm:'再次点击确认清空',
+      settingsStored:'设置会自动保存在当前设备。', defaultSaved:'默认启动页面已保存。', compactUpdated:'列表密度已更新。', motionUpdated:'动态效果偏好已更新。', historySubtitle:'最近的操作一览', historyClear:'清空历史记录', historyClearConfirm:'再次点击确认清空', historyRestore:'恢复到此操作之前', historyJump:'跳转查看', historyRestoredToast:'已回溯到此操作之前的状态', historyUndoCreateToast:'已撤销创建',
       linkTitle:'关联项目', close:'关闭', linkHint:'选择一个项目建立双向关联；已有关系会显示在编辑器中。', restoreWorkspaceFailed:'无法恢复工作区：{0}', reauthorize:'浏览器需要重新授权工作区文件夹，请点击“选择本地文件夹”。', restoredOneDrive:'已恢复 OneDrive 同步文件夹连接。', restoreOneDriveFailed:'无法恢复 OneDrive 文件夹：{0}'
     },
     en: {
       invalidLibrary:'This is not a valid complete Acta data folder.', localFolder:'Local folder', unsupportedFolder:'This platform cannot read and write complete folders. Use the latest Chrome, Edge, or the client folder picker.', noFolderPermission:'Folder read/write permission was not granted.',
       localWorkspace:'Local Acta Data', demoWorkspace:'Demo Acta Data', actaData:'Acta Data', noFolderNoSave:'No folder selected; changes in this session will not be saved.', noSaveChanges:'Changes are not saved', demoSave:'Demo mode · Not saved', demoStatus:'This is demo Acta Data. Its content resets when you close or refresh the page and is not written to browser storage.',
       savedTo:'Saved the complete data folder to {0} / {1}', saveFailed:'Save failed: {0}', loaded:'Fully loaded {0} / {1}', created:'Created the complete data folder in {0}: {1}', savedNow:'Complete data folder saved now.', reloadConfirm:'Reloading from the data folder will replace the current unsaved interface state. Continue?', reloaded:'Reloaded from the complete data folder.', exportedFolder:'Complete data folder exported to {0}.',
-      settingsStored:'Settings are saved automatically on this device.', defaultSaved:'Default startup view saved.', compactUpdated:'List density updated.', motionUpdated:'Motion preference updated.', historySubtitle:'A look back at recent actions', historyClear:'Clear history', historyClearConfirm:'Click again to confirm',
+      settingsStored:'Settings are saved automatically on this device.', defaultSaved:'Default startup view saved.', compactUpdated:'List density updated.', motionUpdated:'Motion preference updated.', historySubtitle:'A look back at recent actions', historyClear:'Clear history', historyClearConfirm:'Click again to confirm', historyRestore:'Restore to before this action', historyJump:'Open', historyRestoredToast:'Restored to the state before this action', historyUndoCreateToast:'Creation undone',
       linkTitle:'Link item', close:'Close', linkHint:'Choose an item to create a two-way link. Existing links appear in the editor.', restoreWorkspaceFailed:'Could not restore the workspace: {0}', reauthorize:'The browser needs folder permission again. Click “Choose local folder”.', restoredOneDrive:'Restored the OneDrive sync folder connection.', restoreOneDriveFailed:'Could not restore the OneDrive folder: {0}'
     },
     'zh-Hant': {
       invalidLibrary:'這不是有效的 Acta 完整資料資料夾。', localFolder:'本機資料夾', unsupportedFolder:'目前平台不支援完整資料夾讀寫，請使用最新版 Chrome、Edge 或用戶端資料夾選擇器。', noFolderPermission:'未取得資料夾讀寫權限。',
       localWorkspace:'本機行記資料', demoWorkspace:'示範行記資料', actaData:'行記資料', noFolderNoSave:'尚未選擇資料夾；本次修改不會儲存。', noSaveChanges:'不會儲存變更', demoSave:'示範模式 · 不儲存', demoStatus:'目前是示範行記資料。關閉或重新整理頁面後，示範內容會還原，不會寫入瀏覽器本機資料庫。',
       savedTo:'已儲存完整資料資料夾到 {0} / {1}', saveFailed:'儲存失敗：{0}', loaded:'已完整載入 {0} / {1}', created:'已在 {0} 建立完整資料資料夾：{1}', savedNow:'完整資料資料夾已立即儲存。', reloadConfirm:'從資料資料夾重新載入會覆蓋目前尚未儲存的介面狀態，是否繼續？', reloaded:'已從完整資料資料夾重新載入。', exportedFolder:'完整資料資料夾已匯出到 {0}。',
-      settingsStored:'設定會自動儲存在目前裝置。', defaultSaved:'預設啟動頁面已儲存。', compactUpdated:'清單密度已更新。', motionUpdated:'動態效果偏好已更新。', historySubtitle:'最近的操作一覽', historyClear:'清空歷史記錄', historyClearConfirm:'再次點擊確認清空',
+      settingsStored:'設定會自動儲存在目前裝置。', defaultSaved:'預設啟動頁面已儲存。', compactUpdated:'清單密度已更新。', motionUpdated:'動態效果偏好已更新。', historySubtitle:'最近的操作一覽', historyClear:'清空歷史記錄', historyClearConfirm:'再次點擊確認清空', historyRestore:'恢復到此操作之前', historyJump:'跳轉查看', historyRestoredToast:'已回溯到此操作之前的狀態', historyUndoCreateToast:'已撤銷建立',
       linkTitle:'關聯項目', close:'關閉', linkHint:'選擇一個項目建立雙向關聯；已有關係會顯示在編輯器中。', restoreWorkspaceFailed:'無法還原工作區：{0}', reauthorize:'瀏覽器需要重新授權工作區資料夾，請點擊「選擇本機資料夾」。', restoredOneDrive:'已還原 OneDrive 同步資料夾連接。', restoreOneDriveFailed:'無法還原 OneDrive 資料夾：{0}'
     }
   };
@@ -1463,9 +1463,10 @@
         const button = event.currentTarget;
         const checkins = item.checkins || (item.checkins = {});
         const undo = Boolean(checkins[localDateKey(new Date())]);
+        const snapshotBefore = JSON.parse(JSON.stringify(item));
         if (undo) delete checkins[localDateKey(new Date())];
         else checkins[localDateKey(new Date())] = true;
-        logHistory(undo ? 'checkin-undo' : 'checkin', item.title || t('checkinTodo'), item.id);
+        logHistory(undo ? 'checkin-undo' : 'checkin', item.title || t('checkinTodo'), item.id, snapshotBefore);
         touchItem(item);
         showTodoBurst(button, undo);
         renderEditor(); renderList();
@@ -1492,6 +1493,7 @@
       taskRows.forEach(row => {
         const task = item.tasks.find(entry => entry.id === row.dataset.taskId);
         $('.task-check', row).addEventListener('click', () => {
+          const snapshotBefore = JSON.parse(JSON.stringify(item));
           task.done = !task.done;
           if (task.done) task.completedAt = new Date().toISOString();
           else delete task.completedAt;
@@ -1503,7 +1505,7 @@
               if (entryIndex >= taskIndex || entry.done) return;
               entry.done = true;
               entry.completedAt = new Date().toISOString();
-              logHistory('subtask-completed', item.title || t('untitledTodo'), item.id);
+              logHistory('subtask-completed', item.title || t('untitledTodo'), item.id, snapshotBefore);
               const earlierRow = taskRows[entryIndex];
               earlierRow?.classList.add('done');
               const earlierDate = earlierRow?.querySelector('.task-done-date');
@@ -1526,8 +1528,8 @@
             dateEl.dataset.time = task.completedAt;
             dateEl.textContent = formatMonthDay(task.completedAt);
           }
-          if (task.done) logHistory('subtask-completed', item.title || t('untitledTodo'), item.id);
-          else logHistory('subtask-reopened', item.title || t('untitledTodo'), item.id);
+          if (task.done) logHistory('subtask-completed', item.title || t('untitledTodo'), item.id, snapshotBefore);
+          else logHistory('subtask-reopened', item.title || t('untitledTodo'), item.id, snapshotBefore);
           row.classList.remove('task-toggle-motion');
           requestAnimationFrame(() => row.classList.add('task-toggle-motion'));
           touchItem(item);
@@ -1573,7 +1575,7 @@
         });
         $('.cancel-remove-task', row).addEventListener('click', disarmRow);
         $('.confirm-remove-task', row).addEventListener('click', () => {
-          logHistory('subtask-removed', item.title || t('untitledTodo'), item.id);
+          logHistory('subtask-removed', item.title || t('untitledTodo'), item.id, JSON.parse(JSON.stringify(item)));
           item.tasks = item.tasks.filter(entry => entry.id !== task.id);
           item.completed = item.tasks.length > 0 && item.tasks.every(entry => entry.done);
           touchItem(item); renderEditor(); renderList(); renderSidebar();
@@ -1645,8 +1647,9 @@
   // 滑入加高亮的入场动画；顺序模式下的移动复用同一动画落位。
   const rendererAddTask = addTask;
   addTask = function addTaskWithMotion(item) {
+    const snapshotBefore = JSON.parse(JSON.stringify(item));
     rendererAddTask(item);
-    logHistory('subtask-added', item.title || t('untitledTodo'), item.id);
+    logHistory('subtask-added', item.title || t('untitledTodo'), item.id, snapshotBefore);
     const row = $$('.task-row').at(-1);
     if (!row) return;
     row.classList.add('is-new');
@@ -3263,10 +3266,13 @@
   let clearHistoryTimer = null;
   const renderHistory = () => {
     historyList.innerHTML = historyEntries.map(entry => {
+      const restorable = Boolean(entry.snapshot);
       const target = entry.targetId ? library.items.find(item => item.id === entry.targetId && !isTrashed(item)) : null;
-      const jump = target ? `<span class="history-jump" hidden><button class="history-jump-confirm" type="button">跳转</button></span>` : '';
-      const cls = target ? 'history-entry with-target' : 'history-entry';
-      return `<li class="${cls}" data-target-id="${escapeHTML(entry.targetId || '')}"><time datetime="${escapeHTML(entry.at)}">${escapeHTML(formatDateTimeSeconds(entry.at))}</time><span>${escapeHTML(historyText(entry))}</span>${jump}</li>`;
+      // 有快照的条目可恢复到操作之前；无快照但项目仍在的条目仅跳转查看。
+      const action = restorable ? 'restore' : target ? 'jump' : 'none';
+      const jump = action === 'none' ? '' : `<span class="history-jump" hidden><button class="history-jump-confirm" type="button">${escapeHTML(action === 'restore' ? uiText('historyRestore') : uiText('historyJump'))}</button></span>`;
+      const cls = action === 'none' ? 'history-entry' : 'history-entry with-target';
+      return `<li class="${cls}" data-history-id="${escapeHTML(entry.id)}" data-action="${action}" data-target-id="${escapeHTML(entry.targetId || '')}"><time datetime="${escapeHTML(entry.at)}">${escapeHTML(formatDateTimeSeconds(entry.at))}</time><span>${escapeHTML(historyText(entry))}</span>${jump}</li>`;
     }).join('');
     historyEmpty.hidden = historyEntries.length > 0;
     byId('historySubtitle').textContent = `${uiText('historySubtitle')} · ${historyEntries.length} / 500`;
@@ -3287,8 +3293,25 @@
       jump.querySelector('.history-jump-confirm')?.focus();
       return;
     }
+    const action = entryEl.dataset.action;
     const targetId = entryEl.dataset.targetId;
     jump.hidden = true;
+    if (action === 'restore') {
+      const snapshot = historyEntries.find(entry => entry.id === (entryEl.dataset.historyId || ''))?.snapshot
+        || historyEntries.find(entry => entry.targetId === targetId && entry.snapshot)?.snapshot;
+      if (!snapshot) return;
+      // 回溯 = 把该项目恢复到此操作之前；项目已不存在（撤销创建的逆）
+      // 时重新插入，随后打开它让用户立即看到恢复结果。
+      const index = library.items.findIndex(item => item.id === snapshot.id);
+      if (index >= 0) library.items[index] = JSON.parse(JSON.stringify(snapshot));
+      else library.items.push(JSON.parse(JSON.stringify(snapshot)));
+      persist();
+      renderAll();
+      openItem(snapshot.id);
+      closeAnimatedDialog(historyDialog);
+      showToast(uiText('historyRestoredToast'));
+      return;
+    }
     if (targetId) openItem(targetId);
     closeAnimatedDialog(historyDialog);
   });

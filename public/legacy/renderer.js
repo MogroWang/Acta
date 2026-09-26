@@ -152,10 +152,28 @@ function historyText(entry) {
   const dict = historyMessages[settings.language] || historyMessages.zh;
   return (dict[entry.type] || entry.type).replace('{detail}', entry.detail || '');
 }
-function logHistory(type, detail = '', targetId = '') {
-  historyEntries.unshift({ id: uid(), type, detail: String(detail || ''), at: new Date().toISOString(), targetId: String(targetId || '') });
+function logHistory(type, detail = '', targetId = '', snapshotBefore = null) {
+  // snapshotBefore 为「操作之前」的条目深拷贝：回溯 = 把该项目恢复到
+  // 此操作发生之前的状态；创建类操作无前状态（null），回溯即撤销创建。
+  // 单条快照超过 96KB 时不随记录保存（回溯降级为仅跳转）。
+  let snapshot = null;
+  try {
+    if (snapshotBefore) {
+      const serialized = JSON.stringify(snapshotBefore);
+      if (serialized.length <= 96 * 1024) snapshot = JSON.parse(serialized);
+    }
+  } catch { snapshot = null; }
+  historyEntries.unshift({ id: uid(), type, detail: String(detail || ''), at: new Date().toISOString(), targetId: String(targetId || ''), snapshot });
   if (historyEntries.length > HISTORY_LIMIT) historyEntries.length = HISTORY_LIMIT;
-  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(historyEntries)); } catch { /* 存储满时静默，历史为辅助信息 */ }
+  // 存储溢出时从最旧开始淘汰，直到写入成功。
+  while (historyEntries.length) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(historyEntries));
+      break;
+    } catch {
+      historyEntries.pop();
+    }
+  }
 }
 
 const daysFromToday = (days) => {
@@ -1759,7 +1777,8 @@ function bindTrashList() {
     if (!item) return;
     const title = item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote'));
     if (!await askDestroyConfirm({ itemLabel: `${t(item.type)} · ${title}`, message: t('deleteDestroyHint') })) return;
-    logHistory('item-destroyed', item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote')));
+    logHistory('item-destroyed', title, item.id, JSON.parse(JSON.stringify(item)));
+    logHistory('item-destroyed', item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote')), item.id, JSON.parse(JSON.stringify(item)));
     destroyItems([item.id]);
     showToast(t('destroyed'));
   }));
@@ -2104,12 +2123,14 @@ function syncEditorModifiedTime(item) {
 
 function setTodoCompletion(item, complete) {
   if (!item || item.type !== 'todo') return;
+  const snapshotBefore = JSON.parse(JSON.stringify(item));
   item.completed = Boolean(complete);
   (item.tasks || []).forEach(task => {
     task.done = Boolean(complete);
     if (complete) { task.completedAt = task.completedAt || new Date().toISOString(); }
     else { delete task.completedAt; }
   });
+  logHistory('todo-completed', item.title || t('untitledTodo'), item.id, snapshotBefore);
   touchItem(item);
 }
 
@@ -2152,7 +2173,7 @@ function bindEditor(item) {
     const choice = await askItemDelete(item);
     if (!choice) return;
     if (choice === 'trash') {
-      logHistory('item-trashed', item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote')));
+      logHistory('item-trashed', item.title || (item.type === 'todo' ? t('untitledTodo') : t('untitledNote')), item.id, JSON.parse(JSON.stringify(item)));
       item.deletedAt = new Date().toISOString();
       unlinkForTrash(item);
       const nextSelection = getVisibleItems().find(entry => entry.id !== item.id) || activeItems()[0];
