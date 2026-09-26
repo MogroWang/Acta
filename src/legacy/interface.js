@@ -1476,11 +1476,24 @@
           if (task.done) task.completedAt = new Date().toISOString();
           else delete task.completedAt;
           item.completed = (item.tasks || []).length > 0 && item.tasks.every(entry => entry.done);
+          // 勾选/撤回的过渡完全交给 CSS（grid 模板平移、日期淡入、勾选
+          // 弹出）：不重建编辑器，快速撤回时过渡从当前插值状态连续反向，
+          // 而不是被重建瞬跳到终态。进度数字、进度条与列表卡片就地更新。
           row.classList.toggle('done', task.done);
           row.classList.remove('task-toggle-motion');
           requestAnimationFrame(() => row.classList.add('task-toggle-motion'));
           touchItem(item);
-          setTimeout(() => { renderEditor(); renderList(); renderSidebar(); }, 220);
+          const editor = document.querySelector(`.editor-wrap[data-editor-id="${CSS.escape(item.id)}"]`);
+          const tasks = item.tasks || [];
+          const doneCount = tasks.filter(entry => entry.done).length;
+          const progress = tasks.length ? Math.round(doneCount / tasks.length * 100) : (item.completed ? 100 : 0);
+          const progressLabel = editor?.querySelector('.progress-head span');
+          if (progressLabel) progressLabel.textContent = `${doneCount} / ${tasks.length} · ${progress}% ${t('done')}`;
+          const progressBar = editor?.querySelector('.progress-track i');
+          if (progressBar) progressBar.style.width = `${progress}%`;
+          updateCard(item);
+          renderList();
+          renderSidebar();
         });
         $('.task-text', row).addEventListener('input', event => { task.text = event.target.textContent; touchItem(item); updateCard(item); });
         $('.task-text', row).addEventListener('keydown', event => {

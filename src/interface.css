@@ -810,8 +810,12 @@ body { font-size: calc(14px * var(--acta-font-scale)); }
 body.acta-compact .item-card { min-height: 82px; padding-top: 9px; padding-bottom: 8px; }
 body.acta-compact .item-card > p { height: auto; min-height: 1.45em; max-height: 1.45em; -webkit-line-clamp: 1; line-clamp: 1; }
 body.acta-reduce-motion *, body.acta-reduce-motion *::before, body.acta-reduce-motion *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
-body.acta-steady .item-card, body.acta-steady .editor-wrap, body.acta-steady .task-row, body.suppress-task-refresh .todo-editor, body.suppress-task-refresh .todo-editor *, body.suppress-task-refresh .item-card { animation: none !important; }
-body.suppress-task-refresh .todo-editor, body.suppress-task-refresh .todo-editor *, body.suppress-task-refresh .item-card { transition: none !important; }
+/* 勾选子任务改为就地更新后编辑器不再重建，suppress 只需要抑制列表
+   卡片的重放；编辑器内的过渡（勾选平移、日期淡入）必须保留，才能在
+   快速撤回时从当前状态连续恢复。 */
+body.acta-steady .item-card, body.acta-steady .editor-wrap, body.acta-steady .task-row, body.suppress-task-refresh .item-card { animation: none !important; }
+body.suppress-task-refresh .item-card { transition: none !important; }
+body.acta-steady .task-row.task-toggle-motion { animation: taskToggle .22s var(--ease-out) !important; }
 .settings-row input[type="text"], .settings-row input[type="url"], .settings-row input[type="password"] { width: min(320px, 52%); height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--white); color: var(--ink); outline: 0; }
 .cloud-mode-fields[hidden] { display: none; }
 .cloud-mode-fields { display: contents; }
