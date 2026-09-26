@@ -416,6 +416,7 @@
             <div class="quick-capture-types" role="group" aria-labelledby="quickCaptureTypeLabel">
               <button type="button" data-quick-type="todo" aria-pressed="true"><span><svg><use href="#i-check"/></svg></span><b id="quickCaptureTodoLabel">待办</b><small id="quickCaptureTodoHint">记录一个需要行动的事项</small></button>
               <button type="button" data-quick-type="note" aria-pressed="false"><span><svg><use href="#i-note"/></svg></span><b id="quickCaptureNoteLabel">笔记</b><small id="quickCaptureNoteHint">捕捉想法、灵感或片段</small></button>
+              <button type="button" data-quick-type="checkin" aria-pressed="false"><span><svg><use href="#i-task-list"/></svg></span><b id="quickCaptureCheckinLabel">打卡待办</b><small id="quickCaptureCheckinHint">每天打卡，养成习惯</small></button>
             </div>
           </section>
           <section class="quick-capture-step">

@@ -694,7 +694,7 @@ async function main() {
       document.querySelector('#newButton').click();
       quickMenuAction.click();
       await waitFor(() => document.querySelector('#quickCaptureDialog').open);
-      const quickGuideAvailable = document.querySelectorAll('.quick-capture-step').length === 2 && document.querySelectorAll('[data-quick-type]').length === 2;
+      const quickGuideAvailable = document.querySelectorAll('.quick-capture-step').length === 2 && document.querySelectorAll('[data-quick-type]').length === 3;
       const quickCaptureDialogRect = document.querySelector('#quickCaptureDialog').getBoundingClientRect();
       const quickCaptureActionsRect = document.querySelector('.quick-capture-actions').getBoundingClientRect();
       const quickCaptureDesktopFits = quickCaptureDialogRect.top >= -1
@@ -1074,7 +1074,31 @@ async function main() {
       focusAnimationSetting.dispatchEvent(new Event('change'));
       const focusAnimationToggleRestores = !document.documentElement.hasAttribute('data-input-focus-animation');
 
-      library.items = library.items.filter(item => item.id !== checkinItem.id && item.id !== orderItem.id);
+      // 编辑区粘贴默认取纯文本：contenteditable 收到富文本剪贴板时按
+      // text/plain 插入（字面文本，不带格式）。
+      window.__actaSmokeStep = 'paste-plaintext';
+      const pasteTarget = document.querySelector('.task-text');
+      pasteTarget.focus();
+      const pasteEvent = new Event('paste', { bubbles:true, cancelable:true });
+      pasteEvent.clipboardData = { getData: () => '<b>富文本</b>' };
+      pasteTarget.dispatchEvent(pasteEvent);
+      const pastePlaintextOnly = pasteTarget.textContent.includes('<b>富文本</b>');
+      // 速记支持打卡式待办：类型可选、时间与子任务字段隐藏、提交创建打卡项。
+      window.__actaSmokeStep = 'quick-checkin';
+      document.querySelector('#createMenu [data-create="quick"]').click();
+      await waitFor(() => document.querySelector('#quickCaptureDialog').open);
+      document.querySelector('[data-quick-type="checkin"]').click();
+      const quickCheckinTypeSelectable = document.querySelector('[data-quick-type="checkin"]').classList.contains('active')
+        && document.querySelector('#quickCaptureStartField').hidden
+        && document.querySelector('#quickCaptureTasksField').hidden
+        && document.querySelector('#quickCapturePriorityField').hidden;
+      document.querySelector('#quickCaptureItemTitle').value = '速记打卡待办';
+      document.querySelector('#quickCaptureForm').requestSubmit();
+      await waitFor(() => !document.querySelector('#quickCaptureDialog').open);
+      const quickCheckin = library.items.find(item => item.checkin && item.title === '速记打卡待办');
+      const quickCheckinCreated = Boolean(quickCheckin) && quickCheckin.type === 'todo' && Array.isArray(quickCheckin.tasks) && quickCheckin.tasks.length === 0;
+
+      library.items = library.items.filter(item => item.id !== checkinItem.id && item.id !== orderItem.id && item.id !== quickCheckin.id);
       selectedId = checkinTestContext.selectedId;
       currentView = checkinTestContext.currentView;
       currentFilter = checkinTestContext.currentFilter;
@@ -1478,6 +1502,9 @@ async function main() {
         focusAnimationDefaultOn,
         focusAnimationOffApplies,
         focusAnimationToggleRestores,
+        pastePlaintextOnly,
+        quickCheckinTypeSelectable,
+        quickCheckinCreated,
         nativeStatusBarMatchesThemes,
         nativeStatusBarCalls,
         reciprocalLink,
@@ -1801,6 +1828,9 @@ async function main() {
     assert.equal(result.focusAnimationDefaultOn, true);
     assert.equal(result.focusAnimationOffApplies, true);
     assert.equal(result.focusAnimationToggleRestores, true);
+    assert.equal(result.pastePlaintextOnly, true);
+    assert.equal(result.quickCheckinTypeSelectable, true);
+    assert.equal(result.quickCheckinCreated, true);
     assert.equal(result.nativeStatusBarMatchesThemes, true, JSON.stringify(result.nativeStatusBarCalls));
     assert.equal(result.reciprocalLink, true);
     assert.equal(result.reciprocalTodoLink, true);

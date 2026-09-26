@@ -18,7 +18,7 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 
 - Bidirectional links between notes and tasks, with navigation and unlinking from either editor
 - High, medium, and low task priorities, plus subtasks, progress, immutable creation time, and optional start/due times
-- Check-in tasks: generate from the create menu, check in daily in the editor with streak/total counters and a last-7-days strip, and a today badge on list cards
+- Check-in tasks: generate from the create menu or quick capture, check in daily with streak/total counters and a last-7-days strip, optional start/due dates that feed the calendar, and a today badge on list cards
 - Ordered subtasks: turn on "In order" to arrange subtasks by number and reorder them with arrow buttons; the default stays unordered
 - A year/month/week/day calendar replacing Today: week numbers in the compact month view, independently scrollable desktop/mobile week layouts, and direct task/subtask completion in week and day views
 - A summary page (formerly statistics) as a notes-and-tasks list: gather items created in a chosen period, list every subtask in full, tick some, and make a list picture in one click; a "Data statistics" dialog in the sidebar's lower-left dock reports the profile's total file size, file count, notes, tasks, classifications, and trash count
