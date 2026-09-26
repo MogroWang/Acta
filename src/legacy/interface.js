@@ -1338,7 +1338,7 @@
       <div class="task-list" id="taskList">
         ${tasks.map((task, index) => `<div class="task-row${ordered ? ' is-ordered' : ''} ${task.done ? 'done' : ''}" data-task-id="${escapeHTML(task.id)}" style="animation-delay:${index * 35}ms">
           <i class="task-done-date"${task.done && task.completedAt && uiSettings.subtaskCompletedDates !== false ? ` data-time="${escapeHTML(task.completedAt)}">${escapeHTML(formatMonthDay(task.completedAt))}</i>` : ' aria-hidden="true"></i>'}
-          ${ordered ? `<i class="task-order-index" draggable="true" title="${escapeHTML(t('taskDragHint'))}" aria-hidden="true">${index + 1}</i>` : ''}
+          ${ordered ? `<i class="task-order-index" title="${escapeHTML(t('taskDragHint'))}" aria-hidden="true">${index + 1}</i>` : ''}
           <button class="task-check"><svg><use href="#i-check"/></svg></button>
           <div class="task-text" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('taskPlaceholder')}">${escapeHTML(task.text)}</div>
           ${ordered ? `<span class="task-move"><button class="move-task-up" type="button" title="${escapeHTML(t('taskMoveUp'))}" aria-label="${escapeHTML(t('taskMoveUp'))}"><svg><use href="#i-chevron"/></svg></button><button class="move-task-down" type="button" title="${escapeHTML(t('taskMoveDown'))}" aria-label="${escapeHTML(t('taskMoveDown'))}"><svg><use href="#i-chevron"/></svg></button></span>` : ''}
@@ -1583,49 +1583,60 @@
       });
       byId('addTask').addEventListener('click', () => addTask(item));
       if (ordered) {
-        // 拖动行首序号快速重排：HTML5 DnD 委托在任务列表容器上，
-        // dragover 以鼠标相对目标行中点的位置决定插入到上方或下方。
+        // 拖动行首序号快速重排：用 Pointer Events 自实现（WebView2 对
+        // 页面内 HTML5 拖放的支持不可靠），按住序号后原行半透明跟随
+        // 指针，目标行按中点显示插入指示线，松手落位。capture 保证
+        // 指针移出行外仍持续跟踪，touch-action 防止触屏拖动时滚动。
         const taskList = byId('taskList');
-        let draggingId = null;
+        let drag = null;
         const clearDropMarks = () => taskList.querySelectorAll('.task-row').forEach(entry => entry.classList.remove('dragging', 'drop-above', 'drop-below'));
-        taskList.querySelectorAll('.task-order-index').forEach(el => { el.draggable = true; });
-        taskList.addEventListener('dragstart', event => {
-          const dragRow = event.target.closest?.('.task-row');
-          if (!dragRow) return;
-          draggingId = dragRow.dataset.taskId;
-          dragRow.classList.add('dragging');
-          event.dataTransfer.effectAllowed = 'move';
-          event.dataTransfer.setData('text/plain', draggingId);
-        });
-        taskList.addEventListener('dragover', event => {
-          if (!draggingId) return;
-          event.preventDefault();
-          event.dataTransfer.dropEffect = 'move';
-          const overRow = event.target.closest?.('.task-row');
+        const settle = event => {
+          if (!drag) return;
+          const { id, overId, below, row } = drag;
+          row.style.transform = '';
+          drag = null;
           clearDropMarks();
-          if (!overRow || overRow.dataset.taskId === draggingId) return;
-          const rect = overRow.getBoundingClientRect();
-          overRow.classList.add(event.clientY < rect.top + rect.height / 2 ? 'drop-above' : 'drop-below');
-        });
-        taskList.addEventListener('dragend', clearDropMarks);
-        taskList.addEventListener('drop', event => {
-          event.preventDefault();
-          const overRow = event.target.closest?.('.task-row');
-          const from = draggingId ? item.tasks.findIndex(entry => entry.id === draggingId) : -1;
-          const targetIndex = overRow ? item.tasks.findIndex(entry => entry.id === overRow.dataset.taskId) : -1;
-          clearDropMarks();
-          if (!overRow || from < 0 || targetIndex < 0 || from === targetIndex) { draggingId = null; return; }
-          const rect = overRow.getBoundingClientRect();
-          const below = event.clientY >= rect.top + rect.height / 2;
-          let to = targetIndex + (below ? 1 : 0);
+          if (!overId || overId === id) return;
+          const from = item.tasks.findIndex(entry => entry.id === id);
+          let to = item.tasks.findIndex(entry => entry.id === overId) + (below ? 1 : 0);
+          if (from < 0 || to < 0) return;
           if (from < to) to -= 1;
           const [moved] = item.tasks.splice(from, 1);
           item.tasks.splice(to, 0, moved);
-          draggingId = null;
           touchItem(item);
           renderEditor(); renderList();
           $$('.task-row')[to]?.classList.add('is-new');
+        };
+        taskList.addEventListener('pointerdown', event => {
+          const handle = event.target instanceof Element ? event.target.closest('.task-order-index') : null;
+          if (!handle || !event.isPrimary) return;
+          const row = handle.closest('.task-row');
+          if (!row) return;
+          event.preventDefault();
+          try { handle.setPointerCapture(event.pointerId); } catch { /* 合成事件或指针已释放时静默 */ }
+          drag = { id: row.dataset.taskId, row, overId: null, below: false, startY: event.clientY };
+          row.classList.add('dragging');
         });
+        taskList.addEventListener('pointermove', event => {
+          if (!drag) return;
+          drag.row.style.transform = `translateY(${event.clientY - drag.startY}px)`;
+          const rows = [...taskList.querySelectorAll('.task-row')];
+          // 拖动行自身随指针位移（transform 影响其矩形），必须排除，
+          // 否则指针永远命中自己、永远无法标记其他行的插入位置。
+          const overRow = rows.find(entry => {
+            if (entry.dataset.taskId === drag.id) return false;
+            const rect = entry.getBoundingClientRect();
+            return event.clientY >= rect.top && event.clientY <= rect.bottom;
+          });
+          rows.forEach(entry => entry.classList.remove('drop-above', 'drop-below'));
+          if (!overRow || overRow.dataset.taskId === drag.id) { drag.overId = null; return; }
+          const rect = overRow.getBoundingClientRect();
+          drag.below = event.clientY >= rect.top + rect.height / 2;
+          drag.overId = overRow.dataset.taskId;
+          overRow.classList.add(drag.below ? 'drop-below' : 'drop-above');
+        });
+        taskList.addEventListener('pointerup', settle);
+        taskList.addEventListener('pointercancel', settle);
       }
     }
     byId('todoNotes').addEventListener('input', event => {
@@ -4656,19 +4667,29 @@
   );
 
   async function contextClipboardWrite(text) {
-    let copied = false;
-    try { copied = document.execCommand('copy'); } catch { copied = false; }
-    if (copied) return;
-    await navigator.clipboard.writeText(text).catch(() => {});
+    if (!text) return;
+    // 系统剪贴板优先（Tauri 插件，Windows WebView2 下 navigator.clipboard
+    // 的读写权限会被默认拒绝），逐级降级到 Web API 与 execCommand。
+    const pluginClipboard = window.__TAURI__?.clipboard;
+    if (pluginClipboard?.writeText) {
+      try { await pluginClipboard.writeText(text); return; } catch { /* 降级 */ }
+    }
+    try { await navigator.clipboard.writeText(text); return; } catch { /* 降级 */ }
+    try { document.execCommand('copy'); } catch { }
   }
 
   async function contextPaste(target) {
     if (!target) return;
     target.focus?.();
     let text = '';
-    try {
-      text = await navigator.clipboard.readText();
-    } catch {
+    const pluginClipboard = window.__TAURI__?.clipboard;
+    if (pluginClipboard?.readText) {
+      try { text = await pluginClipboard.readText(); } catch { text = ''; }
+    }
+    if (!text) {
+      try { text = await navigator.clipboard.readText(); } catch { text = ''; }
+    }
+    if (!text) {
       let pasted = false;
       try { pasted = document.execCommand('paste'); } catch { pasted = false; }
       if (!pasted) showToast(contextText('pasteBlocked'));
@@ -4722,16 +4743,41 @@
       event.preventDefault();
       closeContextMenu();
       const editable = editableContextMenuTarget(event.target);
+      // textarea/input 的选区不反映在 window.getSelection() 里（此前标题
+      // 右键的复制/剪切因此永远置灰），这里按元素类型分别取选区文本，
+      // 并记录位置供「剪切」在菜单点击后显式删除（不依赖 document 选区）。
+      let selected = '';
+      let selectionRange = null;
       const selection = window.getSelection();
-      const selected = selection && !selection.isCollapsed ? String(selection) : '';
+      if (editable && !editable.isContentEditable) {
+        const start = editable.selectionStart ?? 0;
+        const end = editable.selectionEnd ?? 0;
+        if (end > start) {
+          selected = editable.value.slice(start, end);
+          selectionRange = { start, end };
+        }
+      } else if (selection && !selection.isCollapsed) {
+        selected = String(selection);
+        selectionRange = selection.rangeCount ? selection.getRangeAt(0) : null;
+      }
       const modifier = shortcutIsApple ? '⌘' : 'Ctrl';
+      const removeSelectedText = () => {
+        if (editable && !editable.isContentEditable && selectionRange) {
+          editable.focus();
+          editable.setRangeText('', selectionRange.start, selectionRange.end, 'end');
+          editable.dispatchEvent(new Event('input', { bubbles: true }));
+          editable.dispatchEvent(new Event('change', { bubbles: true }));
+          return;
+        }
+        document.execCommand('delete');
+      };
       const items = [];
       if (editable) {
         items.push(
-          { label: contextText('cut'), shortcut: `${modifier}X`, disabled: !selected, run: () => contextClipboardWrite(selected).then(() => document.execCommand('delete')) },
+          { label: contextText('cut'), shortcut: `${modifier}X`, disabled: !selected, run: () => contextClipboardWrite(selected).then(removeSelectedText) },
           { label: contextText('copy'), shortcut: `${modifier}C`, disabled: !selected, run: () => contextClipboardWrite(selected) },
           { label: contextText('paste'), shortcut: `${modifier}V`, run: () => contextPaste(editable) },
-          { label: contextText('selectAll'), shortcut: `${modifier}A`, run: () => document.execCommand('selectAll') }
+          { label: contextText('selectAll'), shortcut: `${modifier}A`, run: () => { editable?.focus?.(); document.execCommand('selectAll'); } }
         );
       } else if (selected) {
         items.push({ label: contextText('copy'), shortcut: `${modifier}C`, run: () => contextClipboardWrite(selected) });
