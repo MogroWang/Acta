@@ -56,6 +56,18 @@ html:not([data-input-focus-animation="off"]) select,
 html:not([data-input-focus-animation="off"]) [contenteditable="true"] {
   transition: border-color .22s var(--ease-out), box-shadow .22s var(--ease-out), background-color .22s var(--ease-out), color .22s var(--ease-out);
 }
+/* 稳态焦点环：为没有自定义焦点样式的输入元素提供统一的强调色反馈；
+   搜索框、筛选下拉等父容器带光环的组件，以及标题、源码编辑器等
+   自有体系的输入区在此排除，避免双重光环或破坏既有设计。 */
+html:not([data-input-focus-animation="off"]) :is(input:not([type="checkbox"]):not([type="range"]):not([type="color"]), textarea, select):not(:is(.search-box, .filter-select, .link-picker, .data-profile-name-field, .classification-manager-field, .quick-capture-field) input):not(.editor-title):not(.note-markdown-source):not(.data-profile-edit-name):focus {
+  border-color: color-mix(in srgb, var(--sage) 38%, var(--line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sage) 13%, transparent);
+}
+/* 无边框的小型可编辑区（子任务、补充说明）以主题色微染提示聚焦；
+   笔记正文等大面积沉浸编辑区不染色。 */
+html:not([data-input-focus-animation="off"]) [contenteditable="true"]:not(.note-body):focus {
+  background-color: color-mix(in srgb, var(--sage) 6%, transparent);
+}
 html:not([data-input-focus-animation="off"]) input:not([type="checkbox"]):not([type="range"]):not([type="color"]):focus,
 html:not([data-input-focus-animation="off"]) textarea:focus,
 html:not([data-input-focus-animation="off"]) select:focus,
@@ -63,7 +75,8 @@ html:not([data-input-focus-animation="off"]) [contenteditable="true"]:focus {
   animation: focusRingIn .3s var(--ease-out);
 }
 @keyframes focusRingIn {
-  /* 只声明起点，终点取元素自身 :focus 光环，光环从零平滑展开。 */
+  /* 只声明起点，终点取元素自身 :focus 光环；背景与边框的淡入交给
+     transition，不进入关键帧，避免聚焦瞬间背景被透明帧覆盖。 */
   from { box-shadow: 0 0 0 0 transparent; }
 }
 button { color: inherit; }
