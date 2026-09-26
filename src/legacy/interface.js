@@ -677,7 +677,7 @@
     library.items.unshift(item);
     persist();
     renderAll();
-    logHistory(item.checkin ? 'checkin-created' : item.type === 'note' ? 'note-created' : 'todo-created', item.title);
+    logHistory(item.checkin ? 'checkin-created' : item.type === 'note' ? 'note-created' : 'todo-created', item.title, item.id);
     closeAnimatedDialog(quickCaptureDialog);
     showToast(`${t('itemCreated')} · ${item.checkin ? t('checkinTodo') : t(item.type)}`);
   });
@@ -1109,7 +1109,7 @@
     byId('searchInput').value = '';
     persist();
     renderAll();
-    logHistory(type === 'note' ? 'note-created' : type === 'checkin' ? 'checkin-created' : 'todo-created', item.title);
+    logHistory(type === 'note' ? 'note-created' : type === 'checkin' ? 'checkin-created' : 'todo-created', item.title, item.id);
     byId('createMenu').classList.remove('open');
     showToast(`${t('itemCreated')} · ${type === 'checkin' ? t('checkinTodo') : t(type)}`);
     requestAnimationFrame(() => byId('editorTitle')?.select());
@@ -1465,7 +1465,7 @@
         const undo = Boolean(checkins[localDateKey(new Date())]);
         if (undo) delete checkins[localDateKey(new Date())];
         else checkins[localDateKey(new Date())] = true;
-        logHistory(undo ? 'checkin-undo' : 'checkin', item.title || t('checkinTodo'));
+        logHistory(undo ? 'checkin-undo' : 'checkin', item.title || t('checkinTodo'), item.id);
         touchItem(item);
         showTodoBurst(button, undo);
         renderEditor(); renderList();
@@ -1503,7 +1503,7 @@
               if (entryIndex >= taskIndex || entry.done) return;
               entry.done = true;
               entry.completedAt = new Date().toISOString();
-              logHistory('subtask-completed', item.title || t('untitledTodo'));
+              logHistory('subtask-completed', item.title || t('untitledTodo'), item.id);
               const earlierRow = taskRows[entryIndex];
               earlierRow?.classList.add('done');
               const earlierDate = earlierRow?.querySelector('.task-done-date');
@@ -1526,8 +1526,8 @@
             dateEl.dataset.time = task.completedAt;
             dateEl.textContent = formatMonthDay(task.completedAt);
           }
-          if (task.done) logHistory('subtask-completed', item.title || t('untitledTodo'));
-          else logHistory('subtask-reopened', item.title || t('untitledTodo'));
+          if (task.done) logHistory('subtask-completed', item.title || t('untitledTodo'), item.id);
+          else logHistory('subtask-reopened', item.title || t('untitledTodo'), item.id);
           row.classList.remove('task-toggle-motion');
           requestAnimationFrame(() => row.classList.add('task-toggle-motion'));
           touchItem(item);
@@ -1573,7 +1573,7 @@
         });
         $('.cancel-remove-task', row).addEventListener('click', disarmRow);
         $('.confirm-remove-task', row).addEventListener('click', () => {
-          logHistory('subtask-removed', item.title || t('untitledTodo'));
+          logHistory('subtask-removed', item.title || t('untitledTodo'), item.id);
           item.tasks = item.tasks.filter(entry => entry.id !== task.id);
           item.completed = item.tasks.length > 0 && item.tasks.every(entry => entry.done);
           touchItem(item); renderEditor(); renderList(); renderSidebar();
@@ -1646,7 +1646,7 @@
   const rendererAddTask = addTask;
   addTask = function addTaskWithMotion(item) {
     rendererAddTask(item);
-    logHistory('subtask-added', item.title || t('untitledTodo'));
+    logHistory('subtask-added', item.title || t('untitledTodo'), item.id);
     const row = $$('.task-row').at(-1);
     if (!row) return;
     row.classList.add('is-new');
@@ -2854,6 +2854,8 @@
   function switchSettingsPage(page) {
     document.querySelectorAll('[data-settings-page]').forEach(button => button.classList.toggle('active', button.dataset.settingsPage === page));
     document.querySelectorAll('[data-settings-panel]').forEach(panel => panel.classList.toggle('active', panel.dataset.settingsPanel === page));
+    // 行记数据页内嵌的数据统计随切换刷新，保证容量与计数是最新值。
+    if (page === 'workspace') void refreshDataStats();
   }
 
   byId('settingsButton').addEventListener('click', () => openSettings('language'));
@@ -3178,7 +3180,6 @@
   });
 
   /* ===================== 行记数据统计弹窗 ===================== */
-  const dataStatsDialog = byId('dataStatsDialog');
   const dataStatsCopy = {
     zh: { loading:'正在统计当前数据档案…', failed:'统计失败：', localHint:'软件本地档案：大小按存储内容估算。' },
     en: { loading:'Measuring the active data profile…', failed:'Failed to measure: ', localHint:'Local profile: size is estimated from stored content.' },
@@ -3211,7 +3212,7 @@
     await walk(handle);
     return { totalBytes, fileCount };
   };
-  const openDataStats = async () => {
+  async function refreshDataStats() {
     const copy = dataStatsCopy[uiSettings.language] || dataStatsCopy.zh;
     const statusEl = byId('dataStatsStatus');
     const pathEl = byId('dataStatsPath');
@@ -3219,7 +3220,6 @@
       .forEach(id => { byId(id).textContent = '—'; });
     pathEl.textContent = '—';
     statusEl.textContent = '';
-    openAnimatedDialog(dataStatsDialog);
     const fillCounts = () => {
       byId('dataStatsNotes').textContent = String(library.items.filter(item => item.type === 'note' && !isTrashed(item)).length);
       byId('dataStatsTodos').textContent = String(library.items.filter(item => item.type === 'todo' && !isTrashed(item)).length);
@@ -3253,8 +3253,8 @@
     } catch (error) {
       statusEl.textContent = `${copy.failed}${error.message || error}`;
     }
-  };
-  byId('dataStatsButton').addEventListener('click', () => void openDataStats());
+  }
+
   // 历史记录弹窗：倒序展示操作日志，清空按钮需二次点击确认。
   const historyDialog = byId('historyDialog');
   const historyList = byId('historyList');
@@ -3262,10 +3262,36 @@
   let clearHistoryArmed = false;
   let clearHistoryTimer = null;
   const renderHistory = () => {
-    historyList.innerHTML = historyEntries.map(entry => `<li class="history-entry"><time datetime="${escapeHTML(entry.at)}">${escapeHTML(formatDateTimeSeconds(entry.at))}</time><span>${escapeHTML(historyText(entry))}</span></li>`).join('');
+    historyList.innerHTML = historyEntries.map(entry => {
+      const target = entry.targetId ? library.items.find(item => item.id === entry.targetId && !isTrashed(item)) : null;
+      const jump = target ? `<span class="history-jump" hidden><button class="history-jump-confirm" type="button">跳转</button></span>` : '';
+      const cls = target ? 'history-entry with-target' : 'history-entry';
+      return `<li class="${cls}" data-target-id="${escapeHTML(entry.targetId || '')}"><time datetime="${escapeHTML(entry.at)}">${escapeHTML(formatDateTimeSeconds(entry.at))}</time><span>${escapeHTML(historyText(entry))}</span>${jump}</li>`;
+    }).join('');
     historyEmpty.hidden = historyEntries.length > 0;
     byId('historySubtitle').textContent = `${uiText('historySubtitle')} · ${historyEntries.length} / 500`;
   };
+  // 点击条目回溯：条目先展开「跳转」按钮（二级确认），确认后打开目标
+  // 项目并关闭历史弹窗；目标已删除的条目不可点击。
+  historyList.addEventListener('click', event => {
+    const entryEl = event.target instanceof Element ? event.target.closest('.history-entry.with-target') : null;
+    if (!entryEl) {
+      historyList.querySelectorAll('.history-jump:not([hidden])').forEach(jump => { jump.hidden = true; });
+      return;
+    }
+    const jump = entryEl.querySelector('.history-jump');
+    if (!jump) return;
+    if (jump.hidden) {
+      historyList.querySelectorAll('.history-jump:not([hidden])').forEach(other => { if (other !== jump) other.hidden = true; });
+      jump.hidden = false;
+      jump.querySelector('.history-jump-confirm')?.focus();
+      return;
+    }
+    const targetId = entryEl.dataset.targetId;
+    jump.hidden = true;
+    if (targetId) openItem(targetId);
+    closeAnimatedDialog(historyDialog);
+  });
   byId('historyButton').addEventListener('click', () => {
     clearHistoryArmed = false;
     byId('clearHistory').classList.remove('is-danger');
@@ -3296,14 +3322,7 @@
     byId('clearHistory').querySelector('span')?.replaceChildren(document.createTextNode(uiText('historyClear')));
     renderHistory();
   });
-  byId('closeDataStats').addEventListener('click', () => closeAnimatedDialog(dataStatsDialog));
-  dataStatsDialog.addEventListener('click', event => {
-    if (event.target === dataStatsDialog) closeAnimatedDialog(dataStatsDialog);
-  });
-  dataStatsDialog.addEventListener('cancel', event => {
-    event.preventDefault();
-    closeAnimatedDialog(dataStatsDialog);
-  });
+
 
   const mobileEdgeQuery = matchMedia('(max-width: 800px)');
   const reducedMotionQuery = matchMedia('(prefers-reduced-motion: reduce)');

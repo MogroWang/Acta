@@ -1371,7 +1371,7 @@ async function main() {
       const saveStateStyle = getComputedStyle(document.querySelector('#saveState'));
       const saveStateRelocated = Math.abs(saveStateRect.left - expandedSidebarRect.right - 8) <= 1 && saveStateStyle.textAlign === 'left';
       const saveStateMetrics = { saveLeft:saveStateRect.left, sidebarRight:expandedSidebarRect.right, difference:saveStateRect.left - expandedSidebarRect.right, textAlign:saveStateStyle.textAlign };
-      const lowerLeftControlsTogether = ['#dataRefreshButton', '#dataStatsButton', '#settingsButton', '#sidebarToggle'].every(selector => document.querySelector(selector)?.closest('.sidebar-dock-actions'));
+      const lowerLeftControlsTogether = ['#dataRefreshButton', '#historyButton', '#settingsButton', '#sidebarToggle'].every(selector => document.querySelector(selector)?.closest('.sidebar-dock-actions'));
       window.__actaSmokeStep = 'sidebar-checked';
       document.querySelector('#settingsButton').click();
       const cacheReloadAvailable = Boolean(document.querySelector('#clearCacheReload'));

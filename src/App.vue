@@ -98,8 +98,7 @@
             </button>
             <div class="sidebar-dock-actions" role="group" aria-label="侧栏操作">
               <button class="sidebar-dock-action" id="dataRefreshButton" type="button" title="刷新数据" aria-label="刷新数据"><svg><use href="#i-refresh"/></svg></button>
-              <button class="sidebar-dock-action" id="dataStatsButton" type="button" title="数据统计" aria-label="数据统计"><svg><use href="#i-chart"/></svg></button>
-              <button class="sidebar-dock-action" id="historyButton" type="button" title="历史记录" aria-label="历史记录"><svg><use href="#i-undo"/></svg></button>
+              <button class="sidebar-dock-action" id="historyButton" type="button" title="历史记录" aria-label="历史记录"><svg><use href="#i-clock"/></svg></button>
               <button class="sidebar-dock-action" id="settingsButton" type="button" title="设置" aria-label="设置"><svg><use href="#i-settings"/></svg></button>
               <button class="sidebar-dock-action sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="true" aria-controls="primarySidebar" title="收起左侧功能栏"><svg><use href="#i-chevron"/></svg></button>
             </div>
@@ -245,6 +244,19 @@
 
             <section class="settings-panel" data-settings-panel="workspace">
               <header class="data-profile-header"><div><h3>行记数据</h3><p>每个数据档案都包含完整的归类、笔记和待办；可以保存在软件本地，也可以连接到你选择的文件夹。</p></div><div class="data-profile-header-actions"><button class="settings-button" id="newDataProfile" type="button"><svg><use href="#i-plus"/></svg><span>新建空白档案</span></button><button class="settings-button secondary" id="readDataProfile" type="button"><svg><use href="#i-folder"/></svg><span>读取现有档案</span></button></div></header>
+              <div class="appearance-subsection data-stats-subsection">
+                <header><b>数据统计</b><small id="dataStatsSubtitle">当前数据档案的容量与内容概览</small></header>
+                <div class="data-stats-grid">
+                  <div class="data-stats-tile"><b id="dataStatsSize">—</b><span id="dataStatsSizeLabel">文件总大小</span></div>
+                  <div class="data-stats-tile"><b id="dataStatsFiles">—</b><span>文件数</span></div>
+                  <div class="data-stats-tile"><b id="dataStatsNotes">—</b><span>笔记</span></div>
+                  <div class="data-stats-tile"><b id="dataStatsTodos">—</b><span>待办</span></div>
+                  <div class="data-stats-tile"><b id="dataStatsClassifications">—</b><span>归类</span></div>
+                  <div class="data-stats-tile"><b id="dataStatsTrash">—</b><span>回收站</span></div>
+                </div>
+                <code class="app-data-path data-stats-path" id="dataStatsPath">—</code>
+                <p class="settings-status" id="dataStatsStatus" role="status"></p>
+              </div>
               <aside class="browser-storage-notice" id="browserStorageNotice" hidden><svg><use href="#i-info"/></svg><p><b>浏览器本地空间有限</b><span>浏览器可能在空间不足或清理缓存时移除本地数据，请定期导出完整档案备份。</span></p></aside>
               <div class="data-profile-create" id="dataProfileCreate" aria-hidden="true">
                 <div class="data-profile-create-inner">
@@ -454,21 +466,6 @@
       </form>
     </dialog>
 
-    <dialog class="relation-dialog data-stats-dialog" id="dataStatsDialog" aria-labelledby="dataStatsTitle">
-      <header class="relation-dialog-head"><span><svg><use href="#i-database"/></svg></span><div><h3 id="dataStatsTitle">行记数据统计</h3><small id="dataStatsSubtitle">当前数据档案的容量与内容概览</small></div><button class="relation-dialog-close" id="closeDataStats" type="button" aria-label="关闭"><svg><use href="#i-close"/></svg></button></header>
-      <div class="data-stats-body">
-        <div class="data-stats-grid">
-          <div class="data-stats-tile"><b id="dataStatsSize">—</b><span id="dataStatsSizeLabel">文件总大小</span></div>
-          <div class="data-stats-tile"><b id="dataStatsFiles">—</b><span>文件数</span></div>
-          <div class="data-stats-tile"><b id="dataStatsNotes">—</b><span>笔记</span></div>
-          <div class="data-stats-tile"><b id="dataStatsTodos">—</b><span>待办</span></div>
-          <div class="data-stats-tile"><b id="dataStatsClassifications">—</b><span>归类</span></div>
-          <div class="data-stats-tile"><b id="dataStatsTrash">—</b><span>回收站</span></div>
-        </div>
-        <code class="app-data-path data-stats-path" id="dataStatsPath">—</code>
-        <p class="settings-status" id="dataStatsStatus" role="status"></p>
-      </div>
-    </dialog>
     <dialog class="relation-dialog history-dialog" id="historyDialog" aria-labelledby="historyTitle">
       <header class="relation-dialog-head"><span><svg><use href="#i-undo"/></svg></span><div><h3 id="historyTitle">历史记录</h3><small id="historySubtitle">最近的操作一览，最多保留 500 条</small></div><button class="relation-dialog-close" id="closeHistory" type="button" aria-label="关闭"><svg><use href="#i-close"/></svg></button></header>
       <div class="history-body">
@@ -476,7 +473,7 @@
         <p class="settings-status" id="historyEmpty" role="status">还没有可回溯的操作记录。</p>
       </div>
       <div class="history-actions">
-        <button class="settings-button secondary" id="clearHistory" type="button"><svg><use href="#i-trash"/></svg><span>清空历史记录</span></button>
+        <button class="history-clear-button" id="clearHistory" type="button"><svg><use href="#i-trash"/></svg><span>清空历史记录</span></button>
       </div>
     </dialog>
 

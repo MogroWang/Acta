@@ -223,7 +223,18 @@ body:not(.acta-steady) .settings-content::-webkit-scrollbar-thumb { background-c
 .history-entry { display: grid; grid-template-columns: auto 1fr; gap: 11px; align-items: baseline; padding: 7px 10px; border: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-radius: 9px; background: color-mix(in srgb, var(--white) 46%, transparent); }
 .history-entry time { color: var(--faint); font-size: calc(8px * var(--acta-font-scale)); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .history-entry span { min-width: 0; color: var(--ink); font-size: calc(9px * var(--acta-font-scale)); line-height: 1.5; }
-.history-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+.history-entry.with-target { cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.history-entry.with-target:hover { border-color: color-mix(in srgb, var(--sage) 40%, var(--line)); background: color-mix(in srgb, var(--sage) 8%, transparent); }
+.history-jump { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+.history-jump[hidden] { display: none; }
+.history-jump-confirm { min-height: 28px; padding: 0 12px; border: 1px solid color-mix(in srgb, var(--sage) 45%, var(--line)); border-radius: 8px; background: var(--sage); color: #fff; cursor: pointer; font-size: calc(9px * var(--acta-font-scale)); font-weight: 650; animation: removeArmIn .18s var(--ease-out); }
+.history-jump-confirm:hover { background: color-mix(in srgb, var(--sage) 82%, var(--ink)); }
+.history-actions { display: flex; justify-content: flex-end; padding: 12px 20px 18px; margin-top: 2px; border-top: 1px solid color-mix(in srgb, var(--line) 62%, transparent); }
+.history-clear-button { min-height: 35px; padding: 0 15px; border: 1px solid #d8a894; border-radius: 10px; background: #f5e6e1; color: #9c4f3a; display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer; font-size: calc(9px * var(--acta-font-scale)); font-weight: 650; transition: background .15s ease, color .15s ease, border-color .15s ease; }
+.history-clear-button:hover { background: #efdad2; color: #8f4b3a; border-color: #c99179; }
+.history-clear-button svg { width: 13px; height: 13px; }
+.history-clear-button.is-danger { background: #a35e4c; border-color: #a35e4c; color: #fff; }
+.history-clear-button.is-danger:hover { background: #96513f; color: #fff; }
 .history-actions .is-danger { color: #a35e4c; border-color: color-mix(in srgb, #a35e4c 40%, var(--line)); background: #f5e6e1; }
 .task-date-tip { position: fixed; z-index: 220; max-width: 280px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); color: var(--ink); font-size: calc(9px * var(--acta-font-scale)); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; box-shadow: 0 3px 9px -2px rgba(30,35,29,.14), 0 12px 28px -10px rgba(30,35,29,.2); pointer-events: none; animation: taskDateTipIn .16s var(--ease-out); }
 @keyframes taskDateTipIn { from { opacity: 0; transform: translateY(3px); } }
@@ -2174,8 +2185,11 @@ body.trash-view .list-footer { background: color-mix(in srgb, var(--note-soft) 1
 .context-menu button kbd { font: 600 calc(9px * var(--acta-font-scale))/1 system-ui; color: var(--faint); }
 
 /* ===================== 行记数据统计弹窗 ===================== */
-.data-stats-dialog { width: min(430px, calc(100vw - 32px)); }
-.data-stats-body { padding: 18px 20px 20px; display: grid; gap: 14px; }
+.data-stats-subsection { margin: 0 0 18px; padding: 15px; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--white) 42%, transparent); display: grid; gap: 12px; }
+.data-stats-subsection header { display: grid; gap: 3px; }
+.data-stats-subsection header b { font-size: calc(12px * var(--acta-font-scale)); }
+.data-stats-subsection header small { color: var(--muted); font-size: calc(9px * var(--acta-font-scale)); }
+.data-stats-body { display: grid; gap: 14px; }
 .data-stats-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 9px; }
 .data-stats-tile { padding: 13px 12px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--white) 55%, transparent); display: grid; gap: 4px; justify-items: start; min-width: 0; }
 .data-stats-tile b { max-width: 100%; overflow: hidden; font-size: calc(16px * var(--acta-font-scale)); font-weight: 700; letter-spacing: -.01em; text-overflow: ellipsis; white-space: nowrap; }

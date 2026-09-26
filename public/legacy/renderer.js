@@ -152,8 +152,8 @@ function historyText(entry) {
   const dict = historyMessages[settings.language] || historyMessages.zh;
   return (dict[entry.type] || entry.type).replace('{detail}', entry.detail || '');
 }
-function logHistory(type, detail = '') {
-  historyEntries.unshift({ id: uid(), type, detail: String(detail || ''), at: new Date().toISOString() });
+function logHistory(type, detail = '', targetId = '') {
+  historyEntries.unshift({ id: uid(), type, detail: String(detail || ''), at: new Date().toISOString(), targetId: String(targetId || '') });
   if (historyEntries.length > HISTORY_LIMIT) historyEntries.length = HISTORY_LIMIT;
   try { localStorage.setItem(HISTORY_KEY, JSON.stringify(historyEntries)); } catch { /* 存储满时静默，历史为辅助信息 */ }
 }
