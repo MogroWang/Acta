@@ -1056,6 +1056,15 @@ async function main() {
       await waitFor(() => [...document.querySelectorAll('.task-row .task-text')][0].textContent === '乙');
       const orderedMoveWorks = [...document.querySelectorAll('.task-row .task-text')].slice(0, 3).map(row => row.textContent).join('') === '乙甲丙'
         && [...document.querySelectorAll('.task-order-index')].map(i => i.textContent).join('') === '123';
+      [...document.querySelectorAll('.task-row')][1].querySelector('.task-check').click();
+      await waitFor(() => library.items.find(entry => entry.id === orderItem.id)?.tasks[1]?.done);
+      const keptAt = library.items.find(entry => entry.id === orderItem.id).tasks[1].completedAt;
+      [...document.querySelectorAll('.task-row')][2].querySelector('.task-check').click();
+      await waitFor(() => (library.items.find(entry => entry.id === orderItem.id)?.tasks || []).every(task => task.done));
+      const fillState = library.items.find(entry => entry.id === orderItem.id).tasks;
+      const orderedFillWorks = fillState[0].done === true
+        && fillState[1].done === true && fillState[1].completedAt === keptAt
+        && fillState[2].done === true && Boolean(fillState[2].completedAt);
       document.getElementById('taskOrderToggle').click();
       await waitFor(() => !document.querySelector('.task-row.is-ordered'));
       const unorderedRestored = (orderItem.taskOrder || 'unordered') === 'unordered';
@@ -1497,6 +1506,7 @@ async function main() {
         orderTogglePresent,
         orderedShowsIndexes,
         orderedMoveWorks,
+        orderedFillWorks,
         unorderedRestored,
         timeFontSyncsInterface,
         focusAnimationDefaultOn,
@@ -1823,6 +1833,7 @@ async function main() {
     assert.equal(result.orderTogglePresent, true);
     assert.equal(result.orderedShowsIndexes, true);
     assert.equal(result.orderedMoveWorks, true);
+    assert.equal(result.orderedFillWorks, true);
     assert.equal(result.unorderedRestored, true);
     assert.equal(result.timeFontSyncsInterface, true);
     assert.equal(result.focusAnimationDefaultOn, true);

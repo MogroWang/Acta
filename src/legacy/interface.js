@@ -1326,7 +1326,7 @@
       <div class="task-list" id="taskList">
         ${tasks.map((task, index) => `<div class="task-row${ordered ? ' is-ordered' : ''} ${task.done ? 'done' : ''}" data-task-id="${escapeHTML(task.id)}" style="animation-delay:${index * 35}ms">
           <i class="task-done-date"${task.done && task.completedAt && uiSettings.subtaskCompletedDates !== false ? ` data-time="${escapeHTML(task.completedAt)}">${escapeHTML(formatMonthDay(task.completedAt))}</i>` : ' aria-hidden="true"></i>'}
-          ${ordered ? `<i class="task-order-index" aria-hidden="true">${index + 1}</i>` : ''}
+          ${ordered ? `<i class="task-order-index" draggable="true" title="${escapeHTML(t('taskDragHint'))}" aria-hidden="true">${index + 1}</i>` : ''}
           <button class="task-check"><svg><use href="#i-check"/></svg></button>
           <div class="task-text" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('taskPlaceholder')}">${escapeHTML(task.text)}</div>
           ${ordered ? `<span class="task-move"><button class="move-task-up" type="button" title="${escapeHTML(t('taskMoveUp'))}" aria-label="${escapeHTML(t('taskMoveUp'))}"><svg><use href="#i-chevron"/></svg></button><button class="move-task-down" type="button" title="${escapeHTML(t('taskMoveDown'))}" aria-label="${escapeHTML(t('taskMoveDown'))}"><svg><use href="#i-chevron"/></svg></button></span>` : ''}
@@ -1469,12 +1469,30 @@
         touchItem(item);
         renderEditor(); renderList();
       });
-      $$('.task-row').forEach(row => {
+      const taskRows = $$('.task-row');
+      taskRows.forEach(row => {
         const task = item.tasks.find(entry => entry.id === row.dataset.taskId);
         $('.task-check', row).addEventListener('click', () => {
           task.done = !task.done;
           if (task.done) task.completedAt = new Date().toISOString();
           else delete task.completedAt;
+          // 有序模式勾选某一步：此前所有未勾选的步骤一并完成（各记各自
+          // 的完成时刻），已勾选的保持原样不覆写；撤回只撤当前这一步。
+          if (ordered && task.done) {
+            const taskIndex = item.tasks.indexOf(task);
+            item.tasks.forEach((entry, entryIndex) => {
+              if (entryIndex >= taskIndex || entry.done) return;
+              entry.done = true;
+              entry.completedAt = new Date().toISOString();
+              const earlierRow = taskRows[entryIndex];
+              earlierRow?.classList.add('done');
+              const earlierDate = earlierRow?.querySelector('.task-done-date');
+              if (earlierDate) {
+                earlierDate.dataset.time = entry.completedAt;
+                earlierDate.textContent = formatMonthDay(entry.completedAt);
+              }
+            });
+          }
           item.completed = (item.tasks || []).length > 0 && item.tasks.every(entry => entry.done);
           // 勾选/撤回的过渡完全交给 CSS（grid 模板平移、日期淡入、勾选
           // 弹出）：不重建编辑器，快速撤回时过渡从当前插值状态连续反向，
@@ -1519,6 +1537,51 @@
         });
       });
       byId('addTask').addEventListener('click', () => addTask(item));
+      if (ordered) {
+        // 拖动行首序号快速重排：HTML5 DnD 委托在任务列表容器上，
+        // dragover 以鼠标相对目标行中点的位置决定插入到上方或下方。
+        const taskList = byId('taskList');
+        let draggingId = null;
+        const clearDropMarks = () => taskList.querySelectorAll('.task-row').forEach(entry => entry.classList.remove('dragging', 'drop-above', 'drop-below'));
+        taskList.querySelectorAll('.task-order-index').forEach(el => { el.draggable = true; });
+        taskList.addEventListener('dragstart', event => {
+          const dragRow = event.target.closest?.('.task-row');
+          if (!dragRow) return;
+          draggingId = dragRow.dataset.taskId;
+          dragRow.classList.add('dragging');
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', draggingId);
+        });
+        taskList.addEventListener('dragover', event => {
+          if (!draggingId) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'move';
+          const overRow = event.target.closest?.('.task-row');
+          clearDropMarks();
+          if (!overRow || overRow.dataset.taskId === draggingId) return;
+          const rect = overRow.getBoundingClientRect();
+          overRow.classList.add(event.clientY < rect.top + rect.height / 2 ? 'drop-above' : 'drop-below');
+        });
+        taskList.addEventListener('dragend', clearDropMarks);
+        taskList.addEventListener('drop', event => {
+          event.preventDefault();
+          const overRow = event.target.closest?.('.task-row');
+          const from = draggingId ? item.tasks.findIndex(entry => entry.id === draggingId) : -1;
+          const targetIndex = overRow ? item.tasks.findIndex(entry => entry.id === overRow.dataset.taskId) : -1;
+          clearDropMarks();
+          if (!overRow || from < 0 || targetIndex < 0 || from === targetIndex) { draggingId = null; return; }
+          const rect = overRow.getBoundingClientRect();
+          const below = event.clientY >= rect.top + rect.height / 2;
+          let to = targetIndex + (below ? 1 : 0);
+          if (from < to) to -= 1;
+          const [moved] = item.tasks.splice(from, 1);
+          item.tasks.splice(to, 0, moved);
+          draggingId = null;
+          touchItem(item);
+          renderEditor(); renderList();
+          $$('.task-row')[to]?.classList.add('is-new');
+        });
+      }
     }
     byId('todoNotes').addEventListener('input', event => {
       // innerText (unlike textContent) keeps the line breaks the user sees, so re-rendering

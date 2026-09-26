@@ -394,7 +394,14 @@ html[data-desktop-platform="darwin"] .brand { padding-left: 84px; }
 html[data-subtask-dates="off"] .task-done-date { display: none; }
 html[data-subtask-dates="off"] .task-row { grid-template-columns: 22px 1fr 25px; }
 html[data-subtask-dates="off"] .task-row.is-ordered { grid-template-columns: 15px 22px 1fr 21px 25px; }
-.task-order-index { min-width: 0; color: var(--faint); font-size: calc(10px * var(--acta-font-scale)); font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.task-order-index { min-width: 0; color: var(--faint); font-size: calc(10px * var(--acta-font-scale)); font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; cursor: grab; transition: color .15s ease, transform .15s var(--ease-out); }
+.task-order-index:hover { color: var(--sage); transform: scale(1.15); }
+.task-order-index:active { cursor: grabbing; }
+.task-row.dragging { opacity: .45; }
+.task-row { position: relative; }
+.task-row.drop-above::before, .task-row.drop-below::after { content: ""; position: absolute; left: 4px; right: 4px; height: 2px; border-radius: 1px; background: var(--sage); pointer-events: none; }
+.task-row.drop-above::before { top: -6px; }
+.task-row.drop-below::after { bottom: -6px; }
 .task-move { display: grid; grid-template-rows: 1fr 1fr; gap: 1px; }
 .task-move button { width: 20px; height: 19px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--faint); display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .15s ease, background .15s ease, color .15s ease, transform .15s var(--ease-out); }
 .task-move button svg { width: 11px; height: 11px; }
