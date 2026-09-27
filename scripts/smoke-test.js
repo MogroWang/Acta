@@ -193,9 +193,12 @@ async function main() {
       todoNotesField.dispatchEvent(new Event('input', { bubbles:true }));
       const todoNotesKeepsLineBreaks = task.notes === '第一行\\n第二行\\n\\n第四行';
       document.querySelector('#addTask').click();
+      // 无序模式下已完成的子任务会沉到折叠分组，DOM 顺序不再等于插入顺序，
+      // 新加的行必须按 data-task-id 定位（数据驱动，不依赖文档顺序）。
+      const addedTaskId = library.items.find(item => item.id === 'launch-plan').tasks.at(-1).id;
       const todoNotesSurvivesSubtask = document.querySelector('#todoNotes')?.innerHTML.includes('第一行<br>')
         && library.items.find(item => item.id === 'launch-plan').tasks.length === taskBeforeImeEnter + 1;
-      const removeTargetRow = [...document.querySelectorAll('.task-row')].at(-1);
+      const removeTargetRow = document.querySelector('.task-row[data-task-id="' + addedTaskId + '"]');
       removeTargetRow.querySelector('.remove-task').click();
       await waitFor(() => !removeTargetRow.querySelector('.remove-task-confirm').hidden);
       removeTargetRow.querySelector('.confirm-remove-task').click();
@@ -1111,14 +1114,17 @@ async function main() {
         && historyEntries[0].type === 'subtask-removed';
 
       // 编辑区粘贴默认取纯文本：contenteditable 收到富文本剪贴板时按
-      // text/plain 插入（字面文本，不带格式）。
+      // text/plain 插入（字面文本，不带格式）。无序模式下已完成子任务
+      // 收在折叠分组里，先展开才能聚焦编辑。
       window.__actaSmokeStep = 'paste-plaintext';
+      document.getElementById('taskDoneToggle')?.click();
       const pasteTarget = document.querySelector('.task-text');
       pasteTarget.focus();
       const pasteEvent = new Event('paste', { bubbles:true, cancelable:true });
       pasteEvent.clipboardData = { getData: () => '<b>富文本</b>' };
       pasteTarget.dispatchEvent(pasteEvent);
       const pastePlaintextOnly = pasteTarget.textContent.includes('<b>富文本</b>');
+      document.getElementById('taskDoneToggle')?.click();
       // 速记支持打卡式待办：类型可选、时间与子任务字段隐藏、提交创建打卡项。
       window.__actaSmokeStep = 'quick-checkin';
       document.querySelector('#createMenu [data-create="quick"]').click();

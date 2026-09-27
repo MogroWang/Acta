@@ -1159,6 +1159,16 @@ html[data-acta-theme="mono-dark"] .quick-capture-types button.active { backgroun
 .todo-editor #completeItem, .todo-editor .add-task span { color: var(--todo-accent); background: var(--todo-soft); }
 .todo-editor .task-check:hover { border-color: var(--todo-accent); }
 .todo-editor .task-row.done .task-check { border-color: var(--todo-accent); background: var(--todo-accent); }
+/* 无序模式：已完成子任务沉到底部的折叠分组（taskDoneSection），开关行
+   用右向 chevron，展开时转 90° 朝下；组内行略微淡化以示层级。 */
+.task-done-section { margin-top: 2px; }
+.task-done-section[hidden] { display: none; }
+.task-done-toggle { display: flex; align-items: center; gap: 7px; width: 100%; padding: 6px 4px; border: 0; border-radius: 8px; background: transparent; color: var(--faint); font: inherit; font-size: calc(12px * var(--acta-font-scale)); cursor: pointer; text-align: left; }
+.task-done-toggle:hover { color: var(--muted); background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.task-done-toggle svg { width: 12px; flex: 0 0 auto; transition: transform .2s var(--ease-out); }
+.task-done-toggle.is-open svg { transform: rotate(90deg); }
+.task-done-group[hidden] { display: none; }
+.task-done-group .task-row { opacity: .72; }
 .todo-editor .add-task { color: var(--todo-accent); }
 .todo-editor .add-task:hover span { background: color-mix(in srgb, var(--todo-soft) 72%, var(--todo-accent)); }
 .todo-editor .progress-track i { background: var(--todo-accent); }

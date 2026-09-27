@@ -80,7 +80,13 @@
     document.getElementById('splashScreen')?.remove();
     const instance = splashTemplate.cloneNode(true);
     instance.classList.add('is-replaying');
-    document.body.insertBefore(instance, document.querySelector('.app-shell'));
+    // Vue 挂载后 .app-shell 位于 #app 内部而非 body 直接子级：往 body 里
+    // insertBefore 会抛 NotFoundError，预览按钮因此一直静默失效。必须把
+    // 克隆插到 .app-shell 的父节点内，维持 .splash-screen ~ .app-shell
+    // 兄弟选择器驱动的工作区让位与揭示样式。
+    const shell = document.querySelector('.app-shell');
+    if (shell?.parentNode) shell.parentNode.insertBefore(instance, shell);
+    else document.body.appendChild(instance);
     startSplash(instance);
   };
   window.actaSplash = { replay };

@@ -1297,6 +1297,23 @@
     const startLabel = item.startAt ? formatDateTimeSeconds(item.startAt) : metaCopy.notSet;
     const dueLabel = item.dueAt ? formatDateTimeSeconds(item.dueAt) : metaCopy.notSet;
     const ordered = item.taskOrder === 'ordered';
+    // 无序模式把已完成子任务沉到列表末尾的折叠分组里（taskRowHTML 同时
+    // 服务活跃区与该分组）；有序模式保持编号原位布局不变。
+    const doneTasks = tasks.filter(task => task.done);
+    const taskRowHTML = (task, index) => `<div class="task-row${ordered ? ' is-ordered' : ''} ${task.done ? 'done' : ''}" data-task-id="${escapeHTML(task.id)}" style="animation-delay:${index * 35}ms">
+          <i class="task-done-date"${task.done && task.completedAt && uiSettings.subtaskCompletedDates !== false ? ` data-time="${escapeHTML(task.completedAt)}">${escapeHTML(formatMonthDay(task.completedAt))}</i>` : ' aria-hidden="true"></i>'}
+          ${ordered ? `<i class="task-order-index" title="${escapeHTML(t('taskDragHint'))}" aria-hidden="true">${index + 1}</i>` : ''}
+          <button class="task-check"><svg><use href="#i-check"/></svg></button>
+          <div class="task-text" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('taskPlaceholder')}">${escapeHTML(task.text)}</div>
+          ${ordered ? `<span class="task-move"><button class="move-task-up" type="button" title="${escapeHTML(t('taskMoveUp'))}" aria-label="${escapeHTML(t('taskMoveUp'))}"><svg><use href="#i-chevron"/></svg></button><button class="move-task-down" type="button" title="${escapeHTML(t('taskMoveDown'))}" aria-label="${escapeHTML(t('taskMoveDown'))}"><svg><use href="#i-chevron"/></svg></button></span>` : ''}
+          <span class="remove-task-zone">
+            <button class="remove-task" type="button"><svg><use href="#i-close"/></svg></button>
+            <span class="remove-task-confirm" hidden>
+              <button class="confirm-remove-task" type="button" title="${escapeHTML(t('confirm'))}" aria-label="${escapeHTML(t('confirm'))}"><svg><use href="#i-check"/></svg></button>
+              <button class="cancel-remove-task" type="button" title="${escapeHTML(t('cancel'))}" aria-label="${escapeHTML(t('cancel'))}"><svg><use href="#i-close"/></svg></button>
+            </span>
+          </span>
+        </div>`;
     if (item.checkin) {
       const stats = checkinStats(item);
       return `<article class="editor-wrap todo-editor checkin-editor" data-editor-id="${escapeHTML(item.id)}">
@@ -1336,20 +1353,13 @@
       <div class="progress-head"><h2>${t('progress')}</h2><span>${completed} / ${tasks.length} · ${progress}% ${t('done')}</span><button class="task-order-toggle${ordered ? ' active' : ''}" id="taskOrderToggle" type="button" aria-pressed="${ordered}" title="${escapeHTML(t('taskOrderHint'))}" aria-label="${escapeHTML(t('taskOrderHint'))}"><svg><use href="#i-ordered-list"/></svg></button></div>
       <div class="progress-track"><i style="width:${progress}%"></i></div>
       <div class="task-list" id="taskList">
-        ${tasks.map((task, index) => `<div class="task-row${ordered ? ' is-ordered' : ''} ${task.done ? 'done' : ''}" data-task-id="${escapeHTML(task.id)}" style="animation-delay:${index * 35}ms">
-          <i class="task-done-date"${task.done && task.completedAt && uiSettings.subtaskCompletedDates !== false ? ` data-time="${escapeHTML(task.completedAt)}">${escapeHTML(formatMonthDay(task.completedAt))}</i>` : ' aria-hidden="true"></i>'}
-          ${ordered ? `<i class="task-order-index" title="${escapeHTML(t('taskDragHint'))}" aria-hidden="true">${index + 1}</i>` : ''}
-          <button class="task-check"><svg><use href="#i-check"/></svg></button>
-          <div class="task-text" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('taskPlaceholder')}">${escapeHTML(task.text)}</div>
-          ${ordered ? `<span class="task-move"><button class="move-task-up" type="button" title="${escapeHTML(t('taskMoveUp'))}" aria-label="${escapeHTML(t('taskMoveUp'))}"><svg><use href="#i-chevron"/></svg></button><button class="move-task-down" type="button" title="${escapeHTML(t('taskMoveDown'))}" aria-label="${escapeHTML(t('taskMoveDown'))}"><svg><use href="#i-chevron"/></svg></button></span>` : ''}
-          <span class="remove-task-zone">
-            <button class="remove-task" type="button"><svg><use href="#i-close"/></svg></button>
-            <span class="remove-task-confirm" hidden>
-              <button class="confirm-remove-task" type="button" title="${escapeHTML(t('confirm'))}" aria-label="${escapeHTML(t('confirm'))}"><svg><use href="#i-check"/></svg></button>
-              <button class="cancel-remove-task" type="button" title="${escapeHTML(t('cancel'))}" aria-label="${escapeHTML(t('cancel'))}"><svg><use href="#i-close"/></svg></button>
-            </span>
-          </span>
-        </div>`).join('')}
+        ${ordered
+          ? tasks.map((task, index) => taskRowHTML(task, index)).join('')
+          : tasks.filter(task => !task.done).map((task, index) => taskRowHTML(task, index)).join('')
+            + (doneTasks.length ? `<div class="task-done-section" id="taskDoneSection">
+          <button type="button" class="task-done-toggle" id="taskDoneToggle" aria-expanded="false" title="${escapeHTML(t('done'))}"><svg aria-hidden="true"><use href="#i-chevron"/></svg><span>${escapeHTML(t('done'))} ${doneTasks.length}</span></button>
+          <div class="task-done-group" id="taskDoneGroup" hidden>${doneTasks.map((task, index) => taskRowHTML(task, index)).join('')}</div>
+        </div>` : '')}
       </div>
       <button class="add-task" id="addTask"><span><svg><use href="#i-plus"/></svg></span>${t('addTask')}</button>
       <section class="note-block"><h2>${t('description')}</h2><div class="todo-notes" id="todoNotes" contenteditable="true" inputmode="text" spellcheck="true" autocapitalize="sentences" data-placeholder="${t('descriptionPlaceholder')}">${escapeHTML(item.notes || '').replace(/\n/g, '<br>')}</div></section>
@@ -1544,6 +1554,36 @@
           updateCard(item);
           renderList();
           renderSidebar();
+          // 无序模式：完成/撤回的过渡播完后把行移入（或移出）底部折叠
+          // 分组，实现"已完成自动置底并折叠"；移动的是同一节点，事件
+          // 绑定保持有效。快速连点以最后一次状态为准；首次完成时分组
+          // 尚未渲染，直接重建编辑器生成折叠分组。
+          if (!ordered) {
+            clearTimeout(row.__taskMoveTimer);
+            row.__taskMoveTimer = setTimeout(() => {
+              if (!row.isConnected) return;
+              const doneCountNow = item.tasks.filter(entry => entry.done).length;
+              if (task.done && !byId('taskDoneSection')) {
+                renderEditor();
+                return;
+              }
+              const doneSection = byId('taskDoneSection');
+              const doneGroupEl = byId('taskDoneGroup');
+              const toggleEl = byId('taskDoneToggle');
+              if (!doneSection || !doneGroupEl || !toggleEl) return;
+              if (task.done) {
+                doneGroupEl.appendChild(row);
+                doneGroupEl.hidden = true;
+                toggleEl.classList.remove('is-open');
+                toggleEl.setAttribute('aria-expanded', 'false');
+              } else if (doneGroupEl.contains(row)) {
+                doneSection.parentNode.insertBefore(row, doneSection);
+              }
+              toggleEl.hidden = doneCountNow === 0;
+              doneSection.hidden = doneCountNow === 0;
+              toggleEl.querySelector('span').textContent = `${t('done')} ${doneCountNow}`;
+            }, 620);
+          }
         });
         $('.task-text', row).addEventListener('input', event => { task.text = event.target.textContent; touchItem(item); updateCard(item); });
         $('.task-text', row).addEventListener('keydown', event => {
@@ -1580,6 +1620,15 @@
           item.completed = item.tasks.length > 0 && item.tasks.every(entry => entry.done);
           touchItem(item); renderEditor(); renderList(); renderSidebar();
         });
+      });
+      // 无序模式的折叠分组开关：默认收起，点击展开/收起已完成子任务。
+      const doneToggle = byId('taskDoneToggle');
+      const doneGroup = byId('taskDoneGroup');
+      doneToggle?.addEventListener('click', () => {
+        const open = doneGroup.hidden;
+        doneGroup.hidden = !open;
+        doneToggle.classList.toggle('is-open', open);
+        doneToggle.setAttribute('aria-expanded', String(open));
       });
       byId('addTask').addEventListener('click', () => addTask(item));
       if (ordered) {
