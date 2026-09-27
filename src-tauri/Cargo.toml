@@ -33,7 +33,8 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 
 [target."cfg(windows)".dependencies]
 # 任务栏（ICON_BIG）图标设置：Tauri 的 set_icon 只写标题栏小图标。
-windows = { version = "0.61", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
+# 版本必须与 tauri crate 使用的 windows crate 一致，否则 hwnd 类型对不上。
+windows = { version = "0.62", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6.2"

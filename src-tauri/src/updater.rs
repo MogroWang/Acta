@@ -271,19 +271,29 @@ pub async fn prepare_restart(payload: String, version: String) -> Result<bool, S
 /// - Windows：exe 自身；
 /// - macOS：从 /Applications 或 ~/Applications 运行 → 原地替换；从 dmg 等
 ///   临时位置运行 → 作为全新安装落到 /Applications。
+/// 平台差异必须用 #[cfg] 编译期分流：cfg!() 是运行时布尔，两个分支在所有
+/// 平台都会被编译，Windows 上会引用不存在的 macOS 专用函数。
 fn resolve_update_target(self_path: &Path) -> Result<PathBuf, String> {
-    if cfg!(target_os = "windows") {
+    #[cfg(target_os = "windows")]
+    {
         return Ok(self_path.to_path_buf());
     }
-    if cfg!(target_os = "macos") {
-        let bundle = running_bundle(self_path).ok_or("无法定位当前应用包，请从「应用程序」文件夹运行更新")?;
+    #[cfg(target_os = "macos")]
+    {
+        let bundle =
+            running_bundle(self_path).ok_or("无法定位当前应用包，请从「应用程序」文件夹运行更新")?;
         let parent = bundle.parent().map(Path::to_path_buf).unwrap_or_default();
-        let home_applications = std::env::var("HOME").map(|home| PathBuf::from(home).join("Applications")).unwrap_or_default();
-        if parent == PathBuf::from("/Applications") || (!home_applications.as_os_str().is_empty() && parent == home_applications) {
+        let home_applications = std::env::var("HOME")
+            .map(|home| PathBuf::from(home).join("Applications"))
+            .unwrap_or_default();
+        if parent == PathBuf::from("/Applications")
+            || (!home_applications.as_os_str().is_empty() && parent == home_applications)
+        {
             return Ok(bundle);
         }
         return Ok(PathBuf::from("/Applications").join(bundle.file_name().ok_or("应用包名称无效")?));
     }
+    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
     Err("当前平台不支持应用内自动更新".into())
 }
 
@@ -475,7 +485,7 @@ fn install_windows(app: &AppHandle, manifest: &UpdateManifest) -> Result<String,
     move_file(&manifest.payload, target).map_err(|error| format!("无法放置新版本：{error}"))?;
     set_stage(app, "launch", "正在启动新版本…");
     Command::new(target).spawn().map_err(|error| format!("无法启动新版本：{error}"))?;
-    Ok("更新完成")
+    Ok("更新完成".to_string())
 }
 
 /// 新版本启动后清理上一次更新留下的旧 exe（向导进程退出前无法删除自己的映像）。
