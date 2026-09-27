@@ -3,7 +3,8 @@
   "identifier": "main-capability",
   "description": "Acta desktop window capabilities",
   "windows": [
-    "main"
+    "main",
+    "updater"
   ],
   "permissions": [
     "core:default",

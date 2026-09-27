@@ -110,6 +110,21 @@
     },
     async openPath(path) {
       try { await opener.openPath(path); } catch { /* 忽略打开失败 */ }
+    },
+    checkAppUpdate() {
+      return invoke('check_app_update');
+    },
+    downloadAppUpdate(request) {
+      return invoke('download_app_update', request);
+    },
+    prepareUpdateRestart(payload, version) {
+      return invoke('prepare_update_restart', { payload, version });
+    },
+    onDownloadProgress(handler) {
+      return tauri.event.listen('update://download', handler);
+    },
+    closeAppWindow() {
+      return currentWindow.close();
     }
   });
 

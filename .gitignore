@@ -48,3 +48,6 @@ android/release-keystore-github-secrets.txt
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# DMG 本地打包暂存目录
+dmg-stage/

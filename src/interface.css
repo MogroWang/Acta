@@ -2141,7 +2141,7 @@ body.trash-view .list-footer { background: color-mix(in srgb, var(--note-soft) 1
 .oobe-foot { padding: 15px 24px 18px; border-top: 1px solid var(--line); background: var(--panel); display: flex; align-items: center; gap: 10px; }
 .oobe-step-label { color: var(--faint); font-size: calc(10px * var(--acta-font-scale)); font-variant-numeric: tabular-nums; }
 .oobe-foot-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.oobe-foot #oobeNext svg { width: 13px; transform: rotate(180deg); }
+.oobe-foot #oobeNext svg { width: 13px; }
 .oobe-foot #oobeBack[hidden] { display: none; }
 .oobe-foot .settings-button[disabled] { opacity: .5; pointer-events: none; }
 

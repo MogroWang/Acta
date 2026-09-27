@@ -2882,9 +2882,10 @@
   document.querySelectorAll('[data-settings-page]').forEach(button => button.addEventListener('click', () => switchSettingsPage(button.dataset.settingsPage)));
   document.addEventListener('keydown', event => { if (!isImeComposing(event) && event.key === 'Escape') closeSettings(); });
 
-  const ACTA_RELEASES_URL = 'https://github.com/MogroWang/Acta/releases';
-  const ACTA_LATEST_RELEASE_API = 'https://api.github.com/repos/MogroWang/Acta/releases/latest';
-  const ACTA_TAGS_API = 'https://api.github.com/repos/MogroWang/Acta/tags';
+  // 注意仓库归属是 MogroWangStudio：此前写成 MogroWang 导致检查永远 404。
+  const ACTA_RELEASES_URL = 'https://github.com/MogroWangStudio/Acta/releases';
+  const ACTA_LATEST_RELEASE_API = 'https://api.github.com/repos/MogroWangStudio/Acta/releases/latest';
+  const ACTA_TAGS_API = 'https://api.github.com/repos/MogroWangStudio/Acta/tags';
   const updateMessages = {
     zh: { checking:'正在检查更新…', latest:'当前已是最新版本（{version}）。', available:'发现新版本 {remote}，{link}。', noRelease:'尚未在 GitHub 上发布版本，{link}。', error:'检查更新失败：{detail}', downloadLink:'前往下载', releasesLink:'查看发布页' },
     en: { checking:'Checking for updates…', latest:'Acta is up to date ({version}).', available:'A new version {remote} is available. {link}.', noRelease:'No releases have been published on GitHub yet. {link}.', error:'Update check failed: {detail}', downloadLink:'Get the update', releasesLink:'View releases' },
@@ -2948,6 +2949,18 @@
     if (btn) { btn.classList.add('checking'); btn.disabled = true; }
     setUpdateStatus('checking');
     try {
+      // 桌面端走 Rust 命令：返回分平台安装包信息，确认后进入应用内更新
+      // 流程（下载 → 重启 → 更新向导）；否则退回网页式的发布页链接。
+      if (window.actaDesktop?.checkAppUpdate) {
+        const info = await window.actaDesktop.checkAppUpdate();
+        if (!info) {
+          setUpdateStatus('latest', { version: currentActaVersion() });
+        } else {
+          setUpdateStatus('available', { remote: info.version, url: info.url });
+          window.actaUpdater?.open(info, { fromAbout: true });
+        }
+        return;
+      }
       const response = await fetch(ACTA_LATEST_RELEASE_API, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
       if (response.status === 404) {
         const tagsResponse = await fetch(ACTA_TAGS_API, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });

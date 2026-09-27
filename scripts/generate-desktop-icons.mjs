@@ -186,7 +186,10 @@ function downscale2x(image) {
 
 function applyRoundedCorners(image, radiusPercent) {
   const { width, height } = image;
-  const data = image.channels === 4 ? image.data : toRGBA(image);
+  // RGBA 源必须拷贝一份：main() 在 Windows 打包前调用本函数，之后还要用
+  // 原始 source 生成满版的 icon-512-square.png，原地写 alpha 会把烘焙圆角
+  // 泄漏进那份"完全 opaque"的默认预设。
+  const data = image.channels === 4 ? Buffer.from(image.data) : toRGBA(image);
   const radius = Math.round(width * radiusPercent);
   const radiusSq = radius * radius;
   // Points outside the rounded rect are exactly those inside a corner square

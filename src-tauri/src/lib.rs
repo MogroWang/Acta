@@ -16,6 +16,30 @@ use std::{
 use tauri::{AppHandle, Manager, WebviewWindow};
 use url::Url;
 
+mod updater;
+
+// 自更新命令的薄包装：#[tauri::command] 的隐藏宏留在 lib.rs 作用域，
+// 避免 generate_handler! 跨模块引用私有宏的可见性问题。
+#[tauri::command]
+async fn check_app_update(app: AppHandle) -> Result<Option<updater::UpdateInfo>, String> {
+    updater::check_for_update(app).await
+}
+
+#[tauri::command]
+async fn download_app_update(
+    window: WebviewWindow,
+    url: String,
+    asset_name: String,
+    expected_size: u64,
+) -> Result<String, String> {
+    updater::download_update(window, url, asset_name, expected_size).await
+}
+
+#[tauri::command]
+async fn prepare_update_restart(payload: String, version: String) -> Result<bool, String> {
+    updater::prepare_restart(payload, version).await
+}
+
 const SYNC_FILE: &str = "acta-library.json";
 const DATA_MANIFEST_FILE: &str = "acta-manifest.json";
 const CLASSIFICATIONS_FILE: &str = "classifications.json";
@@ -781,18 +805,44 @@ fn app_icon_preset_bytes(preset: &str) -> Option<&'static [u8]> {
     }
 }
 
+/// 软件自身配置（主题色、应用图标、窗口状态）所在目录：跟随解析出的软件
+/// 数据文件夹——便携版即 exe 旁的 data，不再落入系统 AppData；解析失败
+/// （如 exe 目录只读且无记录）才回退系统 AppData。
+fn software_config_dir(app: &AppHandle) -> PathBuf {
+    resolve_app_data_path(app)
+        .ok()
+        .flatten()
+        .unwrap_or_else(|| app.path().app_data_dir().unwrap_or_default())
+}
+
+/// 3.2.x 及之前主题色/应用图标/窗口状态/设置镜像固定写在系统 AppData，与
+/// "数据跟着程序走"的便携语义相悖；启动时把它们迁到当前配置目录（可移动
+/// 则移动，跨卷时退化为复制后删除源文件）。
+fn migrate_legacy_config_files(app: &AppHandle) {
+    let system_dir = app.path().app_data_dir().unwrap_or_default();
+    let target_dir = software_config_dir(app);
+    if system_dir.as_os_str().is_empty() || system_dir == target_dir {
+        return;
+    }
+    for file_name in [APP_ICON_FILE, THEME_COLOR_FILE, WINDOW_STATE_FILE, APP_DATA_SETTINGS_FILE] {
+        let from = system_dir.join(file_name);
+        let to = target_dir.join(file_name);
+        if from.is_file() && !to.exists() {
+            if fs::rename(&from, &to).is_err() {
+                if fs::copy(&from, &to).is_ok() {
+                    let _ = fs::remove_file(&from);
+                }
+            }
+        }
+    }
+}
+
 fn persisted_app_icon_path(app: &AppHandle) -> Result<PathBuf, String> {
-    app.path()
-        .app_data_dir()
-        .map(|directory| directory.join(APP_ICON_FILE))
-        .map_err(|error| error.to_string())
+    Ok(software_config_dir(app).join(APP_ICON_FILE))
 }
 
 fn persisted_theme_color_path(app: &AppHandle) -> Result<PathBuf, String> {
-    app.path()
-        .app_data_dir()
-        .map(|directory| directory.join(THEME_COLOR_FILE))
-        .map_err(|error| error.to_string())
+    Ok(software_config_dir(app).join(THEME_COLOR_FILE))
 }
 
 fn parse_theme_color(raw: &str) -> Option<tauri::window::Color> {
@@ -818,10 +868,7 @@ struct WindowState {
 static WINDOW_STATE_CACHE: std::sync::Mutex<Option<WindowState>> = std::sync::Mutex::new(None);
 
 fn persisted_window_state_path(app: &AppHandle) -> Result<PathBuf, String> {
-    app.path()
-        .app_data_dir()
-        .map(|directory| directory.join(WINDOW_STATE_FILE))
-        .map_err(|error| error.to_string())
+    Ok(software_config_dir(app).join(WINDOW_STATE_FILE))
 }
 
 fn snapshot_window_state(window: &WebviewWindow) -> Option<WindowState> {
@@ -1176,8 +1223,8 @@ fn resolve_app_data_path(app: &AppHandle) -> Result<Option<PathBuf>, String> {
     }
     if let Some(portable) = portable_data_dir() {
         if prepare_portable_dir(&portable).is_ok() {
-            // 记录下来，后续启动直接命中，且"打开文件夹"等操作有稳定路径。
-            let _ = fs::write(root.join(APP_DATA_DIR_FILE), format!("{}\n", portable.to_string_lossy()));
+            // 便携默认直接采用，不往系统 AppData 写记录：便携语义下 AppData
+            // 里不应有本软件的任何文件。此检测每次启动都会重新命中。
             return Ok(Some(portable));
         }
     }
@@ -1185,7 +1232,7 @@ fn resolve_app_data_path(app: &AppHandle) -> Result<Option<PathBuf>, String> {
 }
 
 /// 便携版数据目录：exe 所在目录下的 data 文件夹。
-fn portable_data_dir() -> Option<PathBuf> {
+pub(crate) fn portable_data_dir() -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let parent = exe.parent()?;
     // macOS 的 exe 在 Acta.app/Contents/MacOS 里，往 .app 内部写数据既会被签名
@@ -1198,16 +1245,21 @@ fn portable_data_dir() -> Option<PathBuf> {
 
 fn prepare_portable_dir(dir: &Path) -> Result<(), String> {
     fs::create_dir_all(dir).map_err(|error| error.to_string())?;
-    fs::write(dir.join(APP_DATA_MARKER_FILE), "Acta software data folder\n")
-        .map_err(|error| error.to_string())
+    let marker = dir.join(APP_DATA_MARKER_FILE);
+    if !marker.exists() {
+        fs::write(marker, "Acta software data folder\n").map_err(|error| error.to_string())?;
+    }
+    Ok(())
 }
 
 #[tauri::command]
 fn resolve_app_data_dir(app: AppHandle) -> Result<Value, String> {
-    let default_path = app
-        .path()
-        .app_data_dir()
+    // OOBE 展示的"默认位置"：便携版优先给 exe 旁的 data 文件夹（可创建时），
+    // 否则才是系统 AppData。
+    let default_path = portable_data_dir()
+        .filter(|dir| prepare_portable_dir(dir).is_ok())
         .map(|dir| dir.to_string_lossy().to_string())
+        .or_else(|| app.path().app_data_dir().ok().map(|dir| dir.to_string_lossy().to_string()))
         .unwrap_or_default();
     Ok(match resolve_app_data_path(&app)? {
         Some(path) => json!({ "status": "ready", "path": path.to_string_lossy(), "defaultPath": default_path }),
@@ -1309,12 +1361,59 @@ fn purge_legacy_service_worker() {}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     purge_legacy_service_worker();
+    // 更新向导模式：主应用写好任务单后以 --acta-update-wizard 拉起本进程的
+    // 第二个实例，独立小窗口展示安装进度；与主应用的常规启动完全隔离。
+    let cli_args: Vec<String> = std::env::args().collect();
+    let wizard_manifest = cli_args
+        .iter()
+        .position(|argument| argument == updater::WIZARD_FLAG)
+        .and_then(|position| cli_args.get(position + 1))
+        .map(std::path::PathBuf::from);
+    // generate_context! 每个二进制只能展开一次（macOS Info.plist 嵌入符号），
+    // 主应用与更新向导共用这一次展开。
+    let context = tauri::generate_context!();
+    if let Some(manifest_path) = wizard_manifest {
+        if manifest_path.is_file() {
+            updater::build_wizard_app(context, manifest_path).run(|_app_handle, _event| {});
+            return;
+        }
+        eprintln!("更新清单不存在：{}", manifest_path.display());
+        return;
+    }
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let app_handle = app.handle();
+            // 主窗口在 tauri.conf.json 里是 create:false，这里手动按同一份配置
+            // 创建：更新向导模式需要完全绕开主窗口，配置窗口自动创建做不到这点。
+            let window_config = app
+                .handle()
+                .config()
+                .app
+                .windows
+                .iter()
+                .find(|window| window.label == "main")
+                .cloned();
+            // Windows 便携版把 WebView2 用户数据（localStorage、缓存）也固定到
+            // exe 旁的 data\webview，做到 AppData 零残留；目录不可写时退回默认。
+            // （mut 仅 Windows 分支使用。）
+            #[allow(unused_mut)]
+            let mut window_builder = tauri::WebviewWindowBuilder::from_config(
+                app_handle,
+                window_config.as_ref().ok_or("主窗口配置缺失")?,
+            )?;
+            #[cfg(target_os = "windows")]
+            if let Some(portable) = portable_data_dir() {
+                if fs::create_dir_all(&portable).is_ok() {
+                    window_builder = window_builder.data_directory(portable.join("webview"));
+                }
+            }
+            window_builder.build()?;
+            updater::cleanup_stale_backup();
+            // 旧版本把主题色/图标/窗口状态写在系统 AppData，先搬到当前配置目录。
+            migrate_legacy_config_files(app_handle);
             let stored_icon = persisted_app_icon_path(app_handle)
                 .ok()
                 .and_then(|path| fs::read(path).ok());
@@ -1417,9 +1516,12 @@ pub fn run() {
             resolve_app_data_dir,
             prepare_app_data_dir,
             load_app_data_settings,
-            save_app_data_settings
+            save_app_data_settings,
+            check_app_update,
+            download_app_update,
+            prepare_update_restart
         ])
-        .build(tauri::generate_context!())
+        .build(context)
         .expect("error while building Acta");
     // Any other exit path (Cmd+Q, taskbar quit, ...) also lands the latest
     // geometry on disk; the in-memory cache covers windows already destroyed.
