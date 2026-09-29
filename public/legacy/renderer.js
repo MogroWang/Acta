@@ -282,6 +282,19 @@ let calendarMotion = '';
 let calendarMotionTimer = null;
 let selectedId = library.items.find(item => !item.deletedAt)?.id || null;
 let searchQuery = '';
+// —— 已完成待办自动置底 ——
+// 勾选完成后待办先原地停留一段可配置的延迟（等勾选动效播完，也给用户留出
+// 撤回的时间），再把卡片以非线性动效移动到列表末尾（或从被过滤的列表中淡出）。
+// 等待期间该待办按「冻结顺序」参与排序与筛选：其它重渲染（搜索、筛选、勾选
+// 子任务）都不会让它提前跳动。偏好由 interface.js 写在 <html data-completed-todo-sink*>。
+const pendingSink = new Map();          // 待办 id -> 延迟计时器
+let sinkFrozenOrder = [];               // 置底等待期间冻结的卡片顺序（当前视图上下文）
+let sinkContext = { view: '', filter: '' };
+let sinkRenderQueued = false;           // 置底重渲染信号：由延迟计时器置位
+const lastRenderCompletion = new Map(); // 待办 id -> 上次渲染时的完成态（用于识别完成瞬间）
+const completedTodoSinkEnabled = () => document.documentElement.dataset.completedTodoSink !== 'off';
+const completedTodoSinkDelay = () => Math.min(10000, Math.max(0, Number(document.documentElement.dataset.completedTodoSinkDelay) || 1000));
+const completedTodoSinkView = () => currentView === 'todos' || (String(currentView).startsWith('folder:') && currentFilter === 'todo');
 let mobileEditorOpen = false;
 let saveTimer;
 let toastTimer;
@@ -1216,10 +1229,10 @@ function getVisibleItems() {
   if (currentView === 'calendar') items = items.filter(item => (item.type === 'todo' && todoIsScheduled(item)) || item.type === 'note');
   if (currentView === 'inbox') items = items.filter(item => !isTodoComplete(item));
   if (currentView === 'today') items = items.filter(item => item.type === 'todo' && todoScheduleDate(item) === todayISO() && !isTodoComplete(item));
-  if (currentView === 'todos') items = items.filter(item => item.type === 'todo' && (settings.showCompletedTodos || !isTodoComplete(item)));
+  if (currentView === 'todos') items = items.filter(item => item.type === 'todo' && (settings.showCompletedTodos || !isTodoComplete(item) || pendingSink.has(item.id)));
   if (currentView === 'notes') items = items.filter(item => item.type === 'note');
   if (currentView.startsWith('folder:')) items = items.filter(item => item.folderId === currentView.split(':')[1]
-    && (item.type === 'note' || settings.showCompletedTodos || !isTodoComplete(item)));
+    && (item.type === 'note' || settings.showCompletedTodos || !isTodoComplete(item) || pendingSink.has(item.id)));
   const viewContext = listViewContext();
   const filterContext = listFilterContext();
   if (viewContext === 'mixed' && currentFilter !== 'all') items = items.filter(item => item.type === currentFilter);
@@ -1299,6 +1312,19 @@ function getVisibleItems() {
   };
   const compareBySortMode = listSortComparers[listSortMode] || ((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
   if (currentView === 'trash') return items;
+  // 置底等待期间沿用冻结顺序：完成瞬间触碰了 updatedAt，若按正常比较器排序，
+  // 待办会在延迟期间跳到未完成区的顶部而不是原地停留。
+  if (pendingSink.size && sinkContext.view === currentView && sinkContext.filter === currentFilter && sinkFrozenOrder.length) {
+    const orderIndex = new Map(sinkFrozenOrder.map((id, index) => [id, index]));
+    return items.sort((a, b) => {
+      const aIndex = orderIndex.get(a.id);
+      const bIndex = orderIndex.get(b.id);
+      if (aIndex !== undefined || bIndex !== undefined) {
+        return (aIndex ?? Number.MAX_SAFE_INTEGER) - (bIndex ?? Number.MAX_SAFE_INTEGER);
+      }
+      return compareBySortMode(a, b);
+    });
+  }
   return items.sort((a, b) => {
     if (taskFocused && a.type === 'todo' && b.type === 'todo') {
       const completionDifference = Number(isTodoComplete(a)) - Number(isTodoComplete(b));
@@ -1922,7 +1948,98 @@ function bindDeleteConfirmDialog() {
   });
 }
 
+// 每次渲染时对比各待办的完成态：识别「未完成 → 已完成」的瞬间，在可置底的
+// 列表视图（所有待办、归类的待办筛选）布置底延迟计时器；视图上下文变化或
+// 撤回完成时收回等待。previousOrder 是本次渲染前卡片的 DOM 顺序。
+function syncCompletedTodoSink(previousOrder) {
+  const eligible = completedTodoSinkView() && completedTodoSinkEnabled() && !reduceWindowMotion();
+  if (!eligible || sinkContext.view !== currentView || sinkContext.filter !== currentFilter) {
+    if (pendingSink.size) {
+      pendingSink.forEach(timer => clearTimeout(timer));
+      pendingSink.clear();
+    }
+    sinkFrozenOrder = [];
+    sinkContext = { view: eligible ? currentView : '', filter: eligible ? currentFilter : '' };
+  }
+  const liveIds = new Set();
+  activeItems().forEach(item => {
+    if (item.type !== 'todo') return;
+    liveIds.add(item.id);
+    const complete = isTodoComplete(item);
+    const previouslyComplete = lastRenderCompletion.get(item.id);
+    lastRenderCompletion.set(item.id, complete);
+    if (!complete) {
+      // 撤回完成：取消进行中的置底等待，卡片原地恢复。
+      if (pendingSink.has(item.id)) {
+        clearTimeout(pendingSink.get(item.id));
+        pendingSink.delete(item.id);
+        if (!pendingSink.size) sinkFrozenOrder = [];
+      }
+      return;
+    }
+    if (previouslyComplete === false && !pendingSink.has(item.id) && eligible) {
+      // 冻结当前顺序，让该待办在延迟期间原地停留；多个待办相继完成时，
+      // 以屏幕上的现状（含此前冻结的结果）为准重新冻结。
+      pendingSink.set(item.id, setTimeout(() => {
+        pendingSink.forEach(timer => clearTimeout(timer));
+        pendingSink.clear();
+        sinkFrozenOrder = [];
+        // 「显示已完成」关闭时完成的待办不会留在列表里：先淡出卡片再重渲染，
+        // 避免延迟停留后突然消失。
+        if (!settings.showCompletedTodos && !reduceWindowMotion()) {
+          const card = $('#itemList')?.querySelector(`.item-card[data-id="${CSS.escape(item.id)}"]`);
+          if (card) {
+            const fade = card.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: 'ease-out', fill: 'forwards' });
+            fade.onfinish = () => { sinkRenderQueued = true; renderList(); };
+            return;
+          }
+        }
+        sinkRenderQueued = true;
+        renderList();
+      }, completedTodoSinkDelay()));
+      sinkContext = { view: currentView, filter: currentFilter };
+      sinkFrozenOrder = [...previousOrder];
+    }
+  });
+  // 待办被移入回收站或彻底删除后不再参与等待。
+  pendingSink.forEach((timer, id) => {
+    if (!liveIds.has(id)) {
+      clearTimeout(timer);
+      pendingSink.delete(id);
+    }
+  });
+  if (!pendingSink.size) sinkFrozenOrder = [];
+}
+
+// 置底落位动效：把移位的卡片（被移动的待办与其上方腾位的卡片）从旧位置
+// 平滑归位。缓动与界面统一的 --ease-out 同曲线，强减速无非线性回弹——
+// 这是按钮触发的状态提交，不带手势动量，不做超调。
+function playCompletedSinkMotion(list, previousCards) {
+  if (reduceWindowMotion() || !previousCards.size) return;
+  list.querySelectorAll('.item-card').forEach(card => {
+    const previous = previousCards.get(card.dataset.id);
+    if (!previous) return;
+    const current = card.getBoundingClientRect();
+    const dx = previous.left - current.left;
+    const dy = previous.top - current.top;
+    if (Math.abs(dx) < 2 && Math.abs(dy) < 2) return;
+    card.animate(
+      [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }],
+      { duration: 520, easing: 'cubic-bezier(.16, 1, .3, 1)' }
+    );
+  });
+}
+
 function renderList() {
+  const sinkList = $('#itemList');
+  const sinkCards = sinkList ? [...sinkList.querySelectorAll('.item-card')] : [];
+  const sinkPreviousOrder = sinkCards.map(card => card.dataset.id);
+  const sinkPreviousRects = sinkRenderQueued || pendingSink.size
+    ? new Map(sinkCards.map(card => [card.dataset.id, card.getBoundingClientRect()]))
+    : null;
+  const sinking = sinkRenderQueued;
+  sinkRenderQueued = false;
+  syncCompletedTodoSink(sinkPreviousOrder);
   syncCalendarShell();
   syncListFilterUI();
   const list = $('#itemList');
@@ -2004,6 +2121,11 @@ function renderList() {
         : `<span>${completed}/${total}</span><span class="mini-progress"><i style="width:${progress}%"></i></span>`) : ''}</div>
     </button>`;
   }).join('');
+  if (sinking && sinkPreviousRects) {
+    // 置底落位：抑制入场级联重放，只播移位卡片的位置动效。
+    document.body.classList.add('acta-steady');
+    playCompletedSinkMotion(list, sinkPreviousRects);
+  }
 }
 
 function editorTop(item) {
@@ -2826,12 +2948,28 @@ function bindNoteEditor(item) {
 function addTask(item) {
   item.tasks ||= [];
   item.completed = false;
-  item.tasks.push({ id: uid(), text: '', done: false });
+  const task = { id: uid(), text: '', done: false };
+  item.tasks.push(task);
   touchItem(item); renderEditor(); renderList();
-  requestAnimationFrame(() => {
-    const rows = $$('.task-text');
-    rows.at(-1)?.focus();
-  });
+  requestAnimationFrame(() => focusNewTaskRow(task.id));
+  return task.id;
+}
+
+// 新行要立即可以输入：聚焦它的正文区并滚动到可视位置。注意不能取
+// .task-text 的最后一项——无序模式底部还有折叠的已完成分组，新行
+// （未完成）永远在活跃区，按 id 定位才准确。
+function focusNewTaskRow(taskId) {
+  const row = document.querySelector(`.task-row[data-task-id="${CSS.escape(taskId)}"]`);
+  const text = row && !row.closest('#taskDoneGroup') ? $('.task-text', row) : null;
+  if (!text) return;
+  const pane = $('#editorPane');
+  if (pane) {
+    const rowRect = row.getBoundingClientRect();
+    const paneRect = pane.getBoundingClientRect();
+    const fullyVisible = rowRect.top >= paneRect.top && rowRect.bottom <= paneRect.bottom;
+    if (!fullyVisible) row.scrollIntoView({ block: 'center', behavior: reduceWindowMotion() ? 'auto' : 'smooth' });
+  }
+  text.focus({ preventScroll: true });
 }
 
 function linkItems(item, linked) {

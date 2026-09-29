@@ -792,11 +792,27 @@ fn decode_app_icon(data_url: &str) -> Result<Vec<u8>, String> {
 /// 画布管线在个别环境下不可用（CSP、协议染色等），此时前端发送空 dataURL +
 /// 预设名，由 Rust 侧用这份内置资产兜底应用并持久化。
 fn app_icon_preset_bytes(preset: &str) -> Option<&'static [u8]> {
+    #[cfg(target_os = "macos")]
+    if macos_version_major().unwrap_or(0) >= 26 {
+        // macOS 26+ 与前端保持一致：走烘焙了系统 squircle 的专属版本
+        // （scripts/generate-macos26-icons.mjs 生成），运行时不再依赖
+        // 系统遮罩（运行时设置的 Dock 图标没有系统遮罩）。
+        let masked: Option<&'static [u8]> = match preset {
+            "default" => Some(include_bytes!("../../public/icons/macos26/default.png").as_slice()),
+            "positive" => Some(include_bytes!("../../public/icons/macos26/positive.png").as_slice()),
+            "outline" => Some(include_bytes!("../../public/icons/macos26/outline.png").as_slice()),
+            "original" => Some(include_bytes!("../../public/icons/macos26/original.png").as_slice()),
+            _ => None,
+        };
+        if masked.is_some() {
+            return masked;
+        }
+    }
     match preset {
         // "default" 用打包 macOS 图标同一份 full-bleed 资产：无透明边距、
-        // 无烘焙圆角，macOS 26+ 的系统 Liquid Glass 遮罩与 Windows 的
-        // 原样显示都以此为基准。icon-512.png 是 PWA 图标（自带圆角，
-        // manifest 的 "any" 尺寸继续引用），不能作桌面预设源。
+        // 无烘焙圆角，Windows 的原样显示与 macOS 26 以下的居中留边都以此
+        // 为基准。icon-512.png 是 PWA 图标（自带圆角，manifest 的 "any"
+        // 尺寸继续引用），不能作桌面预设源。
         "default" => Some(include_bytes!("../../public/icons/icon-512-square.png").as_slice()),
         "positive" => Some(include_bytes!("../../public/icons/app-icon-positive-page.png").as_slice()),
         "outline" => Some(include_bytes!("../../public/icons/app-icon-outlined-page.png").as_slice()),
@@ -948,7 +964,7 @@ fn set_macos_dock_icon(bytes: &[u8]) -> Result<(), String> {
 
     let mtm = MainThreadMarker::new().ok_or_else(|| "应用图标只能在主线程更新".to_string())?;
     let payload = if macos_version_major().unwrap_or(0) >= 26 {
-        macos_full_bleed_dock_bytes(bytes)
+        macos26_dock_bytes(bytes)
     } else {
         bytes.to_vec()
     };
@@ -962,15 +978,31 @@ fn set_macos_dock_icon(bytes: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
-/// macOS 26 (Tahoe) 起系统会为 Dock 图标统一叠加 Liquid Glass 圆角遮罩，
-/// 两类传统资产会被二次加工：带透明边距的版式被整体收小一圈；烘焙了圆角
-/// （四角透明）的资产与系统遮罩叠出双重圆角。分别处理：前者裁掉透明边距
-/// 铺满画布（full-bleed），后者中心放大 1.25 倍让烘焙圆角退到遮罩之外，
-/// 让遮罩裁出的尺寸与形状和新系统应用一致；更早的系统不渲染该遮罩，保留
-/// 原始资产。只影响本次设置 Dock 的位图，持久化的仍是用户选择的原始数据，
-/// 图标切换与启动恢复链路不变。
+/// macOS 26 系统遮罩（scripts/assets/macos26-dock-mask.png，1024）：取自
+/// 系统渲染图标的 alpha 通道，与系统给 bundle 图标套用的形状一致。
+/// Dock 显示的是 512 的运行时位图，遮罩与生成脚本同样在 512 上相乘。
 #[cfg(target_os = "macos")]
-fn macos_full_bleed_dock_bytes(bytes: &[u8]) -> Vec<u8> {
+fn macos26_mask_image() -> Option<&'static image::RgbaImage> {
+    static MASK: std::sync::OnceLock<Option<image::RgbaImage>> = std::sync::OnceLock::new();
+    MASK.get_or_init(|| {
+        image::load_from_memory(include_bytes!("../../public/icons/macos26/mask.png"))
+            .ok()
+            .map(|image| image.to_rgba8())
+    })
+    .as_ref()
+}
+
+/// macOS 26 (Tahoe) 只对 bundle 内图标应用 Liquid Glass squircle 遮罩；
+/// 经 setApplicationIconImage 设置的运行时 Dock 图标按原样显示，发送满版
+/// 方图就会是方形"异形"图标。因此这里自行把图标整理成系统形状：
+/// - 已经是圆角/遮罩形状（四角透明）的素材（macos26 预设、前端画布产物）
+///   保持原样，只取中央正方形并缩放，形状与边距原样保留；
+/// - 方形素材（3.2 遗留的持久化图标、画布兜底的自定义上传）先裁掉透明
+///   边距，缩放后与系统遮罩 alpha 相乘，得到带标准边距的 squircle 图标。
+/// 更早的系统不经过此函数，保留原始资产。只影响本次设置 Dock 的位图，
+/// 持久化的仍是用户选择的原始数据。
+#[cfg(target_os = "macos")]
+fn macos26_dock_bytes(bytes: &[u8]) -> Vec<u8> {
     const TARGET_EDGE: u32 = 512;
     const ALPHA_THRESHOLD: u8 = 8;
     let Ok(image) = image::load_from_memory(bytes) else {
@@ -981,73 +1013,71 @@ fn macos_full_bleed_dock_bytes(bytes: &[u8]) -> Vec<u8> {
     if width == 0 || height == 0 {
         return bytes.to_vec();
     }
-    let mut left = u32::MAX;
-    let mut top = u32::MAX;
-    let mut right = 0;
-    let mut bottom = 0;
-    let mut has_content = false;
-    for (x, y, pixel) in rgba.enumerate_pixels() {
-        if pixel.0[3] > ALPHA_THRESHOLD {
-            has_content = true;
-            left = left.min(x);
-            top = top.min(y);
-            right = right.max(x);
-            bottom = bottom.max(y);
+    let alpha_at = |x: u32, y: u32| rgba.get_pixel(x, y).0[3];
+    let corner_transparent = [
+        alpha_at(2, 2),
+        alpha_at(width.saturating_sub(3), 2),
+        alpha_at(2, height.saturating_sub(3)),
+        alpha_at(width.saturating_sub(3), height.saturating_sub(3)),
+    ]
+    .into_iter()
+    .all(|alpha| alpha <= ALPHA_THRESHOLD);
+    // 已带形状的素材直接取中央正方形；方形素材先裁掉透明边距（内容不满
+    // 版时），让后续缩放铺满遮罩。
+    let working = if corner_transparent {
+        rgba
+    } else {
+        let mut left = u32::MAX;
+        let mut top = u32::MAX;
+        let mut right = 0;
+        let mut bottom = 0;
+        let mut has_content = false;
+        for (x, y, pixel) in rgba.enumerate_pixels() {
+            if pixel.0[3] > ALPHA_THRESHOLD {
+                has_content = true;
+                left = left.min(x);
+                top = top.min(y);
+                right = right.max(x);
+                bottom = bottom.max(y);
+            }
         }
-    }
-    if !has_content {
-        return bytes.to_vec();
-    }
-    let content_width = right - left + 1;
-    let content_height = bottom - top + 1;
-    let encode = |image: image::DynamicImage| -> Option<Vec<u8>> {
-        let mut output = Vec::new();
-        match image.write_to(&mut std::io::Cursor::new(&mut output), image::ImageFormat::Png) {
-            Ok(()) if !output.is_empty() => Some(output),
-            _ => None,
-        }
-    };
-    // 内容已铺满（或近乎铺满）画布时，只有四角透明（烘焙圆角）需要处理：
-    // 系统遮罩与烘焙圆角叠加会裁出双重圆角，四角露出透明缺缝。
-    if content_width * 100 >= width * 98 && content_height * 100 >= height * 98 {
-        let alpha_at = |x: u32, y: u32| rgba.get_pixel(x, y).0[3];
-        let corner_transparent = [
-            alpha_at(2, 2),
-            alpha_at(width.saturating_sub(3), 2),
-            alpha_at(2, height.saturating_sub(3)),
-            alpha_at(width.saturating_sub(3), height.saturating_sub(3)),
-        ]
-        .into_iter()
-        .all(|alpha| alpha <= ALPHA_THRESHOLD);
-        if !corner_transparent {
+        if !has_content {
             return bytes.to_vec();
         }
-        // 中心放大 1.25 倍（5/4）再裁回画布：烘焙圆角被推到系统遮罩之外，
-        // 18%–25% 圆角一次覆盖；边缘中段本就不透明，放大后仍然铺满。
-        // 非方形源先取中央正方形，避免放大时拉伸变形。
-        let side = width.min(height);
-        let square = if width == height {
-            rgba
-        } else {
-            image::imageops::crop_imm(&rgba, (width - side) / 2, (height - side) / 2, side, side)
-                .to_image()
-        };
-        let zoom_edge = TARGET_EDGE * 5 / 4;
-        let zoomed = image::DynamicImage::ImageRgba8(square)
-            .resize_exact(zoom_edge, zoom_edge, image::imageops::FilterType::Lanczos3)
-            .to_rgba8();
-        let (zoomed_width, zoomed_height) = zoomed.dimensions();
-        let offset_x = zoomed_width.saturating_sub(TARGET_EDGE) / 2;
-        let offset_y = zoomed_height.saturating_sub(TARGET_EDGE) / 2;
-        let cropped =
-            image::imageops::crop_imm(&zoomed, offset_x, offset_y, TARGET_EDGE, TARGET_EDGE)
-                .to_image();
-        encode(image::DynamicImage::ImageRgba8(cropped)).unwrap_or_else(|| bytes.to_vec())
-    } else {
-        let cropped = image::imageops::crop_imm(&rgba, left, top, content_width, content_height).to_image();
-        let full_bleed = image::DynamicImage::ImageRgba8(cropped)
-            .resize_exact(TARGET_EDGE, TARGET_EDGE, image::imageops::FilterType::Lanczos3);
-        encode(full_bleed).unwrap_or_else(|| bytes.to_vec())
+        image::imageops::crop_imm(&rgba, left, top, right - left + 1, bottom - top + 1).to_image()
+    };
+    let (working_width, working_height) = working.dimensions();
+    if working_width == 0 || working_height == 0 {
+        return bytes.to_vec();
+    }
+    let side = working_width.min(working_height);
+    let square = image::imageops::crop_imm(
+        &working,
+        (working_width - side) / 2,
+        (working_height - side) / 2,
+        side,
+        side,
+    )
+    .to_image();
+    let mut resized = image::DynamicImage::ImageRgba8(square)
+        .resize_exact(TARGET_EDGE, TARGET_EDGE, image::imageops::FilterType::Lanczos3)
+        .to_rgba8();
+    if !corner_transparent {
+        if let Some(mask) = macos26_mask_image() {
+            if mask.dimensions() == (TARGET_EDGE, TARGET_EDGE) {
+                for (x, y, pixel) in resized.enumerate_pixels_mut() {
+                    let mask_alpha = u32::from(mask.get_pixel(x, y).0[3]);
+                    pixel.0[3] = ((u32::from(pixel.0[3]) * mask_alpha) / 255) as u8;
+                }
+            }
+        }
+    }
+    let mut output = Vec::new();
+    match image::DynamicImage::ImageRgba8(resized)
+        .write_to(&mut std::io::Cursor::new(&mut output), image::ImageFormat::Png)
+    {
+        Ok(()) if !output.is_empty() => output,
+        _ => bytes.to_vec(),
     }
 }
 
@@ -1128,6 +1158,218 @@ fn set_windows_taskbar_icon(window: &WebviewWindow, bytes: &[u8]) -> Result<(), 
     Ok(())
 }
 
+/// 任务栏钉选图标用的 ICO 缓存文件，位于软件自身配置目录。
+#[cfg(target_os = "windows")]
+const PINNED_TASKBAR_ICO_FILE: &str = "app-icon-taskbar.ico";
+
+/// 把 PNG 图标写成多尺寸 ICO（任务栏快捷方式只能引用 .ico 文件）：
+/// 16–64 用未压缩 BMP 条目（BGRA 自下而上 + 反转 alpha 的 AND 掩码），
+/// 256 用 ICO 规范允许的 PNG 条目，资源管理器原生支持。
+#[cfg(target_os = "windows")]
+fn write_windows_ico(png_bytes: &[u8], path: &Path) -> Result<(), String> {
+    use std::io::Write;
+
+    let source = image::load_from_memory(png_bytes).map_err(|error| error.to_string())?;
+    let mut entries: Vec<(u8, Vec<u8>)> = Vec::new();
+    for edge in [16u32, 24, 32, 48, 64] {
+        entries.push((edge as u8, ico_bmp_entry(&source, edge)));
+    }
+    let mut png256 = Vec::new();
+    source
+        .resize_exact(256, 256, image::imageops::FilterType::Lanczos3)
+        .write_to(&mut std::io::Cursor::new(&mut png256), image::ImageFormat::Png)
+        .map_err(|error| error.to_string())?;
+    entries.push((0, png256)); // 0 在目录项里表示 256
+
+    let mut out = Vec::new();
+    out.write_u16_le(0).map_err(|error| error.to_string())?; // 保留字段
+    out.write_u16_le(1).map_err(|error| error.to_string())?; // 类型：图标
+    out.write_u16_le(entries.len() as u16).map_err(|error| error.to_string())?;
+    let mut offset = (6 + 16 * entries.len()) as u32;
+    for (edge, data) in &entries {
+        out.write_u8(*edge).map_err(|error| error.to_string())?;
+        out.write_u8(*edge).map_err(|error| error.to_string())?;
+        out.write_u8(0).map_err(|error| error.to_string())?; // 调色板
+        out.write_u8(0).map_err(|error| error.to_string())?; // 保留字段
+        out.write_u16_le(1).map_err(|error| error.to_string())?; // 颜色平面
+        out.write_u16_le(32).map_err(|error| error.to_string())?; // 位深
+        out.write_u32_le(data.len() as u32).map_err(|error| error.to_string())?;
+        out.write_u32_le(offset).map_err(|error| error.to_string())?;
+        offset += data.len() as u32;
+    }
+    for (_, data) in &entries {
+        out.extend_from_slice(data);
+    }
+    if let Some(directory) = path.parent() {
+        fs::create_dir_all(directory).map_err(|error| error.to_string())?;
+    }
+    fs::write(path, out).map_err(|error| error.to_string())
+}
+
+/// 单个尺寸的 ICO BMP 条目。
+#[cfg(target_os = "windows")]
+fn ico_bmp_entry(source: &image::DynamicImage, edge: u32) -> Vec<u8> {
+    let resized = source
+        .resize_exact(edge, edge, image::imageops::FilterType::Lanczos3)
+        .to_rgba8();
+    let (width, height) = resized.dimensions();
+    let stride = width as usize * 4;
+    let top_down = resized.into_raw();
+    // ICO 的位图自下而上存放。
+    let mut rows = vec![0u8; top_down.len()];
+    for row in 0..height as usize {
+        let target = height as usize - 1 - row;
+        rows[target * stride..(target + 1) * stride]
+            .copy_from_slice(&top_down[row * stride..(row + 1) * stride]);
+    }
+    for pixel in rows.chunks_exact_mut(4) {
+        pixel.swap(0, 2); // RGBA → BGRA
+    }
+    // AND 掩码（1bpp，自下而上，行按 32 位对齐）：alpha < 128 记为透明。
+    let mask_row = (width as usize).div_ceil(32) * 4;
+    let mut mask = vec![0u8; mask_row * height as usize];
+    for row in 0..height as usize {
+        for column in 0..width as usize {
+            let alpha = rows[row * stride + column * 4 + 3];
+            if alpha < 128 {
+                mask[row * mask_row + column / 8] |= 0x80u8 >> (column % 8);
+            }
+        }
+    }
+    let mut entry = Vec::with_capacity(40 + rows.len() + mask.len());
+    entry.extend_from_slice(&40u32.to_le_bytes()); // biSize
+    entry.extend_from_slice(&(width as i32).to_le_bytes());
+    entry.extend_from_slice(&((height as i32) * 2).to_le_bytes()); // XOR + AND
+    entry.extend_from_slice(&1u16.to_le_bytes()); // biPlanes
+    entry.extend_from_slice(&32u16.to_le_bytes()); // biBitCount
+    entry.extend_from_slice(&0u32.to_le_bytes()); // biCompression = BI_RGB
+    entry.extend_from_slice(&((rows.len() + mask.len()) as u32).to_le_bytes());
+    entry.extend_from_slice(&[0u8; 16]); // 其余字段为 0
+    entry.extend_from_slice(&rows);
+    entry.extend_from_slice(&mask);
+    entry
+}
+
+/// 改写单个钉选快捷方式的图标位置；目标不是本程序 exe 时返回 false 跳过。
+#[cfg(target_os = "windows")]
+fn try_update_pinned_shortcut(shortcut: &Path, ico_wide: &[u16], exe_target: &str) -> bool {
+    use std::iter::once;
+    use std::os::windows::ffi::OsStrExt;
+    use windows::core::{Interface, PCWSTR};
+    use windows::Win32::System::Com::{
+        CoCreateInstance, IPersistFile, CLSCTX_INPROC_SERVER, STGM_READ,
+    };
+    use windows::Win32::UI::Shell::{IShellLinkW, ShellLink, SLGP_RAWPATH};
+
+    let Ok(shell_link) = unsafe { CoCreateInstance(&ShellLink, None, CLSCTX_INPROC_SERVER) }
+    else {
+        return false;
+    };
+    let Ok(persist_file) = shell_link.cast::<IPersistFile>() else { return false };
+    let shortcut_wide: Vec<u16> = shortcut
+        .as_os_str()
+        .encode_wide()
+        .chain(once(0))
+        .collect();
+    unsafe {
+        if persist_file
+            .Load(PCWSTR::from_raw(shortcut_wide.as_ptr()), STGM_READ)
+            .is_err()
+        {
+            return false;
+        }
+        let mut target = [0u16; 1024];
+        if shell_link
+            .GetPath(&mut target, std::ptr::null_mut(), SLGP_RAWPATH.0)
+            .is_err()
+        {
+            return false;
+        }
+        let target_end = target.iter().position(|unit| *unit == 0).unwrap_or(0);
+        let target = String::from_utf16_lossy(&target[..target_end]).to_lowercase();
+        if target != exe_target {
+            return false;
+        }
+        if shell_link
+            .SetIconLocation(PCWSTR::from_raw(ico_wide.as_ptr()), 0)
+            .is_err()
+        {
+            return false;
+        }
+        // 保存回原文件（PCWSTR::null() = Load 时的路径）。
+        if persist_file.Save(PCWSTR::null(), true).is_err() {
+            return false;
+        }
+    }
+    true
+}
+
+/// 应用被固定到任务栏后，按钮显示的是钉选快捷方式（
+/// %APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar
+/// 下的 .lnk）的图标，WM_SETICON 对它无效——这正是"固定后无法应用图标
+/// 预设"的原因。这里把每个指向本程序 exe 的钉选快捷方式的图标位置改写为
+/// 刚写出的 ICO 缓存，并通知资源管理器刷新；恢复默认图标时写入的是打包
+/// exe 的默认图标位图，行为一致。找不到钉选快捷方式（未固定）时静默跳过。
+#[cfg(target_os = "windows")]
+fn update_pinned_taskbar_shortcuts(ico_path: &Path) {
+    use std::iter::once;
+    use std::os::windows::ffi::OsStrExt;
+    use windows::core::PCWSTR;
+    use windows::Win32::Foundation::RPC_E_CHANGED_MODE;
+    use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED};
+    use windows::Win32::UI::Shell::{SHCNE_UPDATEITEM, SHCNF_PATHW, SHChangeNotify};
+
+    let Ok(exe_path) = std::env::current_exe() else { return };
+    let exe_target = exe_path.to_string_lossy().to_lowercase();
+    let Some(app_data) = std::env::var_os("APPDATA") else { return };
+    let pinned_dir = PathBuf::from(app_data)
+        .join("Microsoft")
+        .join("Internet Explorer")
+        .join("Quick Launch")
+        .join("User Pinned")
+        .join("TaskBar");
+    let Ok(entries) = fs::read_dir(&pinned_dir) else { return };
+    let ico_wide: Vec<u16> = ico_path
+        .as_os_str()
+        .encode_wide()
+        .chain(once(0))
+        .collect();
+
+    // set_app_icon 在异步线程（MTA），启动恢复在主线程（Tauri 事件循环多为
+    // STA）：换模式失败说明 COM 已以其他模型初始化，直接继续使用即可；
+    // 本次成功初始化的线程退出前配平 CoUninitialize。
+    let coinit = unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) };
+    let balanced = coinit != RPC_E_CHANGED_MODE;
+    for entry in entries.flatten() {
+        let shortcut = entry.path();
+        if !shortcut
+            .extension()
+            .and_then(|extension| extension.to_str())
+            .is_some_and(|extension| extension.eq_ignore_ascii_case("lnk"))
+        {
+            continue;
+        }
+        if try_update_pinned_shortcut(&shortcut, &ico_wide, &exe_target) {
+            let shortcut_wide: Vec<u16> = shortcut
+                .as_os_str()
+                .encode_wide()
+                .chain(once(0))
+                .collect();
+            unsafe {
+                SHChangeNotify(
+                    SHCNE_UPDATEITEM,
+                    SHCNF_PATHW,
+                    Some(shortcut_wide.as_ptr().cast()),
+                    None,
+                );
+            }
+        }
+    }
+    if balanced {
+        unsafe { CoUninitialize() };
+    }
+}
+
 #[tauri::command]
 async fn set_app_icon(
     app: AppHandle,
@@ -1175,6 +1417,12 @@ async fn set_app_icon(
         let image = tauri::image::Image::from_bytes(&bytes).map_err(|error| error.to_string())?;
         window.set_icon(image).map_err(|error| error.to_string())?;
         set_windows_taskbar_icon(&window, &bytes)?;
+        // 钉选到任务栏时按钮走快捷方式图标，与窗口图标分开同步；失败仅降级
+        // 为旧行为（未钉选时无影响），不让整个应用图标命令报错。
+        let ico_path = software_config_dir(&app).join(PINNED_TASKBAR_ICO_FILE);
+        if write_windows_ico(&bytes, &ico_path).is_ok() {
+            update_pinned_taskbar_shortcuts(&ico_path);
+        }
     }
     #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
     {
@@ -1431,6 +1679,12 @@ pub fn run() {
                         // 任务栏图标与 macOS Dock 图标同属启动可见面，恢复
                         // 失败不阻塞启动，交由设置里的重新应用兜底。
                         let _ = set_windows_taskbar_icon(&window, &bytes);
+                        // 钉选快捷方式的图标同样随启动恢复（切换预设后固定、
+                        // 或旧版本遗留的钉选图标都借此对齐）。
+                        let ico_path = software_config_dir(app_handle).join(PINNED_TASKBAR_ICO_FILE);
+                        if write_windows_ico(&bytes, &ico_path).is_ok() {
+                            update_pinned_taskbar_shortcuts(&ico_path);
+                        }
                     }
                 }
                 #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]

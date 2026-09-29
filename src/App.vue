@@ -31,7 +31,7 @@
                   </g>
               </g>
           </svg>
-          <span class="brand-version" aria-label="当前版本 3.2.0">3.2.0</span>
+          <span class="brand-version" aria-label="当前版本 3.3.0">3.3.0</span>
           <span class="logo-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
           <img class="brand-mini-logo" src="/icons/Acta_weblogo.png" alt="" aria-hidden="true" />
         </div>
@@ -312,6 +312,8 @@
               <div class="settings-group">
                 <label class="settings-row"><span><b>子任务完成时间</b><small>已完成的子任务在勾选框旁显示完成日期，悬停查看精确时刻</small></span><input id="subtaskDatesSetting" type="checkbox" checked/></label>
                 <label class="settings-row"><span><b>显示已完成待办</b><small>列表与归类视图中默认显示已完成的待办，也可在筛选栏随时切换</small></span><input id="showCompletedSetting" type="checkbox" checked/></label>
+                <label class="settings-row"><span><b>已完成待办自动置底</b><small>勾选完成后卡片先原地停留，再流畅地移到列表末尾，留出撤回的时间</small></span><input id="completedTodoSinkSetting" type="checkbox" checked/></label>
+                <label class="settings-row"><span><b>置底延迟</b><small>勾选完成后到开始移动之间的等待时间</small></span><span class="font-size-control"><input id="completedTodoSinkDelaySetting" type="range" min="0.5" max="5" step="0.1"/><output id="completedTodoSinkDelayValue">1.0 秒</output></span></label>
               </div>
             </section>
 
@@ -400,8 +402,8 @@
               <div class="about-mark"><img src="/images/Acta Poster.jpg" alt="Acta 行记" /></div>
               <div class="about-meta">
                 <div><small>产品</small><b>Acta · 行记</b></div>
-              <div><small>版本</small><b id="aboutVersion">3.2.0</b></div>
-              <div><small>本版更新日期</small><b>2026-09-15</b></div>
+              <div><small>版本</small><b id="aboutVersion">3.3.0</b></div>
+              <div><small>本版更新日期</small><b>2026-09-29</b></div>
                 <div><small>桌面框架</small><b>Tauri（Windows/macOS），Capacitor（Android）</b></div>
               </div>
               <div class="about-update">
@@ -706,11 +708,11 @@
             <h3>选择应用图标</h3>
             <p>应用于 Tauri 桌面客户端（Windows/macOS）；之后可以在「设置 → 外观设置」中更改或上传自定义图标。</p>
             <div class="app-icon-options" id="oobeIconGrid">
-              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="default"/><span><img src="/icons/icon-512-square.png" alt=""/><b>默认书页</b></span></label>
-              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="positive"/><span><img src="/icons/app-icon-positive-page.png" alt=""/><b>正·书页</b></span></label>
-              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="outline"/><span><img src="/icons/app-icon-outlined-page.png" alt=""/><b>勾勒·书页</b></span></label>
-              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="original"/><span><img src="/icons/app-icon-original-simple.png" alt=""/><b>初版简洁</b></span></label>
-              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="custom"/><span><img id="oobeCustomIconPreview" src="/icons/icon-512-square.png" alt=""/><b>自定义图标</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="default"/><span><img data-app-icon-preview="default" src="/icons/icon-512-square.png" alt=""/><b>默认书页</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="positive"/><span><img data-app-icon-preview="positive" src="/icons/app-icon-positive-page.png" alt=""/><b>正·书页</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="outline"/><span><img data-app-icon-preview="outline" src="/icons/app-icon-outlined-page.png" alt=""/><b>勾勒·书页</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="original"/><span><img data-app-icon-preview="original" src="/icons/app-icon-original-simple.png" alt=""/><b>初版简洁</b></span></label>
+              <label class="app-icon-option"><input type="radio" name="oobeAppIcon" value="custom"/><span><img id="oobeCustomIconPreview" data-app-icon-preview="custom" src="/icons/icon-512-square.png" alt=""/><b>自定义图标</b></span></label>
             </div>
           </section>
           <section class="oobe-step oobe-welcome-step" data-oobe-step="welcome">

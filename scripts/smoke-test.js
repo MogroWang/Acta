@@ -771,6 +771,10 @@ async function main() {
       task.tasks.forEach(entry => entry.done = true);
       task.completed = false;
       document.querySelector('[data-view="todos"]').click();
+      // 已完成待办自动置底：完成瞬间卡片先原地停留（延迟等待，留出撤回时间），
+      // 「显示已完成」关闭时等待结束后淡出列表，然后才是"完成即隐藏"。
+      const completedLingersDuringSinkDelay = Boolean(document.querySelector('.item-card[data-id="launch-plan"].completed-card'));
+      await waitFor(() => !document.querySelector('[data-id="launch-plan"]'));
       const completedHiddenFromTodos = !document.querySelector('[data-id="launch-plan"]');
       const showCompletedToggleVisible = Boolean(document.querySelector('#todoCompletedToggle')) && !document.querySelector('#todoCompletedToggle').hidden;
       document.querySelector('#todoShowCompleted').click();
@@ -1055,6 +1059,24 @@ async function main() {
         row.textContent = text;
         row.dispatchEvent(new Event('input', { bubbles: true }));
       });
+      // 添加子任务后聚焦新行正文并滚动到可视位置（新行按 id 定位，
+      // 无序模式底部折叠分组里的已完成行不会被误聚焦）。
+      const addTaskFocusesNewRow = await (async () => {
+        document.getElementById('addTask').click();
+        const focused = await waitFor(() => document.activeElement
+          && document.activeElement.classList?.contains('task-text')
+          && document.activeElement.closest('.task-row') === [...document.querySelectorAll('.task-row')]
+            .filter(row => !row.closest('#taskDoneGroup')).at(-1));
+        const rowRect = document.activeElement?.closest('.task-row')?.getBoundingClientRect();
+        const paneRect = document.getElementById('editorPane')?.getBoundingClientRect();
+        return Boolean(focused && rowRect && paneRect && rowRect.top >= paneRect.top && rowRect.bottom <= paneRect.bottom);
+      })();
+      // 移除为聚焦检查临时添加的第 4 行，保持后续 3 行断言的场景不变。
+      const extraRow = [...document.querySelectorAll('.task-row')].filter(row => !row.closest('#taskDoneGroup')).at(-1);
+      extraRow.querySelector('.remove-task').click();
+      await waitFor(() => !extraRow.querySelector('.remove-task-confirm').hidden);
+      extraRow.querySelector('.confirm-remove-task').click();
+      await waitFor(() => library.items.find(entry => entry.id === orderItem.id).tasks.length === 3);
       const orderTogglePresent = Boolean(document.getElementById('taskOrderToggle'));
       window.__actaSmokeStep = 'order-mode-enabling';
       document.getElementById('taskOrderToggle').click();
@@ -1496,6 +1518,7 @@ async function main() {
         inboxTodoFilterWorks,
         inboxNoteFilterControlsVisible,
         inboxNoteFilterWorks,
+        completedLingersDuringSinkDelay,
         completedHiddenFromTodos,
         showCompletedToggleVisible,
         completedShownInTodos,
@@ -1538,6 +1561,7 @@ async function main() {
         checkinUndoWorks,
         orderTogglePresent,
         orderedShowsIndexes,
+        addTaskFocusesNewRow,
         orderedMoveWorks,
         orderedFillWorks,
         unorderedRestored,
@@ -1829,6 +1853,7 @@ async function main() {
     assert.equal(result.inboxTodoFilterWorks, true);
     assert.equal(result.inboxNoteFilterControlsVisible, true);
     assert.equal(result.inboxNoteFilterWorks, true);
+    assert.equal(result.completedLingersDuringSinkDelay, true);
     assert.equal(result.completedHiddenFromTodos, true);
     assert.equal(result.showCompletedToggleVisible, true);
     assert.equal(result.completedShownInTodos, true);
@@ -1868,6 +1893,7 @@ async function main() {
     assert.equal(result.checkinUndoWorks, true);
     assert.equal(result.orderTogglePresent, true);
     assert.equal(result.orderedShowsIndexes, true);
+    assert.equal(result.addTaskFocusesNewRow, true);
     assert.equal(result.orderedMoveWorks, true);
     assert.equal(result.orderedFillWorks, true);
     assert.equal(result.unorderedRestored, true);

@@ -6,6 +6,7 @@
     customTodo: '#4f86a8', customTodoSoft: '#dceef8', customNote: '#987329', customNoteSoft: '#fff0bd', customCalendar: '#4f7656', customCalendarSoft: '#dcebdd',
     appIconPreset: 'default', customAppIcon: '',
     splashAnimationEnabled: true, splashAnimationPreset: 'acta-lines', splashAnimationSpeed: 1, inputFocusAnimation: true, subtaskCompletedDates: true,
+    completedTodoSink: true, completedTodoSinkDelay: 1,
     appFont: 'system', customFont: 'Inter', appFontSize: 14,
     noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteBaseSize: 17, noteHeadingFont: 'serif', noteHeadingCustomFont: '', noteLineHeight: 1.6, noteParagraphGap: 1,
     noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
@@ -1703,14 +1704,17 @@
   };
 
   // 新建子待办的入场动效：addTask 会整体重建编辑器，其余行被
-  // acta-steady 抑制重放，这里单独给新行（列表最后一行）叠加一次
-  // 滑入加高亮的入场动画；顺序模式下的移动复用同一动画落位。
+  // acta-steady 抑制重放，这里单独给新行叠加一次滑入加高亮的入场
+  // 动画；顺序模式下的移动复用同一动画落位。新行按 addTask 返回的
+  // id 定位——无序模式底部还有折叠分组，取最后一行会命中已完成行。
   const rendererAddTask = addTask;
   addTask = function addTaskWithMotion(item) {
     const snapshotBefore = JSON.parse(JSON.stringify(item));
-    rendererAddTask(item);
+    const taskId = rendererAddTask(item);
     logHistory('subtask-added', item.title || t('untitledTodo'), item.id, snapshotBefore);
-    const row = $$('.task-row').at(-1);
+    const row = typeof taskId === 'string'
+      ? document.querySelector(`.task-row[data-task-id="${CSS.escape(taskId)}"]`)
+      : $$('.task-row').at(-1);
     if (!row) return;
     row.classList.add('is-new');
     row.addEventListener('animationend', () => row.classList.remove('is-new'), { once: true });
@@ -4025,6 +4029,45 @@
       document.getElementById('todoCompletedToggle')?.classList.toggle('is-active', settings.showCompletedTodos);
     });
   }
+  // 已完成待办自动置底：开关与延迟写进 <html data-completed-todo-sink*>，
+  // renderer 的渲染循环据此决定置底等待与落位动效；改延迟立即生效。
+  const completedSinkSetting = byId('completedTodoSinkSetting');
+  const completedSinkDelay = byId('completedTodoSinkDelaySetting');
+  const completedSinkDelayValue = byId('completedTodoSinkDelayValue');
+  const completedSinkDelayRange = { min: 0.5, max: 5 };
+  const clampSinkDelay = value => {
+    const seconds = Number(value);
+    if (!Number.isFinite(seconds)) return 1;
+    return Math.min(completedSinkDelayRange.max, Math.max(completedSinkDelayRange.min, Math.round(seconds * 10) / 10));
+  };
+  const applyCompletedSink = () => {
+    const seconds = clampSinkDelay(uiSettings.completedTodoSinkDelay);
+    uiSettings.completedTodoSinkDelay = seconds;
+    if (uiSettings.completedTodoSink !== false) delete document.documentElement.dataset.completedTodoSink;
+    else document.documentElement.dataset.completedTodoSink = 'off';
+    document.documentElement.dataset.completedTodoSinkDelay = String(Math.round(seconds * 1000));
+    if (completedSinkSetting) completedSinkSetting.checked = uiSettings.completedTodoSink !== false;
+    if (completedSinkDelay) completedSinkDelay.value = String(seconds);
+    if (completedSinkDelayValue) completedSinkDelayValue.textContent = `${seconds.toFixed(1)} 秒`;
+  };
+  if (completedSinkSetting) {
+    completedSinkSetting.addEventListener('change', () => {
+      uiSettings.completedTodoSink = completedSinkSetting.checked;
+      applyCompletedSink();
+      saveUISettings();
+    });
+  }
+  if (completedSinkDelay) {
+    completedSinkDelay.min = String(completedSinkDelayRange.min);
+    completedSinkDelay.max = String(completedSinkDelayRange.max);
+    completedSinkDelay.step = '0.1';
+    completedSinkDelay.addEventListener('input', () => {
+      uiSettings.completedTodoSinkDelay = clampSinkDelay(completedSinkDelay.value);
+      applyCompletedSink();
+      saveUISettings();
+    });
+  }
+  applyCompletedSink();
   byId('previewSplashAnimation').addEventListener('click', () => {
     const button = byId('previewSplashAnimation');
     button.classList.add('is-busy');
@@ -4042,7 +4085,6 @@
   const appIconChoices = new Set([...Object.keys(appIconPresets), 'custom']);
   if (!appIconChoices.has(uiSettings.appIconPreset)) uiSettings.appIconPreset = 'default';
   const appearanceText = source => interfaceTranslations[uiSettings.language]?.[source] || source;
-  const activeAppIconSource = () => uiSettings.appIconPreset === 'custom' && uiSettings.customAppIcon ? uiSettings.customAppIcon : appIconPresets[uiSettings.appIconPreset] || appIconPresets.default;
   const loadIconImage = source => new Promise((resolve, reject) => {
     const image = new Image();
     image.decoding = 'async';
@@ -4068,6 +4110,18 @@
     return 'other';
   })();
   const macOSMajorVersion = Number(navigator.userAgent.match(/Version\/(\d+)/)?.[1] || 0);
+  // macOS 26+ 只对 bundle 内图标应用 Liquid Glass squircle 遮罩；运行时经
+  // setApplicationIconImage 设置的 Dock 图标按原样显示，发送未遮罩的满版
+  // 方图会得到方形"异形"图标。预设改用 scripts/generate-macos26-icons.mjs
+  // 预生成的专属版本——烘焙了系统 squircle 形状（遮罩取自系统渲染图标的
+  // alpha），设置预览与实际 Dock 一致；其余平台沿用原资产。
+  const macOS26RuntimeIcons = () => desktopPlatform === 'macos' && macOSMajorVersion >= 26;
+  const iconSourceFor = preset => {
+    if (preset === 'custom') return uiSettings.customAppIcon || appIconPresets.default;
+    const known = preset in appIconPresets ? preset : 'default';
+    return macOS26RuntimeIcons() ? `./icons/macos26/${known}.png` : appIconPresets[known];
+  };
+  const activeAppIconSource = () => iconSourceFor(uiSettings.appIconPreset);
   const roundRectPath = (context, x, y, size, radius) => {
     context.beginPath();
     context.moveTo(x + radius, y);
@@ -4116,6 +4170,17 @@
     const width = image.naturalWidth * scale;
     const height = image.naturalHeight * scale;
     context.drawImage(image, (512 - width) / 2, (512 - height) / 2, width, height);
+    if (fullBleed) {
+      // macOS 26+ 运行时图标没有系统遮罩，自行烘焙与系统一致的 squircle：
+      // 遮罩形状即 public/icons/macos26/mask.png（与预生成预设同源），自定义
+      // 上传统一在此成型；遮罩加载失败时退回无遮罩，行为与旧版一致。
+      try {
+        const mask = await loadIconImage('./icons/macos26/mask.png');
+        context.globalCompositeOperation = 'destination-in';
+        context.drawImage(mask, 0, 0, 512, 512);
+        context.globalCompositeOperation = 'source-over';
+      } catch { /* Fall back to the unmasked artwork. */ }
+    }
     return canvas.toDataURL('image/png');
   };
 
@@ -4132,8 +4197,7 @@
     }
     const source = activeAppIconSource();
     document.querySelectorAll('[data-app-icon-preview]').forEach(preview => {
-      const preset = preview.dataset.appIconPreview;
-      preview.src = preset === 'custom' ? uiSettings.customAppIcon || appIconPresets.default : appIconPresets[preset] || appIconPresets.default;
+      preview.src = iconSourceFor(preview.dataset.appIconPreview);
     });
     document.querySelectorAll('input[name="actaAppIcon"]').forEach(option => option.checked = option.value === uiSettings.appIconPreset);
     currentAppIconURL = desktopIcon || mobileIcon ? source : appIconPresets.default;

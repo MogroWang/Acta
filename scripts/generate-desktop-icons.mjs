@@ -18,7 +18,7 @@
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import zlib from 'node:zlib';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -238,4 +238,5 @@ function toRGBA(image) {
   return out;
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
+export { decodePNG, encodePNG, downscale2x, toRGBA };
