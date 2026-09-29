@@ -1552,38 +1552,102 @@
           if (progressLabel) progressLabel.textContent = `${doneCount} / ${tasks.length} · ${progress}% ${t('done')}`;
           const progressBar = editor?.querySelector('.progress-track i');
           if (progressBar) progressBar.style.width = `${progress}%`;
+          // 撤回时取消在飞的置底淡出/滑入，避免 fill 透明度把行钉在隐形态。
+          if (!task.done && row.__fadeAnimation) { row.__fadeAnimation.cancel(); row.__fadeAnimation = null; }
+          // 「已完成 N」计数在勾选瞬间就同步（移入折叠分组是延迟后的
+          // 观感收尾，计数不必等它）。
+          const doneSectionNow = byId('taskDoneSection');
+          const toggleNow = byId('taskDoneToggle');
+          if (doneSectionNow && toggleNow) {
+            toggleNow.hidden = doneCount === 0;
+            doneSectionNow.hidden = doneCount === 0;
+            toggleNow.querySelector('span').textContent = `${t('done')} ${doneCount}`;
+          }
           updateCard(item);
           renderList();
           renderSidebar();
-          // 无序模式：完成/撤回的过渡播完后把行移入（或移出）底部折叠
-          // 分组，实现"已完成自动置底并折叠"；移动的是同一节点，事件
-          // 绑定保持有效。快速连点以最后一次状态为准；首次完成时分组
-          // 尚未渲染，直接重建编辑器生成折叠分组。
+          // 无序模式：勾选后行原地停留（与列表的已完成待办共用同一套
+          // 延迟偏好），延迟结束按折叠分组的状态收尾——分组展开时完成行
+          // 与上方腾位的行从原位 FLIP 滑入，分组折叠时行淡出后移入；撤回
+          // 时移出分组并复位在飞动画。移动的是同一节点，事件绑定保持有效。
+          // 快速连点以最后一次状态为准；首次完成时分组尚未渲染，淡出后
+          // 重建编辑器生成折叠分组（重建会把完成行归位，无需逐行搬移）。
           if (!ordered) {
             clearTimeout(row.__taskMoveTimer);
+            const animateSink = uiSettings.completedTodoSink !== false && !reduceWindowMotion();
+            const sinkDelay = animateSink ? Math.round((Number(uiSettings.completedTodoSinkDelay) || 1) * 1000) : 620;
+            const fadeRowOut = () => {
+              row.__fadeAnimation = row.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: 'ease-out', fill: 'forwards' });
+            };
+            const syncToggleCount = () => {
+              const sectionNow = byId('taskDoneSection');
+              const toggleNow = byId('taskDoneToggle');
+              if (!sectionNow || !toggleNow) return;
+              const doneCountNow = item.tasks.filter(entry => entry.done).length;
+              toggleNow.hidden = doneCountNow === 0;
+              sectionNow.hidden = doneCountNow === 0;
+              toggleNow.querySelector('span').textContent = `${t('done')} ${doneCountNow}`;
+            };
+            const moveWithFlip = move => {
+              const rows = animateSink ? [...byId('taskList').querySelectorAll('.task-row')] : [];
+              const previousRects = new Map(rows.map(entry => [entry, entry.getBoundingClientRect()]));
+              move();
+              rows.forEach(entry => {
+                const previous = previousRects.get(entry);
+                if (!previous) return;
+                const current = entry.getBoundingClientRect();
+                const dx = previous.left - current.left;
+                const dy = previous.top - current.top;
+                if (Math.abs(dx) < 2 && Math.abs(dy) < 2) return;
+                try { entry.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }], { duration: 480, easing: 'cubic-bezier(.16, 1, .3, 1)' }); } catch { /* 动画失败不影响落位 */ }
+              });
+            };
             row.__taskMoveTimer = setTimeout(() => {
               if (!row.isConnected) return;
-              const doneCountNow = item.tasks.filter(entry => entry.done).length;
-              if (task.done && !byId('taskDoneSection')) {
-                renderEditor();
-                return;
-              }
               const doneSection = byId('taskDoneSection');
               const doneGroupEl = byId('taskDoneGroup');
               const toggleEl = byId('taskDoneToggle');
+              if (task.done && !doneSection) {
+                if (!animateSink) { renderEditor(); return; }
+                fadeRowOut();
+                setTimeout(() => {
+                  if (!task.done || !row.isConnected) return;
+                  row.__fadeAnimation = null;
+                  renderEditor();
+                }, 260);
+                return;
+              }
               if (!doneSection || !doneGroupEl || !toggleEl) return;
               if (task.done) {
-                doneGroupEl.appendChild(row);
-                doneGroupEl.hidden = true;
-                toggleEl.classList.remove('is-open');
-                toggleEl.setAttribute('aria-expanded', 'false');
+                if (doneGroupEl.hidden) {
+                  // 折叠态：行淡出后移入分组，其后腾位的行平滑补位，观感
+                  // 与列表的收集箱收尾一致。
+                  if (!animateSink) {
+                    doneGroupEl.appendChild(row);
+                    syncToggleCount();
+                    return;
+                  }
+                  fadeRowOut();
+                  setTimeout(() => {
+                    if (!task.done || !row.isConnected) return;
+                    const group = byId('taskDoneGroup');
+                    if (!group) return;
+                    moveWithFlip(() => group.appendChild(row));
+                    row.__fadeAnimation = null;
+                    row.getAnimations().forEach(animation => animation.cancel());
+                    syncToggleCount();
+                  }, 260);
+                  return;
+                }
+                // 展开态：完成行从原位平滑滑入分组，用户展开的状态保持。
+                moveWithFlip(() => doneGroupEl.appendChild(row));
+                syncToggleCount();
               } else if (doneGroupEl.contains(row)) {
-                doneSection.parentNode.insertBefore(row, doneSection);
+                row.__fadeAnimation = null;
+                moveWithFlip(() => doneSection.parentNode.insertBefore(row, doneSection));
+                syncToggleCount();
               }
-              toggleEl.hidden = doneCountNow === 0;
-              doneSection.hidden = doneCountNow === 0;
-              toggleEl.querySelector('span').textContent = `${t('done')} ${doneCountNow}`;
-            }, 620);
+            }, sinkDelay);
           }
         });
         $('.task-text', row).addEventListener('input', event => { task.text = event.target.textContent; touchItem(item); updateCard(item); });
