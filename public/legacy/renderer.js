@@ -294,7 +294,7 @@ let sinkRenderQueued = false;           // 置底重渲染信号：由延迟计�
 const lastRenderCompletion = new Map(); // 待办 id -> 上次渲染时的完成态（用于识别完成瞬间）
 const completedTodoSinkEnabled = () => document.documentElement.dataset.completedTodoSink !== 'off';
 const completedTodoSinkDelay = () => Math.min(10000, Math.max(0, Number(document.documentElement.dataset.completedTodoSinkDelay) || 1000));
-const completedTodoSinkView = () => currentView === 'todos' || (String(currentView).startsWith('folder:') && currentFilter === 'todo');
+const completedTodoSinkView = () => currentView === 'todos' || currentView === 'inbox' || currentView === 'today' || String(currentView).startsWith('folder:');
 let mobileEditorOpen = false;
 let saveTimer;
 let toastTimer;
@@ -1227,8 +1227,8 @@ function syncListFilterUI() {
 function getVisibleItems() {
   let items = currentView === 'trash' ? trashedItems() : activeItems();
   if (currentView === 'calendar') items = items.filter(item => (item.type === 'todo' && todoIsScheduled(item)) || item.type === 'note');
-  if (currentView === 'inbox') items = items.filter(item => !isTodoComplete(item));
-  if (currentView === 'today') items = items.filter(item => item.type === 'todo' && todoScheduleDate(item) === todayISO() && !isTodoComplete(item));
+  if (currentView === 'inbox') items = items.filter(item => !isTodoComplete(item) || pendingSink.has(item.id));
+  if (currentView === 'today') items = items.filter(item => item.type === 'todo' && todoScheduleDate(item) === todayISO() && (!isTodoComplete(item) || pendingSink.has(item.id)));
   if (currentView === 'todos') items = items.filter(item => item.type === 'todo' && (settings.showCompletedTodos || !isTodoComplete(item) || pendingSink.has(item.id)));
   if (currentView === 'notes') items = items.filter(item => item.type === 'note');
   if (currentView.startsWith('folder:')) items = items.filter(item => item.folderId === currentView.split(':')[1]
@@ -1977,20 +1977,26 @@ function syncCompletedTodoSink(previousOrder) {
       }
       return;
     }
-    if (previouslyComplete === false && !pendingSink.has(item.id) && eligible) {
+    if (previouslyComplete === false && !pendingSink.has(item.id) && eligible
+        && previousOrder.includes(item.id)) {
+      // 只对当前列表里可见的卡片布置底等待（其它视图/筛选下完成不动画）。
       // 冻结当前顺序，让该待办在延迟期间原地停留；多个待办相继完成时，
       // 以屏幕上的现状（含此前冻结的结果）为准重新冻结。
       pendingSink.set(item.id, setTimeout(() => {
         pendingSink.forEach(timer => clearTimeout(timer));
         pendingSink.clear();
         sinkFrozenOrder = [];
-        // 「显示已完成」关闭时完成的待办不会留在列表里：先淡出卡片再重渲染，
-        // 避免延迟停留后突然消失。
-        if (!settings.showCompletedTodos && !reduceWindowMotion()) {
+        // 完成后仍会留在列表（待办/归类视图且「显示已完成」开启）→ 重渲染
+        // 落位并播放 FLIP；不再显示（收集箱、今天、显示已完成关闭）→ 先
+        // 淡出卡片再重渲染，避免延迟停留后突然消失。
+        const staysVisible = (currentView === 'todos' || String(currentView).startsWith('folder:')) && settings.showCompletedTodos;
+        if (!staysVisible && !reduceWindowMotion()) {
           const card = $('#itemList')?.querySelector(`.item-card[data-id="${CSS.escape(item.id)}"]`);
           if (card) {
-            const fade = card.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: 'ease-out', fill: 'forwards' });
-            fade.onfinish = () => { sinkRenderQueued = true; renderList(); };
+            // 淡出只负责观感；状态切换用定时器驱动，动画被遮挡节流或
+            // 引擎不支持时 onfinish 不触发也不会让卡片滞留列表。
+            card.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: 'ease-out', fill: 'forwards' });
+            setTimeout(() => { sinkRenderQueued = true; renderList(); }, 260);
             return;
           }
         }
@@ -2124,7 +2130,7 @@ function renderList() {
   if (sinking && sinkPreviousRects) {
     // 置底落位：抑制入场级联重放，只播移位卡片的位置动效。
     document.body.classList.add('acta-steady');
-    playCompletedSinkMotion(list, sinkPreviousRects);
+    try { playCompletedSinkMotion(list, sinkPreviousRects); } catch { /* 动画失败不影响落位。 */ }
   }
 }
 

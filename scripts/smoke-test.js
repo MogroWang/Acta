@@ -798,6 +798,21 @@ async function main() {
       statsRangeSelectReset.value = 'all';
       statsRangeSelectReset.dispatchEvent(new Event('change', { bubbles:true }));
       document.querySelector('[data-view="todos"]').click();
+      // 收集箱中完成的待办同样延迟停留，等待结束后淡出（置底落位只出现
+      // 在已完成的待办仍显示的视图里）。
+      document.querySelector('[data-view="inbox"]').click();
+      document.querySelector('.item-card[data-id="weekend-list"]').click();
+      document.querySelector('#completeItem').click();
+      const inboxCompletedLingers = Boolean(document.querySelector('.item-card[data-id="weekend-list"].completed-card'));
+      await waitFor(() => !document.querySelector('.item-card[data-id="weekend-list"]'));
+      const inboxCompletedFadesOut = !document.querySelector('.item-card[data-id="weekend-list"]');
+      // 复原到未完成，保持后续回收站流程的场景不变。
+      const weekendReset = library.items.find(item => item.id === 'weekend-list');
+      weekendReset.completed = false;
+      weekendReset.tasks.forEach(entry => { entry.done = false; delete entry.completedAt; });
+      persist();
+      renderAll();
+      document.querySelector('[data-view="todos"]').click();
       // 回收站流程：二级删除提示 → 移入回收站 → 恢复
       document.querySelector('.item-card[data-id="weekend-list"]').click();
       document.querySelector('#deleteItem').click();
@@ -1519,6 +1534,8 @@ async function main() {
         inboxNoteFilterControlsVisible,
         inboxNoteFilterWorks,
         completedLingersDuringSinkDelay,
+        inboxCompletedLingers,
+        inboxCompletedFadesOut,
         completedHiddenFromTodos,
         showCompletedToggleVisible,
         completedShownInTodos,
@@ -1854,6 +1871,8 @@ async function main() {
     assert.equal(result.inboxNoteFilterControlsVisible, true);
     assert.equal(result.inboxNoteFilterWorks, true);
     assert.equal(result.completedLingersDuringSinkDelay, true);
+    assert.equal(result.inboxCompletedLingers, true);
+    assert.equal(result.inboxCompletedFadesOut, true);
     assert.equal(result.completedHiddenFromTodos, true);
     assert.equal(result.showCompletedToggleVisible, true);
     assert.equal(result.completedShownInTodos, true);
