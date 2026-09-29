@@ -1167,8 +1167,6 @@ const PINNED_TASKBAR_ICO_FILE: &str = "app-icon-taskbar.ico";
 /// 256 用 ICO 规范允许的 PNG 条目，资源管理器原生支持。
 #[cfg(target_os = "windows")]
 fn write_windows_ico(png_bytes: &[u8], path: &Path) -> Result<(), String> {
-    use std::io::Write;
-
     let source = image::load_from_memory(png_bytes).map_err(|error| error.to_string())?;
     let mut entries: Vec<(u8, Vec<u8>)> = Vec::new();
     for edge in [16u32, 24, 32, 48, 64] {
@@ -1182,19 +1180,19 @@ fn write_windows_ico(png_bytes: &[u8], path: &Path) -> Result<(), String> {
     entries.push((0, png256)); // 0 在目录项里表示 256
 
     let mut out = Vec::new();
-    out.write_u16_le(0).map_err(|error| error.to_string())?; // 保留字段
-    out.write_u16_le(1).map_err(|error| error.to_string())?; // 类型：图标
-    out.write_u16_le(entries.len() as u16).map_err(|error| error.to_string())?;
+    out.extend_from_slice(&0u16.to_le_bytes()); // 保留字段
+    out.extend_from_slice(&1u16.to_le_bytes()); // 类型：图标
+    out.extend_from_slice(&(entries.len() as u16).to_le_bytes());
     let mut offset = (6 + 16 * entries.len()) as u32;
     for (edge, data) in &entries {
-        out.write_u8(*edge).map_err(|error| error.to_string())?;
-        out.write_u8(*edge).map_err(|error| error.to_string())?;
-        out.write_u8(0).map_err(|error| error.to_string())?; // 调色板
-        out.write_u8(0).map_err(|error| error.to_string())?; // 保留字段
-        out.write_u16_le(1).map_err(|error| error.to_string())?; // 颜色平面
-        out.write_u16_le(32).map_err(|error| error.to_string())?; // 位深
-        out.write_u32_le(data.len() as u32).map_err(|error| error.to_string())?;
-        out.write_u32_le(offset).map_err(|error| error.to_string())?;
+        out.push(*edge); // 宽度（0 表示 256）
+        out.push(*edge); // 高度
+        out.push(0); // 调色板
+        out.push(0); // 保留字段
+        out.extend_from_slice(&1u16.to_le_bytes()); // 颜色平面
+        out.extend_from_slice(&32u16.to_le_bytes()); // 位深
+        out.extend_from_slice(&(data.len() as u32).to_le_bytes());
+        out.extend_from_slice(&offset.to_le_bytes());
         offset += data.len() as u32;
     }
     for (_, data) in &entries {
@@ -1261,9 +1259,11 @@ fn try_update_pinned_shortcut(shortcut: &Path, ico_wide: &[u16], exe_target: &st
     };
     use windows::Win32::UI::Shell::{IShellLinkW, ShellLink, SLGP_RAWPATH};
 
-    let Ok(shell_link) = unsafe { CoCreateInstance(&ShellLink, None, CLSCTX_INPROC_SERVER) }
-    else {
-        return false;
+    let shell_link: IShellLinkW = match unsafe {
+        CoCreateInstance(&ShellLink, None, CLSCTX_INPROC_SERVER)
+    } {
+        Ok(link) => link,
+        Err(_) => return false,
     };
     let Ok(persist_file) = shell_link.cast::<IPersistFile>() else { return false };
     let shortcut_wide: Vec<u16> = shortcut
@@ -1280,7 +1280,7 @@ fn try_update_pinned_shortcut(shortcut: &Path, ico_wide: &[u16], exe_target: &st
         }
         let mut target = [0u16; 1024];
         if shell_link
-            .GetPath(&mut target, std::ptr::null_mut(), SLGP_RAWPATH.0)
+            .GetPath(&mut target, std::ptr::null_mut(), SLGP_RAWPATH.0 as u32)
             .is_err()
         {
             return false;
@@ -1314,7 +1314,6 @@ fn try_update_pinned_shortcut(shortcut: &Path, ico_wide: &[u16], exe_target: &st
 fn update_pinned_taskbar_shortcuts(ico_path: &Path) {
     use std::iter::once;
     use std::os::windows::ffi::OsStrExt;
-    use windows::core::PCWSTR;
     use windows::Win32::Foundation::RPC_E_CHANGED_MODE;
     use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED};
     use windows::Win32::UI::Shell::{SHCNE_UPDATEITEM, SHCNF_PATHW, SHChangeNotify};
