@@ -69,10 +69,52 @@ public class ActaLanPlugin extends Plugin {
     private static final long LAN_APPLY_WAIT_MS = 240000L;
     private static final long LAN_FETCH_WAIT_MS = 60000L;
     private static final int LAN_BACKUP_KEEP = 10;
+    // Capacitor 桥单次传递超大 JSON 会显著卡顿甚至失败：跨桥数据一律分块。
+    private static final int LAN_BRIDGE_INLINE_LIMIT = 1500000;
+    private static final int LAN_BRIDGE_CHUNK_CHARS = 400000;
     private static final String DATA_MANIFEST_FILE = "acta-manifest.json";
     private static final String CLASSIFICATIONS_FILE = "classifications.json";
 
     private LanService service;
+
+    /** 分块上传的组装缓冲：handle → 状态。 */
+    private final Map<String, ChunkBuffer> chunkBuffers = new LinkedHashMap<>();
+
+    private static class ChunkBuffer {
+        final long size;
+        final StringBuilder text = new StringBuilder();
+        final long createdAt = System.currentTimeMillis();
+        // 分块上传的元数据（推送目标等），组装完成后使用。
+        JSONObject meta = new JSONObject();
+
+        ChunkBuffer(long size) {
+            this.size = size;
+        }
+    }
+
+    private ChunkBuffer takeBuffer(String handle) {
+        synchronized (chunkBuffers) {
+            ChunkBuffer buffer = chunkBuffers.remove(handle);
+            if (buffer == null) pruneBuffers();
+            return buffer;
+        }
+    }
+
+    private ChunkBuffer peekBuffer(String handle) {
+        synchronized (chunkBuffers) {
+            ChunkBuffer buffer = chunkBuffers.get(handle);
+            if (buffer == null) pruneBuffers();
+            return buffer;
+        }
+    }
+
+    private void pruneBuffers() {
+        long now = System.currentTimeMillis();
+        Iterator<Map.Entry<String, ChunkBuffer>> iterator = chunkBuffers.entrySet().iterator();
+        while (iterator.hasNext()) {
+            if (now - iterator.next().getValue().createdAt > 600000L) iterator.remove();
+        }
+    }
 
     private interface EventSink {
         void accept(String event, JSONObject payload);
@@ -93,6 +135,7 @@ public class ActaLanPlugin extends Plugin {
         final String token;
         final JSONObject plan;
         byte[] bundle;
+        String bundleText;
         final SynchronousQueue<Boolean> applied = new SynchronousQueue<>();
 
         PendingApply(String token, JSONObject plan, byte[] bundle) {
@@ -568,17 +611,7 @@ public class ActaLanPlugin extends Plugin {
         worker.start();
     }
 
-    @PluginMethod
-    public void pushData(final PluginCall call) {
-        final String ip = call.getString("ip", "");
-        final int port = call.getInt("port", 0);
-        final String session = call.getString("session", "");
-        final String token = call.getString("token", "");
-        final JSONObject bundle = call.getObject("bundle");
-        if (token.isEmpty() || bundle == null) {
-            call.reject("缺少传输令牌或数据");
-            return;
-        }
+    private void sendPushDataAsync(final PluginCall call, final String ip, final int port, final String session, final String token, final byte[] body) {
         Thread worker = new Thread(() -> {
             try {
                 HttpURLConnection connection = (HttpURLConnection) new URL(peerUrl(ip, port, "data", session) + "&plan=" + token).openConnection();
@@ -586,7 +619,6 @@ public class ActaLanPlugin extends Plugin {
                 connection.setReadTimeout((int) (LAN_APPLY_WAIT_MS + 30000L));
                 connection.setRequestMethod("PUT");
                 connection.setDoOutput(true);
-                byte[] body = bundle.toString().getBytes(StandardCharsets.UTF_8);
                 connection.setFixedLengthStreamingMode(body.length);
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
                 try (OutputStream output = connection.getOutputStream()) {
@@ -614,6 +646,73 @@ public class ActaLanPlugin extends Plugin {
         }, "acta-lan-push-data");
         worker.setDaemon(true);
         worker.start();
+    }
+
+    @PluginMethod
+    public void pushData(final PluginCall call) {
+        final String ip = call.getString("ip", "");
+        final int port = call.getInt("port", 0);
+        final String session = call.getString("session", "");
+        final String token = call.getString("token", "");
+        final JSONObject bundle = call.getObject("bundle");
+        if (token.isEmpty() || bundle == null) {
+            call.reject("缺少传输令牌或数据");
+            return;
+        }
+        sendPushDataAsync(call, ip, port, session, token, bundle.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    @PluginMethod
+    public void pushDataBegin(PluginCall call) {
+        String ip = call.getString("ip", "");
+        int port = call.getInt("port", 0);
+        String session = call.getString("session", "");
+        String token = call.getString("token", "");
+        int size = call.getInt("size", 0);
+        if (token.isEmpty() || size <= 0) {
+            call.reject("缺少传输令牌或数据大小");
+            return;
+        }
+        String handle = randomToken();
+        ChunkBuffer buffer = new ChunkBuffer(size);
+        buffer.meta = new JSONObject();
+        try {
+            buffer.meta.put("ip", ip);
+            buffer.meta.put("port", port);
+            buffer.meta.put("session", session);
+            buffer.meta.put("token", token);
+        } catch (JSONException ignored) {
+        }
+        synchronized (chunkBuffers) {
+            chunkBuffers.put(handle, buffer);
+        }
+        JSObject response = new JSObject();
+        response.put("handle", handle);
+        call.resolve(response);
+    }
+
+    @PluginMethod
+    public void pushDataAppend(final PluginCall call) {
+        String handle = call.getString("handle", "");
+        String chunk = call.getString("chunk", "");
+        ChunkBuffer buffer = peekBuffer(handle);
+        if (buffer == null) {
+            call.reject("没有对应的分块传输");
+            return;
+        }
+        buffer.text.append(chunk);
+        if (buffer.text.length() < buffer.size) {
+            JSObject response = new JSObject();
+            response.put("done", false);
+            call.resolve(response);
+            return;
+        }
+        takeBuffer(handle);
+        String ip = buffer.meta.optString("ip", "");
+        int port = buffer.meta.optInt("port", 0);
+        String session = buffer.meta.optString("session", "");
+        String token = buffer.meta.optString("token", "");
+        sendPushDataAsync(call, ip, port, session, token, buffer.text.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     @PluginMethod
@@ -670,6 +769,93 @@ public class ActaLanPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void provideBundleBegin(PluginCall call) {
+        String requestId = call.getString("requestId", "");
+        int size = call.getInt("size", 0);
+        synchronized (this) {
+            LanService current = service;
+            FetchRequest request = current == null ? null : current.fetches.remove(requestId);
+            if (request == null) {
+                call.reject("没有对应的读取请求");
+                return;
+            }
+            if (size <= 0) {
+                call.reject("缺少数据大小");
+                return;
+            }
+            String handle = randomToken();
+            ChunkBuffer buffer = new ChunkBuffer(size);
+            buffer.meta = new JSONObject();
+            try {
+                buffer.meta.put("requestId", requestId);
+            } catch (JSONException ignored) {
+            }
+            synchronized (chunkBuffers) {
+                chunkBuffers.put(handle, buffer);
+            }
+            JSObject response = new JSObject();
+            response.put("handle", handle);
+            call.resolve(response);
+        }
+    }
+
+    @PluginMethod
+    public void provideBundleAppend(PluginCall call) {
+        String handle = call.getString("handle", "");
+        String chunk = call.getString("chunk", "");
+        ChunkBuffer buffer = peekBuffer(handle);
+        if (buffer == null) {
+            call.reject("没有对应的分块传输");
+            return;
+        }
+        buffer.text.append(chunk);
+        if (buffer.text.length() < buffer.size) {
+            JSObject response = new JSObject();
+            response.put("done", false);
+            call.resolve(response);
+            return;
+        }
+        takeBuffer(handle);
+        deliverProvidedBundle(buffer.meta.optString("requestId", ""), buffer.text.toString());
+        JSObject response = new JSObject();
+        response.put("done", true);
+        call.resolve(response);
+    }
+
+    @PluginMethod
+    public void provideBundleEnd(PluginCall call) {
+        String handle = call.getString("handle", "");
+        ChunkBuffer buffer = takeBuffer(handle);
+        if (buffer == null) {
+            call.reject("没有对应的分块传输");
+            return;
+        }
+        deliverProvidedBundle(buffer.meta.optString("requestId", ""), buffer.text.toString());
+        call.resolve();
+    }
+
+    private void deliverProvidedBundle(String requestId, String bundleText) {
+        FetchRequest request;
+        synchronized (this) {
+            LanService current = service;
+            request = current == null ? null : current.fetches.remove(requestId);
+        }
+        if (request == null) return;
+        JSONObject result = new JSONObject();
+        try {
+            result.put("ok", true);
+            result.put("bundle", bundleText.isEmpty() ? JSONObject.NULL : new JSONObject(bundleText));
+        } catch (Exception error) {
+            try {
+                result.put("ok", false);
+                result.put("error", "数据无效：" + error.getMessage());
+            } catch (JSONException ignored) {
+            }
+        }
+        request.response.offer(result);
+    }
+
+    @PluginMethod
     public void acceptIncoming(PluginCall call) {
         synchronized (this) {
             LanService current = service;
@@ -683,17 +869,58 @@ public class ActaLanPlugin extends Plugin {
                     call.reject("当前没有待写入的同步数据");
                     return;
                 }
-                if (pending.bundle == null) {
+                if (pending.bundle == null || pending.bundleText == null) {
                     call.reject("数据尚未到位");
                     return;
                 }
                 try {
-                    JSONObject parsed = new JSONObject(new String(pending.bundle, StandardCharsets.UTF_8));
-                    call.resolve(JSObject.fromJSONObject(parsed));
+                    if (pending.bundleText.length() <= LAN_BRIDGE_INLINE_LIMIT) {
+                        // 小档案直接过桥；大档案分块读取，避免单次巨量载荷卡死。
+                        JSONObject parsed = new JSONObject(pending.bundleText);
+                        call.resolve(JSObject.fromJSONObject(parsed));
+                        pending.bundle = null;
+                        pending.bundleText = null;
+                    } else {
+                        JSObject response = new JSObject();
+                        response.put("mode", "chunked");
+                        response.put("requestId", pending.token);
+                        response.put("total", pending.bundleText.length());
+                        call.resolve(response);
+                    }
                 } catch (Exception error) {
                     call.reject("数据无效：" + error.getMessage());
                 }
-                pending.bundle = null;
+            }
+        }
+    }
+
+    @PluginMethod
+    public void readBundleChunk(PluginCall call) {
+        String requestId = call.getString("requestId", "");
+        int offset = call.getInt("offset", 0);
+        synchronized (this) {
+            LanService current = service;
+            if (current == null) {
+                call.reject("局域网同步服务未运行");
+                return;
+            }
+            synchronized (current) {
+                PendingApply pending = current.pendingApply;
+                if (pending == null || !pending.token.equals(requestId) || pending.bundleText == null) {
+                    call.reject("没有对应的分块读取请求");
+                    return;
+                }
+                int total = pending.bundleText.length();
+                int start = Math.max(0, Math.min(offset, total));
+                int end = Math.min(start + LAN_BRIDGE_CHUNK_CHARS, total);
+                JSObject part = new JSObject();
+                part.put("chunk", pending.bundleText.substring(start, end));
+                part.put("done", end >= total);
+                call.resolve(part);
+                if (end >= total) {
+                    pending.bundle = null;
+                    pending.bundleText = null;
+                }
             }
         }
     }
@@ -996,6 +1223,7 @@ public class ActaLanPlugin extends Plugin {
                 return;
             }
             pending.bundle = body;
+            pending.bundleText = new String(body, StandardCharsets.UTF_8);
         }
         JSONObject event = new JSONObject();
         JSONObject from = new JSONObject();

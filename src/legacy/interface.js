@@ -5429,6 +5429,18 @@
     return payload.total ? lanText('progressLineTotal', received, lanRawBytes(payload.total)) : lanText('progressLine', received);
   };
 
+  // Android 桥接的大档案分块读取：按块拼接后一次性解析。
+  async function lanReadChunkedBundle(accepted) {
+    let text = '';
+    let offset = 0;
+    for (;;) {
+      const part = await lanBridge.readBundleChunk(accepted.requestId, offset);
+      text += part.chunk;
+      offset += part.chunk.length;
+      if (part.done || !part.chunk) return JSON.parse(text);
+    }
+  }
+
   function applyLanLibrary(nextLibrary) {
     replaceLibrary(nextLibrary);
     if (workspaceAdapter) return queueWorkspaceSave(nextLibrary);
@@ -5795,7 +5807,8 @@
       try {
         if (!steps) showSyncNotice(lanText('trustedAutoNotice', payload.from?.name || lanText('unknownDevice')), 'working', true);
         if (steps) await steps.active(0);
-        const bundle = await lanBridge.acceptIncoming();
+        const accepted = await lanBridge.acceptIncoming();
+        const bundle = accepted && accepted.mode === 'chunked' ? await lanReadChunkedBundle(accepted) : accepted;
         if (steps) steps.done(0);
         let message;
         if (payload.mode === 'copy') {

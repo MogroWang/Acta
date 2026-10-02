@@ -3413,6 +3413,16 @@ function getSyncBridge() {
 (function initAndroidLanBridge() {
   const native = window.Capacitor?.Plugins?.ActaLan;
   if (!native) return;
+  // 大档案数据跨 WebView 桥单次传输会卡死/失败，因此统一分块传递。
+  const LAN_CHUNK_CHARS = 400000;
+  const sendInChunks = async (begin, append, text) => {
+    const { handle } = await begin({ size: text.length });
+    for (let offset = 0; offset < text.length; offset += LAN_CHUNK_CHARS) {
+      const result = await append({ handle, chunk: text.slice(offset, offset + LAN_CHUNK_CHARS) });
+      if (result?.done) return result;
+    }
+    return null;
+  };
   const lanSync = {
     startService: (profiles, trusted) => native.startService({ profiles, trusted }),
     updateMeta: (profiles, trusted) => native.updateMeta({ profiles, trusted }),
@@ -3422,13 +3432,26 @@ function getSyncBridge() {
     fetchInfo: (ip, port, session) => native.fetchInfo({ ip, port, session }).then(result => result?.info || {}),
     pushPlan: (ip, port, session, plan) => native.pushPlan({ ip, port, session, plan }).then(result => result?.token || ''),
     pushData: async (ip, port, session, token, bundle) => {
-      await native.pushData({ ip, port, session, token, bundle });
+      const result = await sendInChunks(
+        payload => native.pushDataBegin({ ...payload, ip, port, session, token }),
+        payload => native.pushDataAppend(payload),
+        JSON.stringify(bundle)
+      );
+      if (!result?.applied) throw new Error('对方写入数据失败。');
       return true;
     },
     fetchProfileBundle: (ip, port, session, profileId) => native.fetchProfileBundle({ ip, port, session, profileId }).then(result => result?.bundle || null),
     decideIncoming: (accept) => native.decideIncoming({ accept }),
-    provideBundle: (requestId, result) => native.provideBundle({ requestId, ok: Boolean(result?.ok), bundle: result?.bundle ?? null, error: result?.error ?? null }),
-    acceptIncoming: () => native.acceptIncoming().then(result => result?.bundle || null),
+    provideBundle: async (requestId, result) => {
+      if (!result?.ok) return native.provideBundle({ requestId, ok: false, bundle: null, error: result?.error ?? '档案不可用' });
+      await sendInChunks(
+        payload => native.provideBundleBegin({ ...payload, requestId }),
+        payload => native.provideBundleAppend(payload),
+        JSON.stringify(result.bundle)
+      );
+    },
+    readBundleChunk: (requestId, offset) => native.readBundleChunk({ requestId, offset }),
+    acceptIncoming: () => native.acceptIncoming().then(result => (result?.bundle ? result.bundle : result)),
     confirmIncoming: () => native.confirmIncoming(),
     rejectIncoming: () => native.rejectIncoming(),
     backupLocal: (bundle, profileName) => native.backupLocal({ bundle, profileName })
