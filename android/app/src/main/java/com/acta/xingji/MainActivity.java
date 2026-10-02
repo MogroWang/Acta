@@ -18,6 +18,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(ActaSyncPlugin.class);
+        registerPlugin(ActaLanPlugin.class);
         super.onCreate(savedInstanceState);
         getBridge().getWebView().setWebChromeClient(new ActaWebChromeClient(getBridge()));
         applySavedSystemBars();

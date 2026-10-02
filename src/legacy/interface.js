@@ -4736,12 +4736,12 @@
   updateOneDriveUI();
   configureAutomaticSync();
 
-  // ===== Acta 局域网同步（桌面客户端专属，协议 v2）=====
-  // 与同一网络中的其他 Acta 桌面客户端互传完整数据文件夹。协议 v2：
+  // ===== Acta 局域网同步（桌面与 Android 客户端，协议 v2）=====
+  // 与同一网络中的其他 Acta 客户端互传完整数据文件夹。协议 v2：
   // 每台设备暴露全部行记数据档案的元数据；推送走两段式确认（先发写入
   // 计划、对方确认后再传数据）；开启「信任此局域网」的设备自动确认。
-  // 服务与对话框文案在此统一维护（对话框位于设置弹窗外，不走静态文本
-  // 收集翻译）。
+  // 桌面端桥接由 tauri-bridge.js 提供，Android 桥接由 renderer.js 基于原生
+  // ActaLanPlugin 提供，事件与载荷结构两端一致。
   const lanMessages = {
     zh: {
       stateOff:'未开启', stateOn:'可被发现', stateNoDiscovery:'已开启',
@@ -4928,7 +4928,9 @@
     }
   };
   const lanText = (key, ...values) => values.reduce((message, value, index) => message.replace(`{${index}}`, value), (lanMessages[uiSettings.language] || lanMessages.zh)[key] || '');
-  const lanBridge = window.actaDesktop?.lanSync || null;
+  const lanBridge = window.actaDesktop?.lanSync || window.actaMobileLan?.lanSync || null;
+  // 事件监听入口：桌面在 actaDesktop，Android 在 renderer.js 注入的 actaMobileLan。
+  const lanEvents = window.actaDesktop?.onLanIncoming ? window.actaDesktop : (window.actaMobileLan || {});
   const lanDialog = byId('lanSyncDialog');
   const lanNoticeDialog = byId('lanNoticeDialog');
   let lanServiceRunning = false;
@@ -5672,14 +5674,14 @@
     lanNoticeDialog.addEventListener('cancel', event => { event.preventDefault(); settleLanNotice('reject'); });
     lanNoticeDialog.addEventListener('click', event => { if (event.target === lanNoticeDialog) settleLanNotice('reject'); });
 
-    // 传输进度：Rust 在分块收发数据时发出进度事件，这里更新当前步骤说明。
-    window.actaDesktop.onLanProgress?.(event => {
+    // 传输进度：原生层在分块收发数据时发出进度事件，这里更新当前步骤说明。
+    lanEvents.onLanProgress?.(event => {
       const payload = event.payload || {};
       if (lanSteps) lanSteps.note(lanProgressNote(payload));
     });
 
     // 会话验证失败（常见于对方的设备列表已过期）：全局提示，10 秒节流。
-    window.actaDesktop.onLanRejected?.(() => {
+    lanEvents.onLanRejected?.(() => {
       const now = Date.now();
       if (now - lanRejectedToastAt < 10000) return;
       lanRejectedToastAt = now;
@@ -5688,7 +5690,7 @@
     });
 
     // 对方读取本机档案（信任网络）：按需加载并打包最新内容。
-    window.actaDesktop.onLanFetch?.(async event => {
+    lanEvents.onLanFetch?.(async event => {
       const payload = event.payload || {};
       try {
         const profile = dataProfileById(payload.profileId);
@@ -5702,9 +5704,9 @@
       }
     });
 
-    // 第一阶段：收到推送写入计划。信任网络由 Rust 直接接受（auto=true），
+    // 第一阶段：收到推送写入计划。信任网络由原生层直接接受（auto=true），
     // 不需要界面；否则先弹通知，用户点击查看详情并确认后才接受。
-    window.actaDesktop.onLanIncoming?.(async event => {
+    lanEvents.onLanIncoming?.(async event => {
       const payload = event.payload || {};
       if (payload.auto) return;
       if (lanBusy || lanIncomingActive || lanDataBusy || lanDataExpected) {
@@ -5751,7 +5753,7 @@
 
     // 第二阶段：数据到位。信任网络无对话框，直接自动应用；非信任网络由
     // 已确认的对话框推进步骤。备份与写入全部完成后才通知对方成功。
-    window.actaDesktop.onLanData?.(async event => {
+    lanEvents.onLanData?.(async event => {
       const payload = event.payload || {};
       if (lanDataBusy) {
         await lanBridge.rejectIncoming().catch(() => {});

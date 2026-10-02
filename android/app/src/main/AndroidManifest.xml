@@ -16,6 +16,7 @@
             android:icon="@mipmap/ic_launcher"
             android:label="@string/title_activity_main"
             android:logo="@mipmap/ic_launcher"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar"
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize"
@@ -94,4 +95,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- 局域网同步：接收 UDP 广播需要多播锁，读取网络状态用于选择广播地址 -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 </manifest>

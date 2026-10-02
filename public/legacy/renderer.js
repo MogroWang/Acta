@@ -3407,5 +3407,42 @@ function getSyncBridge() {
   };
 }
 
+// Android 局域网同步桥：与桌面端 window.actaDesktop.lanSync 同一套 API 面，
+// 原生实现在 ActaLanPlugin（UDP 发现 + 极简 HTTP + 协议 v2 两段式确认）。
+// 事件名与载荷结构与桌面端一致，interface.js 的局域网逻辑两端共用。
+(function initAndroidLanBridge() {
+  const native = window.Capacitor?.Plugins?.ActaLan;
+  if (!native) return;
+  const lanSync = {
+    startService: (profiles, trusted) => native.startService({ profiles, trusted }),
+    updateMeta: (profiles, trusted) => native.updateMeta({ profiles, trusted }),
+    stopService: () => native.stopService(),
+    serviceStatus: () => native.serviceStatus(),
+    discover: (timeoutMs = 1800) => native.discover({ timeoutMs }).then(result => result?.peers || []),
+    fetchInfo: (ip, port, session) => native.fetchInfo({ ip, port, session }).then(result => result?.info || {}),
+    pushPlan: (ip, port, session, plan) => native.pushPlan({ ip, port, session, plan }).then(result => result?.token || ''),
+    pushData: async (ip, port, session, token, bundle) => {
+      await native.pushData({ ip, port, session, token, bundle });
+      return true;
+    },
+    fetchProfileBundle: (ip, port, session, profileId) => native.fetchProfileBundle({ ip, port, session, profileId }).then(result => result?.bundle || null),
+    decideIncoming: (accept) => native.decideIncoming({ accept }),
+    provideBundle: (requestId, result) => native.provideBundle({ requestId, ok: Boolean(result?.ok), bundle: result?.bundle ?? null, error: result?.error ?? null }),
+    acceptIncoming: () => native.acceptIncoming().then(result => result?.bundle || null),
+    confirmIncoming: () => native.confirmIncoming(),
+    rejectIncoming: () => native.rejectIncoming(),
+    backupLocal: (bundle, profileName) => native.backupLocal({ bundle, profileName })
+  };
+  const listen = (event, handler) => (native.addListener ? native.addListener(event, handler) : Promise.resolve(() => {}));
+  window.actaMobileLan = {
+    lanSync,
+    onLanIncoming: handler => listen('lanIncoming', handler),
+    onLanData: handler => listen('lanData', handler),
+    onLanFetch: handler => listen('lanFetch', handler),
+    onLanProgress: handler => listen('lanProgress', handler),
+    onLanRejected: handler => listen('lanRejected', handler)
+  };
+})();
+
 watchEditorPaneWidth();
 bindShell();
