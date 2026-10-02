@@ -29,6 +29,9 @@ const LAN_PUSH_WAIT: Duration = Duration::from_secs(150);
 const LAN_BACKUP_KEEP: usize = 10;
 const LAN_INCOMING_EVENT: &str = "lan-sync://incoming";
 const LAN_PROGRESS_EVENT: &str = "lan-sync://progress";
+// 会话令牌不匹配（常见于对方的设备列表过期）时也通知界面，
+// 让“对方收不到任何反馈”变成一条可理解的状态提示。
+const LAN_REJECTED_EVENT: &str = "lan-sync://rejected";
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -449,7 +452,7 @@ fn lan_peer_url(ip: &str, port: u16, path: &str, session: &str) -> String {
 
 fn lan_http_error(status: u16) -> String {
     match status {
-        403 => "对方拒绝了这次同步。".into(),
+        403 => "对方拒绝了这次同步；若对方近期重启过 Acta 或重新开过“允许被发现”，请重新搜索设备后再试。".into(),
         404 => "对方设备上没有该数据。".into(),
         408 => "对方没有及时确认这次同步。".into(),
         409 => "对方已有一个同步请求待确认。".into(),
@@ -595,6 +598,8 @@ fn handle_connection(mut stream: TcpStream, service: Arc<LanService>) {
     };
     let expected_session = format!("session={}", service.session);
     if !query.split('&').any(|pair| pair == expected_session) {
+        // 不携带具体数据内容，只提示来源地址；前端节流展示，避免刷屏。
+        let _ = service.app.emit(LAN_REJECTED_EVENT, json!({"ip": stream.peer_addr().map(|addr| addr.ip().to_string()).unwrap_or_default()}));
         let _ = write_http_response(&mut stream, 403, "Forbidden", r#"{"error":"forbidden"}"#);
         return;
     }

@@ -4740,6 +4740,9 @@
       snapshotWorking:'正在准备本机数据…', snapshotReady:'已准备好“{0}”，可以开始同步。', snapshotFail:'准备数据失败：',
       copyDone:'已将收到的数据保存为新档案“{0}”。',
       busyRefused:'正在处理其他同步，已自动拒绝来自 {0} 的请求。',
+      peerRefresh:'正在重新搜索 {0}…',
+      peerGone:'无法连接 {0}。请确认对方已打开 Acta 并开启“允许被其他设备发现”，且系统防火墙允许 Acta 通信，然后重新搜索设备后再试。',
+      rejectToast:'有一台设备尝试连接本机同步，但身份验证未通过；对方的设备列表可能已过期，请在两台设备上重新搜索后再试。',
       backupFail:'备份失败：',
       pullDone:'已从 {0} 导入完整数据文件夹。', pullFail:'导入失败：',
       pushDone:'{0} 已确认接收，数据同步完成。', pushRefused:'{0} 拒绝了这次同步。',
@@ -4777,6 +4780,9 @@
       snapshotWorking:'Preparing local data…', snapshotReady:'“{0}” is ready to sync.', snapshotFail:'Failed to prepare data: ',
       copyDone:'Saved the incoming data as the new profile “{0}”.',
       busyRefused:'Another sync is in progress; the request from {0} was declined automatically.',
+      peerRefresh:'Searching for {0} again…',
+      peerGone:'Cannot reach {0}. Make sure Acta is open there with “Be discoverable” on and the system firewall allows Acta, then scan for devices again.',
+      rejectToast:'A device tried to sync with this one but failed verification; its device list may be out of date. Scan for devices on both sides and try again.',
       backupFail:'Backup failed: ',
       pullDone:'Imported the complete data folder from {0}.', pullFail:'Import failed: ',
       pushDone:'{0} accepted the data; sync is complete.', pushRefused:'{0} declined this sync.',
@@ -4814,6 +4820,9 @@
       snapshotWorking:'正在準備本機資料…', snapshotReady:'已準備好「{0}」，可以開始同步。', snapshotFail:'準備資料失敗：',
       copyDone:'已將收到的資料保存為新檔案「{0}」。',
       busyRefused:'正在處理其他同步，已自動拒絕來自 {0} 的請求。',
+      peerRefresh:'正在重新搜尋 {0}…',
+      peerGone:'無法連接 {0}。請確認對方已開啟 Acta 並開啟「允許被其他裝置發現」，且系統防火牆允許 Acta 通訊，然後重新搜尋裝置後再試。',
+      rejectToast:'有一台裝置嘗試連接本機同步，但身份驗證未通過；對方的裝置清單可能已過期，請在兩台裝置上重新搜尋後再試。',
       backupFail:'備份失敗：',
       pullDone:'已從 {0} 匯入完整資料資料夾。', pullFail:'匯入失敗：',
       pushDone:'{0} 已確認接收，資料同步完成。', pushRefused:'{0} 拒絕了這次同步。',
@@ -4944,6 +4953,30 @@
     lanSendBundle = null;
     lanSendInfo = null;
     updateLanStateUI();
+  }
+
+  // 传输前的对端预检：先用已知地址与令牌验证；若对方重启过服务或重开过
+  // 可被发现开关，地址与会话令牌都已失效，此时自动重新搜索一次，按设备名
+  // 与平台匹配刷新坐标，避免把旧地址发出去后双方都毫无反馈。
+  async function lanResolvePeer(peer) {
+    try {
+      await lanBridge.fetchInfo(peer.ip, peer.port, peer.session);
+      return peer;
+    } catch { /* 地址或令牌已过期，尝试重新发现 */ }
+    setLanStatus(lanText('peerRefresh', peer.name || lanText('unknownDevice')), 'info');
+    try {
+      const peers = await lanBridge.discover(1800);
+      const candidates = Array.isArray(peers) ? peers : [];
+      const fresh = candidates.find(candidate => candidate.name === peer.name && candidate.platform === peer.platform)
+        || candidates.find(candidate => candidate.ip === peer.ip);
+      if (fresh) {
+        const index = lanPeers.indexOf(peer);
+        if (index >= 0) lanPeers[index] = fresh;
+        renderLanPeers();
+        return fresh;
+      }
+    } catch { /* 重新搜索失败，按不可达处理 */ }
+    return null;
   }
 
   function renderLanPeers() {
@@ -5168,11 +5201,17 @@
     lanBusy = true;
     let backup = null;
     try {
-      const info = await lanBridge.fetchInfo(peer.ip, peer.port, peer.session);
+      const resolved = await lanResolvePeer(peer);
+      if (!resolved) {
+        setLanStatus(lanText('peerGone', peer.name || lanText('unknownDevice')), 'error');
+        showSyncNotice(lanText('peerGone', peer.name || lanText('unknownDevice')), 'error');
+        return;
+      }
+      const info = await lanBridge.fetchInfo(resolved.ip, resolved.port, resolved.session);
       const remote = info.info || {};
       const plan = {
-        direction:'pull', peer,
-        remote: { profile: remote.profile || peer.profile, platform: peer.platform, notes: remote.notes ?? peer.notes, todos: remote.todos ?? peer.todos, classifications: remote.classifications ?? peer.classifications, bytes: remote.bytes ?? peer.bytes }
+        direction:'pull', peer: resolved,
+        remote: { profile: remote.profile || resolved.profile, platform: resolved.platform, notes: remote.notes ?? resolved.notes, todos: remote.todos ?? resolved.todos, classifications: remote.classifications ?? resolved.classifications, bytes: remote.bytes ?? resolved.bytes }
       };
       if (!(await openLanConfirm(plan))) return;
       const copyMode = plan.mode === 'copy';
@@ -5191,11 +5230,11 @@
           steps.done(0, lanText('backupDoneAt', backup.path));
         }
         await steps.active(copyMode ? 0 : 1);
-        const bundle = await lanBridge.fetchBundle(peer.ip, peer.port, peer.session);
+        const bundle = await lanBridge.fetchBundle(resolved.ip, resolved.port, resolved.session);
         steps.done(copyMode ? 0 : 1);
         if (copyMode) {
           await steps.active(1);
-          const profile = await lanCopyBundleAsProfile(bundle, remote.profile || peer.profile);
+          const profile = await lanCopyBundleAsProfile(bundle, remote.profile || resolved.profile);
           steps.done(1, profile.name);
           void lanRefreshSendSnapshot({ quiet:true });
           setLanStatus(lanText('copyDone', profile.name), 'success');
@@ -5204,8 +5243,8 @@
           await steps.active(2);
           await applyLanBundle(bundle);
           steps.done(2);
-          setLanStatus(`${lanText('pullDone', peer.name || lanText('unknownDevice'))} ${lanText('backupDoneAt', backup.path)}`, 'success');
-          showSyncNotice(lanText('pullDone', peer.name || lanText('unknownDevice')));
+          setLanStatus(`${lanText('pullDone', resolved.name || lanText('unknownDevice'))} ${lanText('backupDoneAt', backup.path)}`, 'success');
+          showSyncNotice(lanText('pullDone', resolved.name || lanText('unknownDevice')));
         }
         await lanFinishTransfer();
       } catch (error) {
@@ -5226,7 +5265,13 @@
     try {
       const sendProfile = lanSendProfile();
       const sendName = sendProfile?.name || lanProfileLabel();
-      const confirmed = await openLanConfirm({ direction:'push', peer, remote: { profile: peer.profile, platform: peer.platform, notes: peer.notes, todos: peer.todos, classifications: peer.classifications, bytes: peer.bytes } });
+      const resolved = await lanResolvePeer(peer);
+      if (!resolved) {
+        setLanStatus(lanText('peerGone', peer.name || lanText('unknownDevice')), 'error');
+        showSyncNotice(lanText('peerGone', peer.name || lanText('unknownDevice')), 'error');
+        return;
+      }
+      const confirmed = await openLanConfirm({ direction:'push', peer: resolved, remote: { profile: resolved.profile, platform: resolved.platform, notes: resolved.notes, todos: resolved.todos, classifications: resolved.classifications, bytes: resolved.bytes } });
       if (!confirmed) return;
       const steps = lanBeginSteps(['stepSend']);
       try {
@@ -5239,21 +5284,21 @@
         const status = await lanBridge.serviceStatus().catch(() => null);
         let accepted = null;
         if (status?.running && !refreshFailed) {
-          accepted = await lanBridge.pushSnapshot(peer.ip, peer.port, peer.session, status.device || 'Acta', sendName).catch(() => null);
+          accepted = await lanBridge.pushSnapshot(resolved.ip, resolved.port, resolved.session, status.device || 'Acta', sendName).catch(() => null);
         }
         if (accepted === null) {
           // 服务不可用或快照刷新失败：退回直接携带最新数据的发送方式。
           const bundle = await lanBuildSendBundle(sendProfile);
-          accepted = await lanBridge.pushBundle(peer.ip, peer.port, peer.session, bundle, status?.device || 'Acta', sendName);
+          accepted = await lanBridge.pushBundle(resolved.ip, resolved.port, resolved.session, bundle, status?.device || 'Acta', sendName);
         }
         if (accepted) {
-          steps.done(0, lanText('pushDone', peer.name || lanText('unknownDevice')));
-          setLanStatus(lanText('pushDone', peer.name || lanText('unknownDevice')), 'success');
-          showSyncNotice(lanText('pushDone', peer.name || lanText('unknownDevice')));
+          steps.done(0, lanText('pushDone', resolved.name || lanText('unknownDevice')));
+          setLanStatus(lanText('pushDone', resolved.name || lanText('unknownDevice')), 'success');
+          showSyncNotice(lanText('pushDone', resolved.name || lanText('unknownDevice')));
         } else {
-          steps.fail(lanText('pushRefused', peer.name || lanText('unknownDevice')));
-          setLanStatus(lanText('pushRefused', peer.name || lanText('unknownDevice')), 'error');
-          showSyncNotice(lanText('pushRefused', peer.name || lanText('unknownDevice')), 'error');
+          steps.fail(lanText('pushRefused', resolved.name || lanText('unknownDevice')));
+          setLanStatus(lanText('pushRefused', resolved.name || lanText('unknownDevice')), 'error');
+          showSyncNotice(lanText('pushRefused', resolved.name || lanText('unknownDevice')), 'error');
         }
       } catch (error) {
         lanSteps?.fail(error.message);
@@ -5353,6 +5398,17 @@
       if (lanSteps) lanSteps.note(lanProgressNote(payload));
     });
 
+    // 会话验证失败（常见于对方的设备列表已过期，或防火墙拦截后重试）：
+    // 全局提示确保两台设备都有可见反馈；10 秒节流避免探测请求刷屏。
+    let lanRejectedToastAt = 0;
+    window.actaDesktop.onLanRejected?.(() => {
+      const now = Date.now();
+      if (now - lanRejectedToastAt < 10000) return;
+      lanRejectedToastAt = now;
+      showSyncNotice(lanText('rejectToast'), 'error');
+      setLanStatus(lanText('rejectToast'), 'error');
+    });
+
     // 其他设备推送数据进来时弹出确认对话框；用户选择「替换当前档案」或
     // 「复制为新档案」，同意后先备份（仅替换）再写入，全部成功才通知对方。
     window.actaDesktop.onLanIncoming(async event => {
@@ -5362,6 +5418,7 @@
       if (lanBusy || lanIncomingActive) {
         await lanBridge.rejectIncoming().catch(() => {});
         setLanStatus(lanText('busyRefused', payload.from?.name || lanText('unknownDevice')), 'error');
+        showSyncNotice(lanText('busyRefused', payload.from?.name || lanText('unknownDevice')), 'error');
         return;
       }
       lanIncomingActive = true;
@@ -5389,6 +5446,7 @@
               await lanBridge.rejectIncoming();
               steps.fail(error.message);
               setLanStatus(`${lanText('backupFail')}${error.message}`, 'error');
+              showSyncNotice(`${lanText('backupFail')}${error.message}`, 'error');
               await lanFinishTransfer();
               return;
             }
@@ -5418,11 +5476,13 @@
           await lanBridge.rejectIncoming().catch(() => {});
           lanSteps?.fail(error.message);
           setLanStatus(`${lanText('incomingFail')}${error.message}`, 'error');
+          showSyncNotice(`${lanText('incomingFail')}${error.message}`, 'error');
           await lanFinishTransfer();
         }
       } catch (error) {
         await lanBridge.rejectIncoming().catch(() => {});
         setLanStatus(`${lanText('incomingFail')}${error.message}`, 'error');
+        showSyncNotice(`${lanText('incomingFail')}${error.message}`, 'error');
       } finally {
         lanIncomingActive = false;
       }

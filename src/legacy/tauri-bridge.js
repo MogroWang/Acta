@@ -95,6 +95,10 @@
       if (!tauri.event?.listen) return Promise.resolve(() => {});
       return tauri.event.listen('lan-sync://progress', handler);
     },
+    onLanRejected(handler) {
+      if (!tauri.event?.listen) return Promise.resolve(() => {});
+      return tauri.event.listen('lan-sync://rejected', handler);
+    },
     async importNote() {
       const path = firstPath(await dialog.open({
         title:'导入单独笔记',
