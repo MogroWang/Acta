@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version v3.3.0</strong>
+  <strong>Current version v3.4.0</strong>
 </p>
 
 Acta is a local-first notes and tasks app that brings writing, action, and organization into one calm workspace. The project shares a single web interface across Tauri desktop apps for Windows/macOS, a Capacitor Android app, and a modern-browser PWA.
@@ -33,7 +33,7 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 - A desktop context menu on an opaque panel, with cut, copy, paste, and select all for text, plus copy for any selected text
 - Simplified Chinese, Traditional Chinese, and English interfaces with theme and font settings
 - All dropdown menus, scrollbars, sliders, date-time pickers, and settings toggles are custom-drawn controls; hover feedback uses scale instead of shifting, keeping motion restrained and smooth
-- Local data folders and WebDAV sync
+- Local data folders, WebDAV, and Acta LAN sync: desktop clients can automatically discover other Acta devices on the same network and exchange complete data folders directly, with a detailed list of files to be written and explicit consent before overwriting, plus an automatically created, restorable backup
 - Android local notifications, system file pickers, and Storage Access Framework integration
 - Installable PWA support with offline caching
 
@@ -122,8 +122,8 @@ Builds run automatically through GitHub Actions (`.github/workflows/build.yml`):
 
 - Core data stays on the device by default; browser settings use `localStorage`, while directory handles use IndexedDB. Since v3.0.0 the desktop app keeps its software data next to the program by default (the `data` folder beside the exe), or in a location you choose, mirrored into `settings.json` there so it survives cache clears.
 - A data folder contains `acta-manifest.json`, `classifications.json`, `notes/`, and `todos/`, with each note and task stored separately.
-- Tauri uses restricted Rust commands for system files, WebDAV, and cache management; Android uses a custom Capacitor plugin and the Storage Access Framework for user-authorized directories.
-- WebDAV credentials are used only for the server configured by the user.
+- Tauri uses restricted Rust commands for system files, WebDAV, LAN sync, and cache management; Android uses a custom Capacitor plugin and the Storage Access Framework for user-authorized directories.
+- WebDAV credentials are used only for the server configured by the user. LAN sync runs only while "Be discoverable" is on, and both discovery and transfer require the random session token; incoming pushes must be confirmed in the interface, and a complete, restorable backup is created under `backups/lan-sync/` in the software data folder before anything is overwritten (the latest 10 are kept automatically).
 
 ## Testing
 

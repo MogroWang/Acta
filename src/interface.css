@@ -2217,3 +2217,43 @@ body.trash-view .list-footer { background: color-mix(in srgb, var(--note-soft) 1
   .stats-toolbar::after { display: none; }
 }
 
+
+/* ===== Acta 局域网同步（数据同步面板）===== */
+.lan-sync-state { flex: 0 0 auto; padding: 4px 10px; border-radius: 999px; background: var(--panel); color: var(--faint); font-size: calc(9px * var(--acta-font-scale)); font-weight: 650; transition: background .2s var(--ease-out), color .2s var(--ease-out); }
+.lan-sync-state[data-state="on"], .lan-sync-state[data-state="partial"] { background: var(--sage-2); color: var(--sage); }
+.lan-peer-list { display: grid; gap: 8px; padding: 2px 15px 13px; }
+.lan-peer-card { --peer-delay: 0ms; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 11px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--white) 55%, transparent); animation: dataProfileEnter .35s cubic-bezier(.16,1,.3,1) both; animation-delay: var(--peer-delay); }
+.lan-peer-icon { width: 32px; height: 32px; border-radius: 10px; background: var(--panel); color: var(--muted); display: grid; place-items: center; }
+.lan-peer-icon svg { width: 15px; height: 15px; }
+.lan-peer-copy { min-width: 0; display: grid; gap: 3px; }
+.lan-peer-copy b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(10px * var(--acta-font-scale)); }
+.lan-peer-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--faint); font-size: calc(8px * var(--acta-font-scale)); }
+.lan-peer-copy .lan-peer-stats { color: var(--muted); }
+.lan-peer-actions { display: flex; gap: 6px; }
+.lan-peer-actions .settings-button { min-height: 31px; padding: 0 10px; }
+
+/* 覆盖确认对话框：左右两张卡片表达数据流向，下方列出将要写入的文件。 */
+.lan-sync-dialog { width: min(500px, calc(100vw - 28px)); }
+.lan-sync-body { display: grid; gap: 14px; }
+.lan-sync-flow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: 9px; }
+.lan-sync-side { min-width: 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--white) 55%, transparent); display: grid; gap: 4px; align-content: start; }
+.lan-sync-side b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(10px * var(--acta-font-scale)); }
+.lan-sync-side small { color: var(--faint); font-size: calc(8px * var(--acta-font-scale)); }
+.lan-sync-side span { color: var(--muted); font-size: calc(8px * var(--acta-font-scale)); line-height: 1.5; }
+.lan-sync-flow-arrow { align-self: center; width: 20px; height: 20px; color: var(--faint); }
+.lan-sync-flow-arrow svg { width: 100%; height: 100%; }
+.lan-sync-files { display: grid; gap: 6px; }
+.lan-sync-files b { font-size: calc(9px * var(--acta-font-scale)); }
+.lan-sync-files ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.lan-sync-files li { padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; background: color-mix(in srgb, var(--white) 45%, transparent); color: var(--muted); font-size: calc(8.5px * var(--acta-font-scale)); }
+.lan-sync-backup-note { margin: 0; color: var(--muted); font-size: calc(8.5px * var(--acta-font-scale)); line-height: 1.6; }
+
+@media (max-width: 800px) {
+  .lan-peer-card { grid-template-columns: 32px minmax(0, 1fr); }
+  .lan-peer-actions { grid-column: 1 / -1; justify-content: flex-end; }
+  .lan-sync-flow { grid-template-columns: 1fr; }
+  .lan-sync-flow-arrow { transform: rotate(90deg); justify-self: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lan-peer-card { animation: none; }
+}

@@ -47,6 +47,46 @@
     webDavRequest(requestUrl, requestOptions = {}) {
       return invoke('web_dav_request', { requestUrl, requestOptions });
     },
+    lanSync: {
+      startService(bundle, profileName) {
+        return invoke('lan_sync_start_service', { bundle, profileName });
+      },
+      stopService() {
+        return invoke('lan_sync_stop_service');
+      },
+      serviceStatus() {
+        return invoke('lan_sync_service_status');
+      },
+      discover(timeoutMs = 1800) {
+        return invoke('lan_sync_discover', { timeoutMs });
+      },
+      fetchInfo(ip, port, session) {
+        return invoke('lan_sync_fetch_info', { ip, port, session });
+      },
+      fetchBundle(ip, port, session) {
+        return invoke('lan_sync_fetch_bundle', { ip, port, session });
+      },
+      pushBundle(ip, port, session, bundle, deviceLabel, profileName) {
+        return invoke('lan_sync_push_bundle', { ip, port, session, bundle, deviceLabel, profileName });
+      },
+      acceptIncoming() {
+        return invoke('lan_sync_accept_incoming');
+      },
+      confirmIncoming() {
+        return invoke('lan_sync_confirm_incoming');
+      },
+      rejectIncoming() {
+        return invoke('lan_sync_reject_incoming');
+      },
+      backupLocal(bundle, profileName) {
+        return invoke('lan_sync_backup_local', { bundle, profileName });
+      }
+    },
+    onLanIncoming(handler) {
+      // 事件 API 缺失（如测试环境的简化 mock）时返回哑句柄，不阻断启动。
+      if (!tauri.event?.listen) return Promise.resolve(() => {});
+      return tauri.event.listen('lan-sync://incoming', handler);
+    },
     async importNote() {
       const path = firstPath(await dialog.open({
         title:'导入单独笔记',

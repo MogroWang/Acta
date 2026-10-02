@@ -1504,7 +1504,7 @@ async function main() {
       const englishLanguage = document.querySelector('input[name="actaLanguage"][value="en"]');
       englishLanguage.checked = true;
       englishLanguage.dispatchEvent(new Event('change'));
-      await waitFor(() => document.querySelector('[data-settings-panel="cloud"] header p').textContent === 'Sync the complete data folder through a WebDAV server.');
+      await waitFor(() => document.querySelector('[data-settings-panel="cloud"] header p').textContent === 'Sync the complete data folder through a WebDAV server or other Acta devices on your LAN.');
       const cloudPanelDescriptionEn = document.querySelector('[data-settings-panel="cloud"] header p').textContent;
       const dataSyncLabelEn = document.querySelector('[data-settings-page="cloud"] span').textContent === 'Data sync' && document.querySelector('[data-settings-panel="cloud"] h3').textContent === 'Data sync';
       const noteEditorLabelEn = document.querySelector('[data-settings-page="note-editor"] span').textContent === 'Note editor'
@@ -2122,9 +2122,9 @@ async function main() {
     assert.equal(result.appearanceSettingsComplete, true);
     assert.equal(result.appearanceLayoutFits, true);
     assert.equal(result.dataSyncHeadingZh, true);
-    assert.equal(result.cloudPanelDescriptionZh, '通过 WebDAV 服务器同步完整数据文件夹。');
+    assert.equal(result.cloudPanelDescriptionZh, '通过 WebDAV 服务器或局域网中的其他 Acta 设备同步完整数据文件夹。');
     assert.equal(result.webDavFieldsVisible, true);
-    assert.equal(result.cloudPanelDescriptionEn, 'Sync the complete data folder through a WebDAV server.');
+    assert.equal(result.cloudPanelDescriptionEn, 'Sync the complete data folder through a WebDAV server or other Acta devices on your LAN.');
     assert.equal(result.dataSyncLabelEn, true);
     assert.equal(result.noteEditorLabelEn, true);
     assert.equal(result.calendarDefaultOptionEn, true);

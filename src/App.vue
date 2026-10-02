@@ -31,7 +31,7 @@
                   </g>
               </g>
           </svg>
-          <span class="brand-version" aria-label="当前版本 3.3.0">3.3.0</span>
+          <span class="brand-version" aria-label="当前版本 3.4.0">3.4.0</span>
           <span class="logo-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
           <img class="brand-mini-logo" src="/icons/Acta_weblogo.png" alt="" aria-hidden="true" />
         </div>
@@ -377,7 +377,20 @@
             </section>
 
             <section class="settings-panel" data-settings-panel="cloud">
-              <header><h3>数据同步</h3><p>通过 WebDAV 服务器同步完整数据文件夹。</p></header>
+              <header><h3>数据同步</h3><p>通过 WebDAV 服务器或局域网中的其他 Acta 设备同步完整数据文件夹。</p></header>
+              <div class="settings-group lan-sync-group" id="lanSyncGroup" hidden>
+                <div class="settings-row lan-sync-head-row">
+                  <span><b>Acta 局域网同步</b><small>与同一网络中的其他 Acta 设备直接互相同步行记数据，数据不经过任何服务器。</small></span>
+                  <span class="lan-sync-state" id="lanSyncState" data-state="off"></span>
+                </div>
+                <label class="settings-row"><span><b>允许被其他设备发现</b><small>开启后这台设备会出现在附近设备的列表中；关闭或退出 Acta 时立即停止</small></span><input id="lanDiscoverableSetting" type="checkbox"/></label>
+                <div class="settings-row">
+                  <span><b>附近的设备</b><small id="lanPeersHint"></small></span>
+                  <button class="settings-button secondary" id="lanScanButton" type="button"><svg><use href="#i-refresh"/></svg><span>搜索设备</span></button>
+                </div>
+                <div class="lan-peer-list" id="lanPeerList" hidden></div>
+                <p class="settings-status" id="lanSyncStatus" role="status"></p>
+              </div>
               <div class="settings-group">
                 <div class="cloud-mode-fields" id="webDavModeFields">
                   <label class="settings-row"><span><b>服务器地址</b><small>填写用于保存 Acta 完整数据文件夹的 WebDAV 目录地址</small></span><input id="webDavServer" type="url" inputmode="url" autocomplete="url" placeholder="https://dav.example.com/Acta/"/></label>
@@ -402,8 +415,8 @@
               <div class="about-mark"><img src="/images/Acta Poster.jpg" alt="Acta 行记" /></div>
               <div class="about-meta">
                 <div><small>产品</small><b>Acta · 行记</b></div>
-              <div><small>版本</small><b id="aboutVersion">3.3.0</b></div>
-              <div><small>本版更新日期</small><b>2026-09-29</b></div>
+              <div><small>版本</small><b id="aboutVersion">3.4.0</b></div>
+              <div><small>本版更新日期</small><b>2026-10-02</b></div>
                 <div><small>桌面框架</small><b>Tauri（Windows/macOS），Capacitor（Android）</b></div>
               </div>
               <div class="about-update">
@@ -428,6 +441,24 @@
         </div>
       </div>
       <footer class="settings-actions delete-confirm-actions"><button class="settings-button danger" id="confirmDestroyAll" type="button" hidden><svg><use href="#i-trash"/></svg><span id="confirmDestroyAllLabel">彻底删除</span></button><button class="settings-button secondary" id="cancelDeleteConfirm" type="button">取消</button></footer>
+    </dialog>
+
+    <dialog class="relation-dialog lan-sync-dialog" id="lanSyncDialog" aria-labelledby="lanSyncTitle">
+      <header class="relation-dialog-head"><span><svg><use href="#i-cloud"/></svg></span><div><h3 id="lanSyncTitle"></h3><small id="lanSyncSubtitle"></small></div><button class="relation-dialog-close" id="closeLanSync" type="button" aria-label="关闭"><svg><use href="#i-close"/></svg></button></header>
+      <div class="relation-dialog-body lan-sync-body">
+        <div class="lan-sync-flow">
+          <div class="lan-sync-side" id="lanSyncSourceSide"></div>
+          <span class="lan-sync-flow-arrow" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div class="lan-sync-side" id="lanSyncTargetSide"></div>
+        </div>
+        <div class="lan-sync-files">
+          <b id="lanSyncFilesHeading"></b>
+          <ul id="lanSyncFileList"></ul>
+        </div>
+        <p class="lan-sync-backup-note" id="lanSyncBackupNote"></p>
+        <p class="settings-status" id="lanSyncError" role="alert" hidden></p>
+      </div>
+      <footer class="settings-actions delete-confirm-actions"><button class="settings-button secondary" id="cancelLanSync" type="button"></button><button class="settings-button danger" id="confirmLanSync" type="button"><svg><use href="#i-check"/></svg><span id="confirmLanSyncLabel"></span></button></footer>
     </dialog>
 
     <dialog class="relation-dialog quick-capture-dialog" id="quickCaptureDialog" aria-labelledby="quickCaptureTitle">

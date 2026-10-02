@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <strong>当前版本 v3.3.0</strong>
+  <strong>当前版本 v3.4.0</strong>
 </p>
 
 Acta 是一个本地优先的笔记与待办应用，把记录、行动和资料整理放在一个安静的工作空间中。项目共用一套 Web 界面，并通过 Tauri 提供 Windows/macOS 桌面版、通过 Capacitor 提供 Android 版，也可以作为 PWA 在现代浏览器中运行。
@@ -33,7 +33,7 @@ Acta 是一个本地优先的笔记与待办应用，把记录、行动和资料
 - 桌面端自定义右键菜单：不透明菜单面板，文本处提供剪切、复制、粘贴与全选，选中文字即可复制
 - 简体中文、繁体中文和英文界面，以及多种主题和字体设置
 - 全部下拉列表、滚动条、滑杆、日期时间选择器与设置勾选开关均为自绘控件，悬停反馈以缩放呈现，动效克制顺滑
-- 本地数据文件夹和 WebDAV 同步
+- 本地数据文件夹、WebDAV 与 Acta 局域网同步：桌面客户端可自动搜寻同一局域网中的其他 Acta 设备直接互传完整数据文件夹，覆盖前详细列出将写入的文件并征求同意，覆盖前自动创建可恢复的备份
 - Android 本地通知、系统文件选择器和 Storage Access Framework 支持
 - 可安装 PWA 与离线缓存
 
@@ -122,8 +122,8 @@ macOS 构建目标为 Apple 芯片（`aarch64-apple-darwin`），由 `package.js
 
 - 核心资料默认保存在设备本地；浏览器设置使用 `localStorage`，目录句柄使用 IndexedDB。桌面端从 v3.0.0 起软件数据默认跟随程序（exe 同级的 `data` 文件夹），也可自选位置并镜像写入其中的 `settings.json`，清空缓存后可自动恢复。
 - 数据文件夹格式由 `acta-manifest.json`、`classifications.json`、`notes/` 和 `todos/` 组成，每则笔记和待办分别保存。
-- Tauri 通过受限 Rust 命令访问系统文件、WebDAV 与缓存；Android 通过自定义 Capacitor 插件和 Storage Access Framework 访问用户授权的目录。
-- WebDAV 凭据只用于用户配置的服务器。
+- Tauri 通过受限 Rust 命令访问系统文件、WebDAV、局域网同步与缓存；Android 通过自定义 Capacitor 插件和 Storage Access Framework 访问用户授权的目录。
+- WebDAV 凭据只用于用户配置的服务器。局域网同步仅在开启「允许被其他设备发现」期间运行，发现与传输均要求本次会话的随机令牌；接收对方推送的数据必须由用户在界面中确认，本机覆盖前会先在软件数据文件夹 `backups/lan-sync/` 下创建与「读取现有档案」兼容的完整备份（自动保留最近 10 份）。
 
 ## 测试
 

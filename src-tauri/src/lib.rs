@@ -16,6 +16,7 @@ use std::{
 use tauri::{AppHandle, Manager, WebviewWindow};
 use url::Url;
 
+mod lan_sync;
 mod updater;
 
 // 自更新命令的薄包装：#[tauri::command] 的隐藏宏留在 lib.rs 作用域，
@@ -38,6 +39,84 @@ async fn download_app_update(
 #[tauri::command]
 async fn prepare_update_restart(payload: String, version: String) -> Result<bool, String> {
     updater::prepare_restart(payload, version).await
+}
+
+// 局域网同步命令的薄包装：与 updater 命令同理，#[tauri::command] 的隐藏宏
+// 留在 lib.rs 作用域，避免 generate_handler! 跨模块引用私有宏。
+// 服务生命周期命令是同步函数（内部只有短锁与线程启动），搜索与传输
+// 命令保持 async，让网络等待离开主线程。
+#[tauri::command]
+fn lan_sync_start_service(
+    app: AppHandle,
+    state: tauri::State<'_, lan_sync::LanState>,
+    bundle: Value,
+    profile_name: String,
+) -> Result<lan_sync::LanServiceStatus, String> {
+    lan_sync::lan_sync_start_service(app, &state, bundle, profile_name)
+}
+
+#[tauri::command]
+fn lan_sync_stop_service(state: tauri::State<'_, lan_sync::LanState>) -> Result<(), String> {
+    lan_sync::lan_sync_stop_service(&state)
+}
+
+#[tauri::command]
+fn lan_sync_service_status(state: tauri::State<'_, lan_sync::LanState>) -> Result<lan_sync::LanServiceStatus, String> {
+    lan_sync::lan_sync_service_status(&state)
+}
+
+#[tauri::command]
+async fn lan_sync_discover(
+    state: tauri::State<'_, lan_sync::LanState>,
+    timeout_ms: u64,
+) -> Result<Vec<lan_sync::LanPeer>, String> {
+    lan_sync::lan_sync_discover(&state, timeout_ms).await
+}
+
+#[tauri::command]
+async fn lan_sync_fetch_info(ip: String, port: u16, session: String) -> Result<Value, String> {
+    lan_sync::lan_sync_fetch_info(ip, port, session).await
+}
+
+#[tauri::command]
+async fn lan_sync_fetch_bundle(ip: String, port: u16, session: String) -> Result<Value, String> {
+    lan_sync::lan_sync_fetch_bundle(ip, port, session).await
+}
+
+#[tauri::command]
+async fn lan_sync_push_bundle(
+    ip: String,
+    port: u16,
+    session: String,
+    bundle: Value,
+    device_label: String,
+    profile_name: String,
+) -> Result<bool, String> {
+    lan_sync::lan_sync_push_bundle(ip, port, session, bundle, device_label, profile_name).await
+}
+
+#[tauri::command]
+fn lan_sync_accept_incoming(state: tauri::State<'_, lan_sync::LanState>) -> Result<Value, String> {
+    lan_sync::lan_sync_accept_incoming(&state)
+}
+
+#[tauri::command]
+fn lan_sync_confirm_incoming(state: tauri::State<'_, lan_sync::LanState>) -> Result<(), String> {
+    lan_sync::lan_sync_confirm_incoming(&state)
+}
+
+#[tauri::command]
+fn lan_sync_reject_incoming(state: tauri::State<'_, lan_sync::LanState>) -> Result<(), String> {
+    lan_sync::lan_sync_reject_incoming(&state)
+}
+
+#[tauri::command]
+async fn lan_sync_backup_local(
+    app: AppHandle,
+    bundle: Value,
+    profile_name: String,
+) -> Result<lan_sync::LanBackupResult, String> {
+    lan_sync::lan_sync_backup_local(app, bundle, profile_name).await
 }
 
 const SYNC_FILE: &str = "acta-library.json";
@@ -1631,6 +1710,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
+        .manage(lan_sync::LanState::default())
         .setup(|app| {
             let app_handle = app.handle();
             // 主窗口在 tauri.conf.json 里是 create:false，这里手动按同一份配置
@@ -1758,6 +1838,17 @@ pub fn run() {
             download_library,
             inspect_folder,
             web_dav_request,
+            lan_sync_start_service,
+            lan_sync_stop_service,
+            lan_sync_service_status,
+            lan_sync_discover,
+            lan_sync_fetch_info,
+            lan_sync_fetch_bundle,
+            lan_sync_push_bundle,
+            lan_sync_accept_incoming,
+            lan_sync_confirm_incoming,
+            lan_sync_reject_incoming,
+            lan_sync_backup_local,
             import_note,
             export_note,
             export_assets,
