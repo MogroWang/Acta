@@ -369,9 +369,9 @@
       panelDescription:'每個資料檔案都包含完整的歸類、筆記和待辦；可以儲存在軟體本機，也可以連接到你選擇的資料夾。', newProfile:'新增空白檔案', newSubtitle:'從一份沒有筆記和待辦的資料開始', name:'檔案名稱', newName:'新的行記資料', location:'儲存位置', localDesktop:'軟體本機', localNative:'軟體本機', localBrowser:'瀏覽器本機快取', localHint:'預設位置，無需選擇資料夾', folder:'自選資料夾', folderHint:'建立時選擇儲存位置', cancel:'取消', createOpen:'建立並開啟', profiles:'資料檔案', count:'{0} 個檔案', activeSummary:'目前：{0}', browserTitle:'瀏覽器本機空間有限', browserHint:'瀏覽器可能在空間不足或清理快取時移除本機資料，請定期匯出完整檔案備份。', active:'目前', open:'開啟', edit:'編輯', current:'正在使用', stats:'{0} 則筆記 · {1} 個待辦', saveName:'儲存名稱', changeLocation:'變更位置', copy:'複製', export:'匯出完整檔案', locationLabel:'檔案位置', folderFiles:'完整檔案資料夾', emptyName:'請輸入檔案名稱。', duplicateName:'已經存在同名資料檔案。', localQuota:'本機空間不足，無法儲存。請先匯出完整檔案，再變更儲存位置。', unavailable:'目前位置無法使用，請編輯檔案並重新選擇儲存位置。', created:'已建立並開啟空白資料檔案「{0}」。', switched:'已切換到「{0}」。', renamed:'資料檔案已重新命名為「{0}」。', moved:'「{0}」已複製到新的儲存位置。', copied:'已建立「{0}」的本機副本。', exported:'已將「{0}」的完整檔案匯出到 {1}。', saved:'「{0}」已儲存。', loaded:'已開啟「{0}」。', initializing:'正在讀取行記資料檔案…', ready:'所有變更會自動儲存到目前資料檔案。', editHint:'修改名稱或把完整檔案複製到新的資料夾。', copySuffix:'副本', defaultName:'我的行記', chooseLocation:'選擇資料夾後，Acta 會寫入完整檔案；原位置不會被刪除。'
     }
   };
-  Object.assign(profileMessages.zh, { deleteProfile:'删除档案', lastProfile:'至少需要保留一个数据档案。', confirmDeleteLocal:'删除“{0}”将永久移除保存在软件或浏览器本地的全部档案数据，确定继续？', confirmDeleteFolder:'从列表删除“{0}”？外部文件夹中的完整档案不会被删除。', profileDeleted:'已删除数据档案“{0}”。', readExisting:'读取现有档案', readingExisting:'正在读取现有档案…', noExistingData:'此文件夹中没有找到行记数据，请选择包含 acta-manifest.json 的文件夹。', imported:'已读取并打开“{0}”。', overwriteActaWarn:'此文件夹已包含行记数据。创建空白档案将覆盖并清除其中的现有数据，是否继续？', overwriteFolderWarn:'此文件夹不是空文件夹。创建空白档案将在此文件夹中写入新的行记数据，是否继续？' });
-  Object.assign(profileMessages.en, { deleteProfile:'Delete profile', lastProfile:'At least one data profile must remain.', confirmDeleteLocal:'Deleting “{0}” permanently removes all profile data stored inside Acta or the browser. Continue?', confirmDeleteFolder:'Remove “{0}” from the list? The complete profile in its external folder will not be deleted.', profileDeleted:'Deleted the data profile “{0}”.', readExisting:'Read existing profile', readingExisting:'Reading existing profile…', noExistingData:'No Acta data was found in this folder. Choose a folder that contains acta-manifest.json.', imported:'Read and opened “{0}”.', overwriteActaWarn:'This folder already contains Acta data. Creating a blank profile will overwrite and clear its existing data. Continue?', overwriteFolderWarn:'This folder is not empty. Creating a blank profile will write new Acta data into it. Continue?' });
-  Object.assign(profileMessages['zh-Hant'], { deleteProfile:'刪除檔案', lastProfile:'至少需要保留一個資料檔案。', confirmDeleteLocal:'刪除「{0}」將永久移除儲存在軟體或瀏覽器本機的全部檔案資料，確定繼續？', confirmDeleteFolder:'從清單刪除「{0}」？外部資料夾中的完整檔案不會被刪除。', profileDeleted:'已刪除資料檔案「{0}」。', readExisting:'讀取現有檔案', readingExisting:'正在讀取現有檔案…', noExistingData:'此資料夾中沒有找到行記資料，請選擇包含 acta-manifest.json 的資料夾。', imported:'已讀取並開啟「{0}」。', overwriteActaWarn:'此資料夾已包含行記資料。建立空白檔案將覆蓋並清除其中的現有資料，是否繼續？', overwriteFolderWarn:'此資料夾不是空資料夾。建立空白檔案將在此資料夾中寫入新的行記資料，是否繼續？' });
+  Object.assign(profileMessages.zh, { deleteProfile:'删除档案', lastProfile:'至少需要保留一个数据档案。', confirmDeleteLocal:'删除“{0}”将永久移除保存在软件或浏览器本地的全部档案数据，确定继续？', confirmDeleteFolder:'从列表删除“{0}”？外部文件夹中的完整档案不会被删除。', profileDeleted:'已删除数据档案“{0}”。', readExisting:'读取现有档案', readingExisting:'正在读取现有档案…', noExistingData:'此文件夹中没有找到行记数据，请选择包含 acta-manifest.json 的文件夹。', imported:'已读取并打开“{0}”。', overwriteActaWarn:'此文件夹已包含行记数据。创建空白档案将覆盖并清除其中的现有数据，是否继续？', overwriteFolderWarn:'此文件夹不是空文件夹。创建空白档案将在此文件夹中写入新的行记数据，是否继续？', refreshData:'刷新行记数据', refreshingData:'正在刷新行记数据…', dataRefreshed:'已刷新「{0}」。', refreshNoData:'还没有已保存的数据文件，保留当前内容。' });
+  Object.assign(profileMessages.en, { deleteProfile:'Delete profile', lastProfile:'At least one data profile must remain.', confirmDeleteLocal:'Deleting “{0}” permanently removes all profile data stored inside Acta or the browser. Continue?', confirmDeleteFolder:'Remove “{0}” from the list? The complete profile in its external folder will not be deleted.', profileDeleted:'Deleted the data profile “{0}”.', readExisting:'Read existing profile', readingExisting:'Reading existing profile…', noExistingData:'No Acta data was found in this folder. Choose a folder that contains acta-manifest.json.', imported:'Read and opened “{0}”.', overwriteActaWarn:'This folder already contains Acta data. Creating a blank profile will overwrite and clear its existing data. Continue?', overwriteFolderWarn:'This folder is not empty. Creating a blank profile will write new Acta data into it. Continue?', refreshData:'Refresh Acta data', refreshingData:'Refreshing Acta data…', dataRefreshed:'Refreshed “{0}”.', refreshNoData:'No saved data file yet; keeping the current content.' });
+  Object.assign(profileMessages['zh-Hant'], { deleteProfile:'刪除檔案', lastProfile:'至少需要保留一個資料檔案。', confirmDeleteLocal:'刪除「{0}」將永久移除儲存在軟體或瀏覽器本機的全部檔案資料，確定繼續？', confirmDeleteFolder:'從清單刪除「{0}」？外部資料夾中的完整檔案不會被刪除。', profileDeleted:'已刪除資料檔案「{0}」。', readExisting:'讀取現有檔案', readingExisting:'正在讀取現有檔案…', noExistingData:'此資料夾中沒有找到行記資料，請選擇包含 acta-manifest.json 的資料夾。', imported:'已讀取並開啟「{0}」。', overwriteActaWarn:'此資料夾已包含行記資料。建立空白檔案將覆蓋並清除其中的現有資料，是否繼續？', overwriteFolderWarn:'此資料夾不是空資料夾。建立空白檔案將在此資料夾中寫入新的行記資料，是否繼續？', refreshData:'重新整理行記資料', refreshingData:'正在重新整理行記資料…', dataRefreshed:'已重新整理「{0}」。', refreshNoData:'尚未有已保存的資料檔案，保留目前內容。' });
   const profileText = (key, ...values) => values.reduce((message, value, index) => message.replace(`{${index}}`, value), (profileMessages[uiSettings.language] || profileMessages.zh)[key]);
 
   const quickCaptureMessages = {
@@ -2650,6 +2650,7 @@
     panelHeader.querySelector('p').textContent = copy.panelDescription;
     byId('newDataProfile').querySelector('span').textContent = copy.newProfile;
     byId('readDataProfile').querySelector('span').textContent = copy.readExisting;
+    byId('refreshDataProfile').querySelector('span').textContent = copy.refreshData;
     byId('newDataProfileTitle').textContent = copy.newProfile;
     byId('newDataProfileSubtitle').textContent = copy.newSubtitle;
     byId('newDataProfileNameLabel').textContent = copy.name;
@@ -2840,6 +2841,35 @@
   byId('newDataProfile').addEventListener('click', () => setDataProfileCreateOpen(!byId('dataProfileCreate').classList.contains('open')));
   byId('cancelDataProfile').addEventListener('click', () => setDataProfileCreateOpen(false));
   byId('readDataProfile').addEventListener('click', readExistingProfile);
+
+  // 刷新行记数据：从当前档案的存储位置重新读取并重绘界面；
+  // 尚未生成数据文件的新档案保留当前内容。
+  let dataProfileRefreshing = false;
+  async function refreshActiveDataProfile() {
+    if (dataProfileRefreshing) return;
+    const profile = activeDataProfile();
+    if (!profile) return;
+    dataProfileRefreshing = true;
+    const status = byId('workspaceStatus');
+    try {
+      setStatus(status, profileText('refreshingData'), '');
+      const adapter = await adapterForDataProfile(profile, false);
+      const snapshot = await adapter.load();
+      replaceLibrary(clearLegacyTags(JSON.parse(JSON.stringify(snapshot))));
+      profileStats(profile, snapshot);
+      saveDataProfileRegistry();
+      renderDataProfiles();
+      updateWorkspaceUI();
+      lanSyncUpdateMeta();
+      setStatus(status, profileText('dataRefreshed', profile.name), 'success');
+    } catch (error) {
+      if (missingLibraryFile(error)) setStatus(status, profileText('refreshNoData'), '');
+      else setStatus(status, error.message, 'error');
+    } finally {
+      dataProfileRefreshing = false;
+    }
+  }
+  byId('refreshDataProfile').addEventListener('click', () => { void refreshActiveDataProfile(); });
   byId('confirmDataProfile').addEventListener('click', async () => {
     const name = byId('newDataProfileName').value.trim();
     const storage = document.querySelector('input[name="newDataProfileStorage"]:checked')?.value || 'local';
@@ -4908,6 +4938,10 @@
   let lanBusy = false;
   let lanIncomingActive = false;
   let lanDataBusy = false;
+  // 已确认写入计划、正在等待数据阶段到达；超时自动复位，避免发送方异常
+  // 中断后接收端永远拒绝后续请求。
+  let lanDataExpected = false;
+  let lanDataExpectTimer = null;
   let lanTrustLan = false;
   let lanConfirmPlan = null;
   let lanConfirmResolve = null;
@@ -5405,6 +5439,13 @@
     return backup;
   }
 
+  // 接收完成后自动刷新一遍：档案卡片与统计、工作区标识、对外元数据。
+  function lanRefreshAfterReceive() {
+    try { renderDataProfiles(); } catch { /* 忽略刷新失败 */ }
+    try { updateWorkspaceUI(); } catch { /* 忽略刷新失败 */ }
+    lanSyncUpdateMeta();
+  }
+
   async function pullFromPeer(peer) {
     if (!lanBridge || lanBusy) return;
     lanBusy = true;
@@ -5440,6 +5481,7 @@
           setLanStatus(`${lanText('replaceDone', target.name)} ${lanText('backupDoneAt', backup.path)}`, 'success');
           showSyncNotice(lanText('replaceDone', target.name));
         }
+        lanRefreshAfterReceive();
         await lanFinishTransfer();
       } catch (error) {
         lanSteps?.fail(error.message);
@@ -5665,7 +5707,7 @@
     window.actaDesktop.onLanIncoming?.(async event => {
       const payload = event.payload || {};
       if (payload.auto) return;
-      if (lanBusy || lanIncomingActive || lanDataBusy) {
+      if (lanBusy || lanIncomingActive || lanDataBusy || lanDataExpected) {
         await lanBridge.decideIncoming(false).catch(() => {});
         const name = payload.from?.name || lanText('unknownDevice');
         setLanStatus(lanText('busyRefused', name), 'error');
@@ -5673,7 +5715,6 @@
         return;
       }
       lanIncomingActive = true;
-      let waitingData = false;
       try {
         const choice = await openLanNotice(payload);
         if (choice !== 'detail') {
@@ -5689,8 +5730,12 @@
         if (payload.mode === 'replace' && !dataProfileById(payload.targetProfileId)) {
           throw new Error(lanText('targetMissing'));
         }
-        // 已确认：保持对话框打开并显示步骤，等数据阶段推进。
-        waitingData = true;
+        // 已确认：立即向发送端应答第一阶段，发送端才会继续传输数据；
+        // 对话框保持打开并显示步骤，等数据阶段推进。
+        await lanBridge.decideIncoming(true);
+        lanDataExpected = true;
+        clearTimeout(lanDataExpectTimer);
+        lanDataExpectTimer = setTimeout(() => { lanDataExpected = false; }, 300000);
         lanActiveReceiver = {
           plan: payload,
           steps: lanBeginSteps(payload.mode === 'copy' ? ['stepReceive', 'stepSaveProfile'] : ['stepReceive', 'stepBackup', 'stepWrite'])
@@ -5700,9 +5745,8 @@
         await lanBridge.decideIncoming(false).catch(() => {});
         setLanStatus(`${lanText('incomingFail')}${error.message}`, 'error');
         showSyncNotice(`${lanText('incomingFail')}${error.message}`, 'error');
-        lanIncomingActive = false;
       }
-      if (!waitingData) lanIncomingActive = false;
+      lanIncomingActive = false;
     });
 
     // 第二阶段：数据到位。信任网络无对话框，直接自动应用；非信任网络由
@@ -5733,6 +5777,7 @@
           message = `${lanText('replaceDone', target.name)} ${lanText('backupDoneAt', backup.path)}`;
         }
         await lanBridge.confirmIncoming();
+        lanRefreshAfterReceive();
         if (steps) await lanFinishTransfer();
         setLanStatus(message, 'success');
         showSyncNotice(message);
@@ -5746,6 +5791,8 @@
         showSyncNotice(`${lanText('applyFail')}${error.message}`, 'error');
       } finally {
         lanDataBusy = false;
+        lanDataExpected = false;
+        clearTimeout(lanDataExpectTimer);
         lanActiveReceiver = null;
         lanIncomingActive = false;
       }

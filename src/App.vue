@@ -243,7 +243,7 @@
             </section>
 
             <section class="settings-panel" data-settings-panel="workspace">
-              <header class="data-profile-header"><div><h3>行记数据</h3><p>每个数据档案都包含完整的归类、笔记和待办；可以保存在软件本地，也可以连接到你选择的文件夹。</p></div><div class="data-profile-header-actions"><button class="settings-button" id="newDataProfile" type="button"><svg><use href="#i-plus"/></svg><span>新建空白档案</span></button><button class="settings-button secondary" id="readDataProfile" type="button"><svg><use href="#i-folder"/></svg><span>读取现有档案</span></button></div></header>
+              <header class="data-profile-header"><div><h3>行记数据</h3><p>每个数据档案都包含完整的归类、笔记和待办；可以保存在软件本地，也可以连接到你选择的文件夹。</p></div><div class="data-profile-header-actions"><button class="settings-button" id="newDataProfile" type="button"><svg><use href="#i-plus"/></svg><span>新建空白档案</span></button><button class="settings-button secondary" id="readDataProfile" type="button"><svg><use href="#i-folder"/></svg><span>读取现有档案</span></button><button class="settings-button secondary" id="refreshDataProfile" type="button"><svg><use href="#i-refresh"/></svg><span>刷新行记数据</span></button></div></header>
               <div class="appearance-subsection data-stats-subsection">
                 <header><b>数据统计</b><small id="dataStatsSubtitle">当前数据档案的容量与内容概览</small></header>
                 <div class="data-stats-grid">
