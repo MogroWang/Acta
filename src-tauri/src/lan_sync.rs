@@ -1,9 +1,12 @@
-// Acta 局域网同步：UDP 发现 + 极简 HTTP 传输，让同一局域网中的两台 Acta
-// 桌面客户端直接互传完整数据文件夹，不经过任何服务器。
+// Acta 局域网同步：UDP 发现 + 极简 HTTP 传输（协议 v2），让同一局域网中的
+// 两台 Acta 桌面客户端直接互传完整数据文件夹，不经过任何服务器。
 //
-// 安全模型：服务仅在用户开启"允许被其他设备发现"期间运行；发现与传输
-// 都要求携带本次服务会话随机生成的 session 令牌；接收推送时必须由用户
-// 在界面中确认，确认并落盘完成后推送方才会收到成功响应。
+// 安全模型：服务仅在用户开启「允许被其他设备发现」期间运行；发现与传输
+// 都要求携带本次服务会话随机生成的 session 令牌。协议 v2 引入「信任此局域
+// 网」（自动确认）：开启后其他设备可以不经确认直接读取本机任一行记数据
+// 档案，推送也跳过确认直接写入（覆盖前仍由前端自动备份）；未开启时推送
+// 走两段式确认——先收到写入计划（小体积）并等用户在界面确认，确认后才
+// 传输真正的数据档案并等待写入完成。
 
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -18,40 +21,111 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager};
 
-const LAN_PROTOCOL: u32 = 1;
+const LAN_PROTOCOL: u32 = 2;
 const LAN_DISCOVERY_PORT: u16 = 44117;
-const LAN_DISCOVERY_MAGIC: &str = "ACTA-LAN-V1 DISCOVER";
+const LAN_DISCOVERY_MAGIC: &str = "ACTA-LAN-V2 DISCOVER";
 const LAN_HEADER_LIMIT: usize = 16 * 1024;
 const LAN_BODY_LIMIT: usize = 256 * 1024 * 1024;
-// 推送确认等待 150s：小于 HTTP 客户端的 180s 总超时，对方长时间不响应时
-// 推送方会先收到明确的 408（未确认），而不是笼统的网络超时。
-const LAN_PUSH_WAIT: Duration = Duration::from_secs(150);
+// 写入计划等待用户决定 150s：小于 HTTP 客户端的 180s 总超时，对方长时间
+// 不响应时推送方会先收到明确的 408（未确认），而不是笼统的网络超时。
+const LAN_DECIDE_WAIT: Duration = Duration::from_secs(150);
+// 数据到位后等待前端备份并写入完成；大档案的备份与写入可能耗时较长。
+const LAN_APPLY_WAIT: Duration = Duration::from_secs(240);
+// 按需读取档案：前端加载并打包一个档案的最长等待时间。
+const LAN_FETCH_WAIT: Duration = Duration::from_secs(60);
 const LAN_BACKUP_KEEP: usize = 10;
 const LAN_INCOMING_EVENT: &str = "lan-sync://incoming";
+const LAN_DATA_EVENT: &str = "lan-sync://data";
+const LAN_FETCH_EVENT: &str = "lan-sync://fetch";
 const LAN_PROGRESS_EVENT: &str = "lan-sync://progress";
 // 会话令牌不匹配（常见于对方的设备列表过期）时也通知界面，
-// 让“对方收不到任何反馈”变成一条可理解的状态提示。
+// 让「对方收不到任何反馈」变成一条可理解的状态提示。
 const LAN_REJECTED_EVENT: &str = "lan-sync://rejected";
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LanSnapshotInfo {
+pub struct LanProfileMeta {
+    id: String,
+    name: String,
+    notes: usize,
+    todos: usize,
+}
+
+// 推送方在第一阶段发来的写入计划（不含数据本体）。
+#[derive(Clone)]
+struct PlanInfo {
+    device: String,
+    platform: String,
     profile: String,
+    mode: String,
+    target_profile_id: String,
+    target_profile_name: String,
     notes: usize,
     todos: usize,
     classifications: usize,
-    bytes: u64,
-    updated_at: String,
 }
 
-struct LanSnapshot {
-    bundle: Value,
-    info: LanSnapshotInfo,
+impl PlanInfo {
+    fn from_json(payload: &Value) -> Option<PlanInfo> {
+        let mode = payload.get("mode").and_then(Value::as_str)?;
+        if mode != "replace" && mode != "copy" {
+            return None;
+        }
+        let target_profile_id = payload
+            .get("targetProfileId")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string();
+        if mode == "replace" && target_profile_id.is_empty() {
+            return None;
+        }
+        Some(PlanInfo {
+            device: payload.get("device").and_then(Value::as_str).unwrap_or("Acta").to_string(),
+            platform: payload.get("platform").and_then(Value::as_str).unwrap_or_default().to_string(),
+            profile: payload.get("profile").and_then(Value::as_str).unwrap_or_default().to_string(),
+            mode: mode.to_string(),
+            target_profile_id,
+            target_profile_name: payload
+                .get("targetProfileName")
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_string(),
+            notes: payload.get("notes").and_then(Value::as_u64).unwrap_or(0) as usize,
+            todos: payload.get("todos").and_then(Value::as_u64).unwrap_or(0) as usize,
+            classifications: payload.get("classifications").and_then(Value::as_u64).unwrap_or(0) as usize,
+        })
+    }
+
+    fn event_json(&self, auto: bool) -> Value {
+        json!({
+            "auto": auto,
+            "from": {"name": self.device, "platform": self.platform},
+            "profile": self.profile,
+            "mode": self.mode,
+            "targetProfileId": self.target_profile_id,
+            "targetProfileName": self.target_profile_name,
+            "notes": self.notes,
+            "todos": self.todos,
+            "classifications": self.classifications
+        })
+    }
 }
 
-struct IncomingPush {
-    bundle: Value,
+// 第一阶段：等待用户决定（信任网络时跳过等待直接接受）。
+struct IncomingPlan {
+    plan: PlanInfo,
     responder: mpsc::SyncSender<bool>,
+}
+
+// 第二阶段：数据已到位，等待前端备份并写入完成。applied 通道由确认/拒绝
+// 命令发送、HTTP 连接线程接收：接收端在数据事件发出时被一次性取走，
+// 发送端仍留在互斥锁内，保证两端都能访问。
+struct PendingApply {
+    token: String,
+    plan: PlanInfo,
+    bundle: Mutex<Option<Value>>,
+    applied: mpsc::SyncSender<bool>,
+    receiver: Mutex<Option<mpsc::Receiver<bool>>>,
 }
 
 struct LanService {
@@ -61,12 +135,13 @@ struct LanService {
     device: String,
     platform: String,
     app: AppHandle,
-    snapshot: Mutex<LanSnapshot>,
     stop: Arc<AtomicBool>,
-    incoming: Mutex<Option<IncomingPush>>,
-    // 用户已同意、正在备份与写入的请求：数据本体已在 accept 时移交给
-    // 前端，这里只保留应答通道，全部成功后由 confirm 发送完成信号。
-    pending: Mutex<Option<mpsc::SyncSender<bool>>>,
+    trusted: AtomicBool,
+    profiles: Mutex<Vec<LanProfileMeta>>,
+    incoming: Mutex<Option<IncomingPlan>>,
+    pending_apply: Mutex<Option<PendingApply>>,
+    // 按需读取档案的挂起请求：requestId → 应答通道。
+    fetches: Mutex<HashMap<String, mpsc::SyncSender<Result<Value, String>>>>,
 }
 
 #[derive(Default)]
@@ -83,8 +158,8 @@ pub struct LanServiceStatus {
     session: String,
     device: String,
     platform: String,
-    #[serde(flatten)]
-    snapshot: Option<LanSnapshotInfo>,
+    trusted: bool,
+    profiles: Vec<LanProfileMeta>,
 }
 
 // std 没有随机数设施；session 与发现 token 都是局域网内的握手混淆值而非
@@ -130,36 +205,22 @@ fn bundle_shape_valid(bundle: &Value) -> bool {
         })
 }
 
-fn bundle_info(bundle: &Value, profile: &str, bytes: u64) -> LanSnapshotInfo {
+fn bundle_info(bundle: &Value) -> (usize, usize, usize) {
     let files = bundle.get("files").cloned().unwrap_or(Value::Null);
     let manifest = files.get(super::DATA_MANIFEST_FILE).cloned().unwrap_or(Value::Null);
     let classifications = files
         .get(super::CLASSIFICATIONS_FILE)
         .cloned()
         .unwrap_or(Value::Null);
-    LanSnapshotInfo {
-        profile: profile.to_string(),
-        notes: manifest.get("notes").and_then(Value::as_array).map(Vec::len).unwrap_or(0),
-        todos: manifest.get("todos").and_then(Value::as_array).map(Vec::len).unwrap_or(0),
-        classifications: classifications
+    (
+        manifest.get("notes").and_then(Value::as_array).map(Vec::len).unwrap_or(0),
+        manifest.get("todos").and_then(Value::as_array).map(Vec::len).unwrap_or(0),
+        classifications
             .get("folders")
             .and_then(Value::as_array)
             .map(Vec::len)
             .unwrap_or(0),
-        bytes,
-        updated_at: super::timestamp(),
-    }
-}
-
-fn snapshot_info_json(info: &LanSnapshotInfo) -> Value {
-    json!({
-        "profile": info.profile,
-        "notes": info.notes,
-        "todos": info.todos,
-        "classifications": info.classifications,
-        "bytes": info.bytes,
-        "updatedAt": info.updated_at
-    })
+    )
 }
 
 fn sanitized_profile_name(profile: &str) -> String {
@@ -181,37 +242,24 @@ fn sanitized_profile_name(profile: &str) -> String {
     }
 }
 
-// 服务生命周期命令对外是 async 函数：序列化完整数据档案的开销放在
-// 阻塞线程池，避免大档案卡住主线程；搜索与传输命令同样是 async。
-pub async fn lan_sync_start_service(
+fn meta_json(profiles: &[LanProfileMeta]) -> Value {
+    Value::Array(profiles.iter().map(serde_json::to_value).collect::<Result<_, _>>().unwrap_or_default())
+}
+
+// 服务生命周期命令都是同步函数：协议 v2 之后启动不再携带数据档案，
+// 内部只有短锁与线程启动，没有重活。
+pub fn lan_sync_start_service(
     app: AppHandle,
     state: &tauri::State<'_, LanState>,
-    bundle: Value,
-    profile_name: String,
+    profiles: Vec<LanProfileMeta>,
+    trusted: bool,
 ) -> Result<LanServiceStatus, String> {
-    if !bundle_shape_valid(&bundle) {
-        return Err("这不是有效的 Acta 完整数据档案".into());
-    }
-    // 序列化只在计算档案体积时需要；移入阻塞线程池，避免大档案卡住主线程，
-    // 闭包结束时把 bundle 原样交还，不做额外拷贝。
-    let (bytes, bundle) = tauri::async_runtime::spawn_blocking(move || {
-        serde_json::to_vec(&bundle).map(|data| (data.len(), bundle)).map_err(|error| error.to_string())
-    })
-    .await
-    .map_err(|error| error.to_string())??;
-    if bytes > LAN_BODY_LIMIT {
-        return Err("数据文件夹超出局域网同步的大小限制（256 MB）".into());
-    }
-    let snapshot = LanSnapshot {
-        info: bundle_info(&bundle, &profile_name, bytes as u64),
-        bundle,
-    };
-
     let mut guard = state.service.lock().map_err(|error| error.to_string())?;
     if let Some(running) = guard.as_ref() {
-        // 服务已在运行（幂等调用）：只刷新快照，保持端口与 session 稳定，
-        // 对方设备上已显示的连接不会因此失效。
-        *running.snapshot.lock().map_err(|error| error.to_string())? = snapshot;
+        // 服务已在运行（幂等调用）：只刷新档案元数据与信任标记，保持端口
+        // 与 session 稳定，对方设备上已显示的连接不会因此失效。
+        *running.profiles.lock().map_err(|error| error.to_string())? = profiles;
+        running.trusted.store(trusted, Ordering::Relaxed);
         return lan_sync_status_inner(state);
     }
 
@@ -231,17 +279,19 @@ pub async fn lan_sync_start_service(
         device: device_host_name(),
         platform: std::env::consts::OS.to_string(),
         app: app.clone(),
-        snapshot: Mutex::new(snapshot),
         stop: Arc::new(AtomicBool::new(false)),
+        trusted: AtomicBool::new(trusted),
+        profiles: Mutex::new(profiles),
         incoming: Mutex::new(None),
-        pending: Mutex::new(None),
+        pending_apply: Mutex::new(None),
+        fetches: Mutex::new(HashMap::new()),
     });
 
     if let Some(socket) = discovery_socket {
         let service_for_udp = service.clone();
         std::thread::spawn(move || {
             let _ = socket.set_read_timeout(Some(Duration::from_millis(400)));
-            let mut buffer = [0u8; 1024];
+            let mut buffer = [0u8; 4096];
             while !service_for_udp.stop.load(Ordering::Relaxed) {
                 match socket.recv_from(&mut buffer) {
                     Ok((size, source)) => {
@@ -251,11 +301,16 @@ pub async fn lan_sync_start_service(
                         if token.is_empty() || token.len() > 64 || token.contains(char::is_whitespace) {
                             continue;
                         }
-                        let info = service_for_udp
-                            .snapshot
-                            .lock()
-                            .ok()
-                            .map(|guard| snapshot_info_json(&guard.info));
+                        let (trusted, profiles) = {
+                            let trusted = service_for_udp.trusted.load(Ordering::Relaxed);
+                            let profiles = service_for_udp
+                                .profiles
+                                .lock()
+                                .ok()
+                                .map(|guard| meta_json(&guard))
+                                .unwrap_or(Value::Array(Vec::new()));
+                            (trusted, profiles)
+                        };
                         let response = json!({
                             "app": "acta",
                             "protocol": LAN_PROTOCOL,
@@ -264,7 +319,8 @@ pub async fn lan_sync_start_service(
                             "name": service_for_udp.device,
                             "platform": service_for_udp.platform,
                             "port": service_for_udp.http_port,
-                            "info": info
+                            "trusted": trusted,
+                            "profiles": profiles
                         });
                         let _ = socket.send_to(response.to_string().as_bytes(), source);
                     }
@@ -301,13 +357,13 @@ pub async fn lan_sync_start_service(
 fn shutdown_service(service: &Arc<LanService>) {
     service.stop.store(true, Ordering::Relaxed);
     if let Ok(mut incoming) = service.incoming.lock() {
-        if let Some(push) = incoming.take() {
-            let _ = push.responder.send(false);
+        if let Some(plan) = incoming.take() {
+            let _ = plan.responder.send(false);
         }
     }
-    if let Ok(mut pending) = service.pending.lock() {
-        if let Some(responder) = pending.take() {
-            let _ = responder.send(false);
+    if let Ok(mut pending) = service.pending_apply.lock() {
+        if let Some(pending) = pending.take() {
+            let _ = pending.applied.send(false);
         }
     }
 }
@@ -327,18 +383,16 @@ pub fn lan_sync_service_status(state: &tauri::State<'_, LanState>) -> Result<Lan
 fn lan_sync_status_inner(state: &tauri::State<'_, LanState>) -> Result<LanServiceStatus, String> {
     let guard = state.service.lock().map_err(|error| error.to_string())?;
     Ok(match guard.as_ref() {
-        Some(service) => {
-            let snapshot = service.snapshot.lock().map_err(|error| error.to_string())?;
-            LanServiceStatus {
-                running: true,
-                discoverable: service.discovery_socket,
-                port: service.http_port,
-                session: service.session.clone(),
-                device: service.device.clone(),
-                platform: service.platform.clone(),
-                snapshot: Some(snapshot.info.clone()),
-            }
-        }
+        Some(service) => LanServiceStatus {
+            running: true,
+            discoverable: service.discovery_socket,
+            port: service.http_port,
+            session: service.session.clone(),
+            device: service.device.clone(),
+            platform: service.platform.clone(),
+            trusted: service.trusted.load(Ordering::Relaxed),
+            profiles: service.profiles.lock().map_err(|error| error.to_string())?.clone(),
+        },
         None => LanServiceStatus {
             running: false,
             discoverable: false,
@@ -346,9 +400,24 @@ fn lan_sync_status_inner(state: &tauri::State<'_, LanState>) -> Result<LanServic
             session: String::new(),
             device: device_host_name(),
             platform: std::env::consts::OS.to_string(),
-            snapshot: None,
+            trusted: false,
+            profiles: Vec::new(),
         },
     })
+}
+
+// 档案列表或信任标记变化时由前端调用；服务未运行时无操作。
+pub fn lan_sync_update_meta(
+    state: &tauri::State<'_, LanState>,
+    profiles: Vec<LanProfileMeta>,
+    trusted: bool,
+) -> Result<(), String> {
+    let guard = state.service.lock().map_err(|error| error.to_string())?;
+    if let Some(service) = guard.as_ref() {
+        *service.profiles.lock().map_err(|error| error.to_string())? = profiles;
+        service.trusted.store(trusted, Ordering::Relaxed);
+    }
+    Ok(())
 }
 
 #[derive(Serialize)]
@@ -359,12 +428,8 @@ pub struct LanPeer {
     session: String,
     name: String,
     platform: String,
-    profile: String,
-    notes: usize,
-    todos: usize,
-    classifications: usize,
-    bytes: u64,
-    updated_at: String,
+    trusted: bool,
+    profiles: Value,
 }
 
 pub async fn lan_sync_discover(
@@ -389,7 +454,7 @@ pub async fn lan_sync_discover(
         let deadline = Instant::now() + Duration::from_millis(timeout_ms.clamp(400, 5000));
         // 同一台设备可能从多个网段回应：按 ip+port 去重，先到先得。
         let mut peers: HashMap<(String, u16), LanPeer> = HashMap::new();
-        let mut buffer = [0u8; 4096];
+        let mut buffer = [0u8; 8192];
         while Instant::now() < deadline {
             match socket.recv_from(&mut buffer) {
                 Ok((size, source)) => {
@@ -412,19 +477,14 @@ pub async fn lan_sync_discover(
                     if port == 0 {
                         continue;
                     }
-                    let info = payload.get("info").cloned().unwrap_or(Value::Null);
                     let peer = LanPeer {
                         ip: source.ip().to_string(),
                         port,
                         session,
                         name: payload.get("name").and_then(Value::as_str).unwrap_or("Acta").to_string(),
                         platform: payload.get("platform").and_then(Value::as_str).unwrap_or_default().to_string(),
-                        profile: info.get("profile").and_then(Value::as_str).unwrap_or_default().to_string(),
-                        notes: info.get("notes").and_then(Value::as_u64).unwrap_or(0) as usize,
-                        todos: info.get("todos").and_then(Value::as_u64).unwrap_or(0) as usize,
-                        classifications: info.get("classifications").and_then(Value::as_u64).unwrap_or(0) as usize,
-                        bytes: info.get("bytes").and_then(Value::as_u64).unwrap_or(0),
-                        updated_at: info.get("updatedAt").and_then(Value::as_str).unwrap_or_default().to_string(),
+                        trusted: payload.get("trusted").and_then(Value::as_bool).unwrap_or(false),
+                        profiles: payload.get("profiles").cloned().unwrap_or(Value::Array(Vec::new())),
                     };
                     peers.entry((peer.ip.clone(), peer.port)).or_insert(peer);
                 }
@@ -452,10 +512,10 @@ fn lan_peer_url(ip: &str, port: u16, path: &str, session: &str) -> String {
 
 fn lan_http_error(status: u16) -> String {
     match status {
-        403 => "对方拒绝了这次同步；若对方近期重启过 Acta 或重新开过“允许被发现”，请重新搜索设备后再试。".into(),
+        403 => "对方拒绝了这次同步；若对方近期重启过 Acta 或重新开过「允许被发现」，请重新搜索设备后再试。".into(),
         404 => "对方设备上没有该数据。".into(),
-        408 => "对方没有及时确认这次同步。".into(),
-        409 => "对方已有一个同步请求待确认。".into(),
+        408 => "对方没有及时响应这次同步。".into(),
+        409 => "对方已有一个同步请求待处理。".into(),
         413 => "数据超出局域网同步的大小限制（256 MB）。".into(),
         _ => format!("对方返回了错误状态（{status}）。"),
     }
@@ -480,68 +540,18 @@ pub async fn lan_sync_fetch_info(ip: String, port: u16, session: String) -> Resu
     Ok(payload)
 }
 
-pub async fn lan_sync_fetch_bundle(app: AppHandle, ip: String, port: u16, session: String) -> Result<Value, String> {
-    let url = lan_peer_url(&ip, port, "bundle", &session);
-    let mut response = lan_client()?
-        .get(&url)
-        .send()
-        .await
-        .map_err(|error| format!("无法连接该设备：{error}"))?;
-    let status = response.status().as_u16();
-    if status != 200 {
-        let _ = response.text().await;
-        return Err(lan_http_error(status));
-    }
-    let total = response.content_length();
-    // 分块接收并发送进度事件：大档案传输时界面能看到已接收的数据量，
-    // 而不是长时间无响应地等待整个响应读完。
-    let mut data: Vec<u8> = Vec::new();
-    let mut last_emit = Instant::now();
-    loop {
-        match response.chunk().await {
-            Ok(Some(chunk)) => {
-                data.extend_from_slice(&chunk);
-                if data.len() > LAN_BODY_LIMIT {
-                    return Err("对方返回的数据超出局域网同步的大小限制（256 MB）".into());
-                }
-                if last_emit.elapsed() >= Duration::from_millis(150) {
-                    last_emit = Instant::now();
-                    let _ = app.emit(LAN_PROGRESS_EVENT, json!({"direction":"pull","received":data.len(),"total":total}));
-                }
-            }
-            Ok(None) => break,
-            Err(error) => return Err(format!("传输中断：{error}")),
-        }
-    }
-    let _ = app.emit(LAN_PROGRESS_EVENT, json!({"direction":"pull","received":data.len(),"total":data.len()}));
-    let bundle: Value = serde_json::from_slice(&data).map_err(|error| format!("传输的数据无效：{error}"))?;
-    if !bundle_shape_valid(&bundle) {
-        return Err("对方返回的不是有效的 Acta 完整数据档案。".into());
-    }
-    Ok(bundle)
-}
-
-async fn push_bundle_inner(
+// 第一阶段：发送写入计划（小体积），等待对方接受。
+// 接受时返回对方生成的计划令牌，第二阶段传输数据时必须携带。
+pub async fn lan_sync_push_plan(
     ip: String,
     port: u16,
     session: String,
-    bundle: Value,
-    device_label: String,
-    profile_name: String,
-) -> Result<bool, String> {
-    if !bundle_shape_valid(&bundle) {
-        return Err("这不是有效的 Acta 完整数据档案".into());
-    }
-    let payload = json!({
-        "device": device_label,
-        "platform": std::env::consts::OS,
-        "profile": profile_name,
-        "bundle": bundle
-    });
-    let url = lan_peer_url(&ip, port, "bundle", &session);
+    plan: Value,
+) -> Result<String, String> {
+    let url = lan_peer_url(&ip, port, "plan", &session);
     let response = lan_client()?
         .put(&url)
-        .json(&payload)
+        .json(&plan)
         .send()
         .await
         .map_err(|error| format!("无法连接该设备：{error}"))?;
@@ -550,40 +560,93 @@ async fn push_bundle_inner(
     match status {
         200 => {
             let parsed: Value = serde_json::from_str(&body).unwrap_or(Value::Null);
-            Ok(parsed.get("status").and_then(Value::as_str) == Some("accepted"))
+            match parsed.get("token").and_then(Value::as_str) {
+                Some(token) if !token.is_empty() => Ok(token.to_string()),
+                _ => Err("对方接受了请求但未返回有效凭据。".into()),
+            }
         }
         _ => Err(lan_http_error(status)),
     }
 }
 
-pub async fn lan_sync_push_bundle(
+// 第二阶段：携带计划令牌传输数据档案，等待对方备份并写入完成。
+pub async fn lan_sync_push_data(
     ip: String,
     port: u16,
     session: String,
+    token: String,
     bundle: Value,
-    device_label: String,
-    profile_name: String,
 ) -> Result<bool, String> {
-    push_bundle_inner(ip, port, session, bundle, device_label, profile_name).await
+    if !bundle_shape_valid(&bundle) {
+        return Err("这不是有效的 Acta 完整数据档案".into());
+    }
+    let url = format!("{}&plan={token}", lan_peer_url(&ip, port, "data", &session));
+    let response = lan_client()?
+        .put(&url)
+        .timeout(LAN_APPLY_WAIT + Duration::from_secs(30))
+        .json(&bundle)
+        .send()
+        .await
+        .map_err(|error| format!("无法连接该设备：{error}"))?;
+    let status = response.status().as_u16();
+    let body = response.text().await.unwrap_or_default();
+    match status {
+        200 => {
+            let parsed: Value = serde_json::from_str(&body).unwrap_or(Value::Null);
+            if parsed.get("status").and_then(Value::as_str) == Some("applied") {
+                Ok(true)
+            } else {
+                Err("对方写入数据失败。".into())
+            }
+        }
+        _ => Err(lan_http_error(status)),
+    }
 }
 
-/// 直接复用本机服务当前持有的快照发送，避免完整档案在 IPC 上再传一遍：
-/// 快照在每次保存时刷新，「发送到对方」拿到的仍是最新内容。
-pub async fn lan_sync_push_snapshot(
-    state: &tauri::State<'_, LanState>,
+// 读取对方的一份行记数据档案（要求对方开启「信任此局域网」）。
+pub async fn lan_sync_fetch_profile_bundle(
     ip: String,
     port: u16,
     session: String,
-    device_label: String,
-    profile_name: String,
-) -> Result<bool, String> {
-    let bundle = {
-        let guard = state.service.lock().map_err(|error| error.to_string())?;
-        let service = guard.as_ref().ok_or_else(|| "局域网同步服务未运行".to_string())?;
-        let bundle = service.snapshot.lock().map_err(|error| error.to_string())?.bundle.clone();
-        bundle
-    };
-    push_bundle_inner(ip, port, session, bundle, device_label, profile_name).await
+    profile_id: String,
+) -> Result<Value, String> {
+    let url = format!(
+        "{}&profile={}",
+        lan_peer_url(&ip, port, "bundle", &session),
+        urlencoding_lite(&profile_id)
+    );
+    let response = lan_client()?
+        .get(&url)
+        .timeout(LAN_FETCH_WAIT + Duration::from_secs(30))
+        .send()
+        .await
+        .map_err(|error| format!("无法连接该设备：{error}"))?;
+    let status = response.status().as_u16();
+    let body = response.text().await.map_err(|error| error.to_string())?;
+    if status != 200 {
+        if status == 403 && body.contains("untrusted") {
+            return Err("对方未开启「信任此局域网」，无法直接获取其行记数据。".into());
+        }
+        return Err(lan_http_error(status));
+    }
+    let bundle: Value = serde_json::from_str(&body).map_err(|error| format!("传输的数据无效：{error}"))?;
+    if !bundle_shape_valid(&bundle) {
+        return Err("对方返回的不是有效的 Acta 完整数据档案。".into());
+    }
+    Ok(bundle)
+}
+
+// 极简百分号编码：档案 id 由本应用生成（字母数字），仅需兜底少量字符。
+fn urlencoding_lite(value: &str) -> String {
+    let mut encoded = String::with_capacity(value.len());
+    for byte in value.bytes() {
+        if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b'~') {
+            encoded.push(byte as char);
+        } else {
+            encoded.push_str(&format!("%{byte:02X}"));
+        }
+    }
+    encoded
 }
 
 fn handle_connection(mut stream: TcpStream, service: Arc<LanService>) {
@@ -599,41 +662,46 @@ fn handle_connection(mut stream: TcpStream, service: Arc<LanService>) {
     let expected_session = format!("session={}", service.session);
     if !query.split('&').any(|pair| pair == expected_session) {
         // 不携带具体数据内容，只提示来源地址；前端节流展示，避免刷屏。
-        let _ = service.app.emit(LAN_REJECTED_EVENT, json!({"ip": stream.peer_addr().map(|addr| addr.ip().to_string()).unwrap_or_default()}));
+        let _ = service.app.emit(
+            LAN_REJECTED_EVENT,
+            json!({"ip": stream.peer_addr().map(|addr| addr.ip().to_string()).unwrap_or_default()}),
+        );
         let _ = write_http_response(&mut stream, 403, "Forbidden", r#"{"error":"forbidden"}"#);
         return;
     }
 
     match (method.as_str(), path) {
-        ("GET", "/acta-lan/v1/info") => {
-            let info = service
-                .snapshot
-                .lock()
-                .ok()
-                .map(|guard| snapshot_info_json(&guard.info));
+        ("GET", "/acta-lan/v2/info") => {
+            let (trusted, profiles) = {
+                let trusted = service.trusted.load(Ordering::Relaxed);
+                let profiles = service
+                    .profiles
+                    .lock()
+                    .ok()
+                    .map(|guard| meta_json(&guard))
+                    .unwrap_or(Value::Array(Vec::new()));
+                (trusted, profiles)
+            };
             let body = json!({
                 "app": "acta",
                 "protocol": LAN_PROTOCOL,
                 "name": service.device,
                 "platform": service.platform,
-                "info": info
+                "trusted": trusted,
+                "profiles": profiles
             })
             .to_string();
             let _ = write_http_response(&mut stream, 200, "OK", &body);
         }
-        ("GET", "/acta-lan/v1/bundle") => {
-            let snapshot = service.snapshot.lock().ok();
-            match snapshot.as_ref().map(|guard| guard.bundle.to_string()) {
-                Some(body) => {
-                    let _ = write_http_response(&mut stream, 200, "OK", &body);
-                }
-                None => {
-                    let _ = write_http_response(&mut stream, 500, "Internal Server Error", r#"{"error":"unavailable"}"#);
-                }
+        ("GET", "/acta-lan/v2/bundle") => handle_profile_fetch(&mut stream, &service, query),
+        ("PUT", "/acta-lan/v2/plan") => match content_length {
+            Some(length) => handle_push_plan(&mut stream, &service, length),
+            None => {
+                let _ = write_http_response(&mut stream, 400, "Bad Request", r#"{"error":"missing length"}"#);
             }
-        }
-        ("PUT", "/acta-lan/v1/bundle") => match content_length {
-            Some(length) => handle_incoming_push(&mut stream, &service, length),
+        },
+        ("PUT", "/acta-lan/v2/data") => match content_length {
+            Some(length) => handle_push_data(&mut stream, &service, length, query),
             None => {
                 let _ = write_http_response(&mut stream, 400, "Bad Request", r#"{"error":"missing length"}"#);
             }
@@ -681,11 +749,11 @@ fn read_request_head(stream: &mut TcpStream) -> Option<(String, String, Option<u
 
 // 请求头读完后剩余的流就是请求体；按 Content-Length 分块读取，
 // 期间发送进度事件，让接收界面能显示已接收的数据量。
-fn read_request_body(stream: &mut TcpStream, length: usize, app: &AppHandle) -> Option<Vec<u8>> {
+fn read_request_body(stream: &mut TcpStream, length: usize, app: &AppHandle, progress: bool) -> Option<Vec<u8>> {
     if length > LAN_BODY_LIMIT {
         return None;
     }
-    let mut body: Vec<u8> = Vec::with_capacity(length);
+    let mut body: Vec<u8> = Vec::with_capacity(length.min(64 * 1024 * 1024));
     let mut chunk = [0u8; 64 * 1024];
     let mut last_emit = Instant::now();
     while body.len() < length {
@@ -694,7 +762,7 @@ fn read_request_body(stream: &mut TcpStream, length: usize, app: &AppHandle) -> 
             Ok(0) => return None,
             Ok(size) => {
                 body.extend_from_slice(&chunk[..size]);
-                if last_emit.elapsed() >= Duration::from_millis(150) {
+                if progress && last_emit.elapsed() >= Duration::from_millis(150) {
                     last_emit = Instant::now();
                     let _ = app.emit(LAN_PROGRESS_EVENT, json!({"direction":"receive","received":body.len(),"total":length}));
                 }
@@ -702,12 +770,56 @@ fn read_request_body(stream: &mut TcpStream, length: usize, app: &AppHandle) -> 
             Err(_) => return None,
         }
     }
-    let _ = app.emit(LAN_PROGRESS_EVENT, json!({"direction":"receive","received":body.len(),"total":length}));
+    if progress {
+        let _ = app.emit(LAN_PROGRESS_EVENT, json!({"direction":"receive","received":body.len(),"total":length}));
+    }
     Some(body)
 }
 
-fn handle_incoming_push(stream: &mut TcpStream, service: &Arc<LanService>, length: usize) {
-    let Some(body) = read_request_body(stream, length, &service.app) else {
+// 对方请求读取本机的一份行记数据档案：要求已开启「信任此局域网」，
+// 实际数据由前端按需加载并提供（始终是最新内容）。
+fn handle_profile_fetch(stream: &mut TcpStream, service: &Arc<LanService>, query: &str) {
+    if !service.trusted.load(Ordering::Relaxed) {
+        let _ = write_http_response(stream, 403, "Forbidden", r#"{"error":"untrusted"}"#);
+        return;
+    }
+    let profile_id = query
+        .split('&')
+        .find_map(|pair| pair.strip_prefix("profile="))
+        .unwrap_or("")
+        .to_string();
+    if profile_id.is_empty() || profile_id.len() > 120 {
+        let _ = write_http_response(stream, 400, "Bad Request", r#"{"error":"bad profile"}"#);
+        return;
+    }
+    let (tx, rx) = mpsc::sync_channel::<Result<Value, String>>(1);
+    let request_id = random_token();
+    if let Ok(mut fetches) = service.fetches.lock() {
+        fetches.insert(request_id.clone(), tx);
+    }
+    let _ = service
+        .app
+        .emit(LAN_FETCH_EVENT, json!({"requestId": request_id, "profileId": profile_id}));
+    match rx.recv_timeout(LAN_FETCH_WAIT) {
+        Ok(Ok(bundle)) => {
+            let _ = write_http_response(stream, 200, "OK", &bundle.to_string());
+        }
+        Ok(Err(error)) => {
+            let body = json!({"error": error}).to_string();
+            let _ = write_http_response(stream, 404, "Not Found", &body);
+        }
+        Err(_) => {
+            if let Ok(mut fetches) = service.fetches.lock() {
+                fetches.remove(&request_id);
+            }
+            let _ = write_http_response(stream, 408, "Request Timeout", r#"{"error":"timeout"}"#);
+        }
+    }
+}
+
+// 第一阶段：接收写入计划。信任网络直接接受；否则等待用户在界面确认。
+fn handle_push_plan(stream: &mut TcpStream, service: &Arc<LanService>, length: usize) {
+    let Some(body) = read_request_body(stream, length, &service.app, false) else {
         let _ = write_http_response(stream, 413, "Payload Too Large", r#"{"error":"too large"}"#);
         return;
     };
@@ -715,19 +827,12 @@ fn handle_incoming_push(stream: &mut TcpStream, service: &Arc<LanService>, lengt
         let _ = write_http_response(stream, 400, "Bad Request", r#"{"error":"invalid payload"}"#);
         return;
     };
-    let bundle = payload.get("bundle").cloned().unwrap_or(Value::Null);
-    if !bundle_shape_valid(&bundle) {
-        let _ = write_http_response(stream, 400, "Bad Request", r#"{"error":"invalid bundle"}"#);
+    let Some(plan) = PlanInfo::from_json(&payload) else {
+        let _ = write_http_response(stream, 400, "Bad Request", r#"{"error":"invalid plan"}"#);
         return;
-    }
-
+    };
+    let trusted = service.trusted.load(Ordering::Relaxed);
     let (responder, receiver) = mpsc::sync_channel::<bool>(1);
-    // 档案统计要在 bundle 移入 incoming 之前算好，避免移动后再借用。
-    let info = bundle_info(
-        &bundle,
-        payload.get("profile").and_then(Value::as_str).unwrap_or(""),
-        body.len() as u64,
-    );
     {
         let mut incoming = match service.incoming.lock() {
             Ok(guard) => guard,
@@ -740,25 +845,29 @@ fn handle_incoming_push(stream: &mut TcpStream, service: &Arc<LanService>, lengt
             let _ = write_http_response(stream, 409, "Conflict", r#"{"error":"pending"}"#);
             return;
         }
-        *incoming = Some(IncomingPush { bundle, responder });
+        *incoming = Some(IncomingPlan { plan: plan.clone(), responder });
+    }
+    let _ = service.app.emit(LAN_INCOMING_EVENT, plan.event_json(trusted));
+
+    // 信任网络：不做任何等待，直接进入待写入状态并接受。
+    if trusted {
+        let token = move_plan_to_pending(service, plan);
+        let response = json!({"status": "accepted", "token": token}).to_string();
+        let _ = write_http_response(stream, 200, "OK", &response);
+        return;
     }
 
-    // 事件里带上对方档案的完整统计（含归类数），供确认对话框展示。
-    let event = json!({
-        "from": {
-            "name": payload.get("device").and_then(Value::as_str).unwrap_or("Acta"),
-            "platform": payload.get("platform").and_then(Value::as_str).unwrap_or("")
-        },
-        "profile": info.profile,
-        "notes": info.notes,
-        "todos": info.todos,
-        "classifications": info.classifications,
-        "bytes": body.len()
-    });
-    let _ = service.app.emit(LAN_INCOMING_EVENT, event);
-    match receiver.recv_timeout(LAN_PUSH_WAIT) {
+    match receiver.recv_timeout(LAN_DECIDE_WAIT) {
         Ok(true) => {
-            let _ = write_http_response(stream, 200, "OK", r#"{"status":"accepted"}"#);
+            // 用户已确认（decide 命令已把计划移入 pending_apply 并生成令牌）。
+            let token = service
+                .pending_apply
+                .lock()
+                .ok()
+                .and_then(|guard| guard.as_ref().map(|pending| pending.token.clone()))
+                .unwrap_or_default();
+            let response = json!({"status": "accepted", "token": token}).to_string();
+            let _ = write_http_response(stream, 200, "OK", &response);
         }
         Ok(false) => {
             let _ = write_http_response(stream, 403, "Forbidden", r#"{"status":"refused"}"#);
@@ -767,9 +876,117 @@ fn handle_incoming_push(stream: &mut TcpStream, service: &Arc<LanService>, lengt
             if let Ok(mut incoming) = service.incoming.lock() {
                 *incoming = None;
             }
-            if let Ok(mut pending) = service.pending.lock() {
-                *pending = None;
+            let _ = write_http_response(stream, 408, "Request Timeout", r#"{"status":"timeout"}"#);
+        }
+    }
+}
+
+// 把已接受的计划转入待写入状态；返回计划令牌。旧的待写入计划（若有）
+// 会被新的替代，避免发送方中断后残留阻塞后续传输。
+fn move_plan_to_pending(service: &Arc<LanService>, plan: PlanInfo) -> String {
+    let (applied, receiver) = mpsc::sync_channel::<bool>(1);
+    let token = random_token();
+    let pending = PendingApply {
+        token: token.clone(),
+        plan,
+        bundle: Mutex::new(None),
+        applied,
+        receiver: Mutex::new(Some(receiver)),
+    };
+    // 丢弃旧的待写入计划（其等待线程可能已超时退出，属正常情况）。
+    let _ = service.pending_apply.lock().map(|mut guard| {
+        if let Some(previous) = guard.replace(pending) {
+            let _ = previous.applied.send(false);
+        }
+    });
+    token
+}
+
+// 第二阶段：接收数据档案本体，等待前端备份并写入完成后应答。
+fn handle_push_data(stream: &mut TcpStream, service: &Arc<LanService>, length: usize, query: &str) {
+    let expected_token = query
+        .split('&')
+        .find_map(|pair| pair.strip_prefix("plan="))
+        .unwrap_or("")
+        .to_string();
+    // 只读取令牌做校验，计划本体留在互斥锁内：确认/拒绝命令要向它发信号。
+    let token_matches = service
+        .pending_apply
+        .lock()
+        .ok()
+        .and_then(|guard| guard.as_ref().map(|pending| pending.token == expected_token))
+        .unwrap_or(false);
+    if expected_token.is_empty() || !token_matches {
+        let _ = write_http_response(stream, 409, "Conflict", r#"{"error":"no matching plan"}"#);
+        return;
+    }
+    let Some(body) = read_request_body(stream, length, &service.app, true) else {
+        let _ = write_http_response(stream, 413, "Payload Too Large", r#"{"error":"too large"}"#);
+        return;
+    };
+    let Ok(bundle) = serde_json::from_slice::<Value>(&body) else {
+        let _ = write_http_response(stream, 400, "Bad Request", r#"{"error":"invalid payload"}"#);
+        return;
+    };
+    if !bundle_shape_valid(&bundle) {
+        let _ = write_http_response(stream, 400, "Bad Request", r#"{"error":"invalid bundle"}"#);
+        return;
+    }
+    // 计划元数据先取出来用于事件；数据放入待写入槽位。
+    let (plan, receiver) = {
+        let guard = match service.pending_apply.lock() {
+            Ok(guard) => guard,
+            Err(_) => {
+                let _ = write_http_response(stream, 500, "Internal Server Error", r#"{"error":"unavailable"}"#);
+                return;
             }
+        };
+        let Some(pending) = guard.as_ref() else {
+            let _ = write_http_response(stream, 409, "Conflict", r#"{"error":"no matching plan"}"#);
+            return;
+        };
+        if pending.token != expected_token {
+            let _ = write_http_response(stream, 409, "Conflict", r#"{"error":"no matching plan"}"#);
+            return;
+        }
+        if pending.bundle.lock().map(|mut slot| slot.replace(bundle.clone())).is_err() {
+            let _ = write_http_response(stream, 500, "Internal Server Error", r#"{"error":"unavailable"}"#);
+            return;
+        }
+        // 取走接收端：数据事件发出后，只有本次连接等待写入结果。
+        (pending.plan.clone(), pending.receiver.lock().ok().and_then(|mut slot| slot.take()))
+    };
+    let Some(receiver) = receiver else {
+        let _ = write_http_response(stream, 409, "Conflict", r#"{"error":"already waiting"}"#);
+        return;
+    };
+    let _ = service.app.emit(
+        LAN_DATA_EVENT,
+        json!({
+            "from": {"name": plan.device, "platform": plan.platform},
+            "profile": plan.profile,
+            "mode": plan.mode,
+            "targetProfileId": plan.target_profile_id,
+            "targetProfileName": plan.target_profile_name,
+            "notes": plan.notes,
+            "todos": plan.todos,
+            "classifications": plan.classifications
+        }),
+    );
+    match receiver.recv_timeout(LAN_APPLY_WAIT) {
+        Ok(true) => {
+            let _ = write_http_response(stream, 200, "OK", r#"{"status":"applied"}"#);
+        }
+        Ok(false) => {
+            let _ = write_http_response(stream, 200, "OK", r#"{"status":"failed"}"#);
+        }
+        Err(_) => {
+            // 写入超时：清掉这个已过期的计划，避免阻塞后续传输。
+            let _ = service.pending_apply.lock().map(|mut guard| {
+                if guard.as_ref().is_some_and(|pending| pending.token == expected_token) {
+                    *guard = None;
+                }
+            });
             let _ = write_http_response(stream, 408, "Request Timeout", r#"{"status":"timeout"}"#);
         }
     }
@@ -783,21 +1000,71 @@ fn write_http_response(stream: &mut TcpStream, status: u16, reason: &str, body: 
     stream.write_all(response.as_bytes())
 }
 
-/// 取出待确认的推送数据，交由前端展示详情并等待备份、写入全部完成。
-/// 数据本体在此移交给前端（零拷贝移动），pending 只保留应答通道。
-pub fn lan_sync_accept_incoming(state: &tauri::State<'_, LanState>) -> Result<Value, String> {
+/// 取出待确认的写入计划：用户在通知/详情确认对话框中的决定。
+/// accept = true 时把计划转入待写入状态（生成令牌，等第二阶段数据）。
+pub fn lan_sync_decide_incoming(state: &tauri::State<'_, LanState>, accept: bool) -> Result<(), String> {
     let service = {
         let guard = state.service.lock().map_err(|error| error.to_string())?;
         guard.as_ref().cloned().ok_or_else(|| "局域网同步服务未运行".to_string())?
     };
-    let push = service
+    let plan = service
         .incoming
         .lock()
         .map_err(|error| error.to_string())?
         .take()
         .ok_or_else(|| "当前没有待确认的同步请求".to_string())?;
-    *service.pending.lock().map_err(|error| error.to_string())? = Some(push.responder);
-    Ok(push.bundle)
+    if accept {
+        move_plan_to_pending(&service, plan.plan);
+    }
+    let _ = plan.responder.send(accept);
+    Ok(())
+}
+
+/// 前端按需提供一份行记数据档案的完整数据包（对应 lan-sync://fetch 事件）。
+pub fn lan_sync_provide_bundle(
+    state: &tauri::State<'_, LanState>,
+    request_id: String,
+    ok: bool,
+    bundle: Option<Value>,
+    error: Option<String>,
+) -> Result<(), String> {
+    let service = {
+        let guard = state.service.lock().map_err(|error| error.to_string())?;
+        guard.as_ref().cloned().ok_or_else(|| "局域网同步服务未运行".to_string())?
+    };
+    let responder = service
+        .fetches
+        .lock()
+        .map_err(|error| error.to_string())?
+        .remove(&request_id)
+        .ok_or_else(|| "没有对应的读取请求".to_string())?;
+    let result = if ok {
+        bundle.ok_or_else(|| "缺少数据内容".to_string()).map(Ok)
+    } else {
+        Ok(Err(error.unwrap_or_else(|| "档案不可用".into())))
+    };
+    let _ = responder.send(result?);
+    Ok(())
+}
+
+/// 取出待写入的数据档案，交由前端备份并写入。
+pub fn lan_sync_accept_incoming(state: &tauri::State<'_, LanState>) -> Result<Value, String> {
+    let service = {
+        let guard = state.service.lock().map_err(|error| error.to_string())?;
+        guard.as_ref().cloned().ok_or_else(|| "局域网同步服务未运行".to_string())?
+    };
+    let bundle = {
+        let guard = service.pending_apply.lock().map_err(|error| error.to_string())?;
+        let pending = guard.as_ref().ok_or_else(|| "当前没有待写入的同步数据".to_string())?;
+        let bundle = pending
+            .bundle
+            .lock()
+            .map_err(|error| error.to_string())?
+            .take()
+            .ok_or_else(|| "数据尚未到位".to_string())?;
+        bundle
+    };
+    Ok(bundle)
 }
 
 /// 备份与写入全部完成后调用：通知推送方同步成功。
@@ -806,9 +1073,9 @@ pub fn lan_sync_confirm_incoming(state: &tauri::State<'_, LanState>) -> Result<(
         let guard = state.service.lock().map_err(|error| error.to_string())?;
         guard.as_ref().cloned().ok_or_else(|| "局域网同步服务未运行".to_string())?
     };
-    let responder = service.pending.lock().map_err(|error| error.to_string())?.take();
-    if let Some(responder) = responder {
-        let _ = responder.send(true);
+    let pending = service.pending_apply.lock().map_err(|error| error.to_string())?.take();
+    if let Some(pending) = pending {
+        let _ = pending.applied.send(true);
     }
     Ok(())
 }
@@ -819,14 +1086,14 @@ pub fn lan_sync_reject_incoming(state: &tauri::State<'_, LanState>) -> Result<()
         let guard = state.service.lock().map_err(|error| error.to_string())?;
         guard.as_ref().cloned().ok_or_else(|| "局域网同步服务未运行".to_string())?
     };
-    let responder = service.pending.lock().map_err(|error| error.to_string())?.take();
-    if let Some(responder) = responder {
-        let _ = responder.send(false);
+    let pending = service.pending_apply.lock().map_err(|error| error.to_string())?.take();
+    if let Some(pending) = pending {
+        let _ = pending.applied.send(false);
         return Ok(());
     }
     let incoming = service.incoming.lock().map_err(|error| error.to_string())?.take();
-    if let Some(push) = incoming {
-        let _ = push.responder.send(false);
+    if let Some(plan) = incoming {
+        let _ = plan.responder.send(false);
     }
     Ok(())
 }
@@ -906,12 +1173,12 @@ pub async fn lan_sync_backup_local(
         }
         super::write_portable_data_folder(&directory, &bundle)?;
         let _ = prune_old_backups(&backups);
-        let info = bundle_info(&bundle, &profile_name, directory_size(&directory));
+        let (notes, todos, _) = bundle_info(&bundle);
         Ok(LanBackupResult {
             path: directory.to_string_lossy().into_owned(),
-            notes: info.notes,
-            todos: info.todos,
-            bytes: info.bytes,
+            notes,
+            todos,
+            bytes: directory_size(&directory),
             created_at: super::timestamp(),
         })
     })

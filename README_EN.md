@@ -33,7 +33,7 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 - A desktop context menu on an opaque panel, with cut, copy, paste, and select all for text, plus copy for any selected text
 - Simplified Chinese, Traditional Chinese, and English interfaces with theme and font settings
 - All dropdown menus, scrollbars, sliders, date-time pickers, and settings toggles are custom-drawn controls; hover feedback uses scale instead of shifting, keeping motion restrained and smooth
-- Local data folders, WebDAV, and Acta LAN sync (BETA): desktop clients can automatically discover other Acta devices on the same network and exchange complete data folders directly. You can pick which local data profile to send, and the receiving side chooses between replacing the current profile or copying the data in as a new profile; the files to be written are listed in detail with explicit consent before overwriting, transfers show per-step progress (backup, transfer, write, bytes received), and a restorable backup is created automatically before anything is overwritten
+- Local data folders, WebDAV, and Acta LAN sync (BETA): desktop clients can automatically discover other Acta devices on the same network and exchange complete data folders directly. Both sides can pick the exact data profiles involved, and choose between replacing a specific profile or copying the data in as a new one; pushes use two-stage confirmation (the other device first gets a notification, then a detailed consent dialog), and devices with "Trust this network" enabled confirm automatically; transfers show per-step progress, and a restorable backup is created automatically before anything is overwritten
 - Android local notifications, system file pickers, and Storage Access Framework integration
 - Installable PWA support with offline caching
 
@@ -123,7 +123,7 @@ Builds run automatically through GitHub Actions (`.github/workflows/build.yml`):
 - Core data stays on the device by default; browser settings use `localStorage`, while directory handles use IndexedDB. Since v3.0.0 the desktop app keeps its software data next to the program by default (the `data` folder beside the exe), or in a location you choose, mirrored into `settings.json` there so it survives cache clears.
 - A data folder contains `acta-manifest.json`, `classifications.json`, `notes/`, and `todos/`, with each note and task stored separately.
 - Tauri uses restricted Rust commands for system files, WebDAV, LAN sync, and cache management; Android uses a custom Capacitor plugin and the Storage Access Framework for user-authorized directories.
-- WebDAV credentials are used only for the server configured by the user. LAN sync runs only while "Be discoverable" is on, and both discovery and transfer require the random session token; incoming pushes must be confirmed in the interface, and a complete, restorable backup is created under `backups/lan-sync/` in the software data folder before anything is overwritten (the latest 10 are kept automatically).
+- WebDAV credentials are used only for the server configured by the user. LAN sync runs only while "Be discoverable" is on, and both discovery and transfer require the random session token; incoming pushes require two-step confirmation in the interface by default (devices with "Trust this network" enabled accept automatically), and a complete, restorable backup is created under `backups/lan-sync/` in the software data folder before anything is overwritten (the latest 10 are kept automatically).
 
 ## Testing
 

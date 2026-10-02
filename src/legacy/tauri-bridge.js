@@ -48,8 +48,11 @@
       return invoke('web_dav_request', { requestUrl, requestOptions });
     },
     lanSync: {
-      startService(bundle, profileName) {
-        return invoke('lan_sync_start_service', { bundle, profileName });
+      startService(profiles, trusted) {
+        return invoke('lan_sync_start_service', { profiles, trusted });
+      },
+      updateMeta(profiles, trusted) {
+        return invoke('lan_sync_update_meta', { profiles, trusted });
       },
       stopService() {
         return invoke('lan_sync_stop_service');
@@ -63,15 +66,23 @@
       fetchInfo(ip, port, session) {
         return invoke('lan_sync_fetch_info', { ip, port, session });
       },
-      fetchBundle(ip, port, session) {
-        return invoke('lan_sync_fetch_bundle', { ip, port, session });
+      // 第一阶段：发送写入计划（小体积），返回对方生成的计划令牌。
+      pushPlan(ip, port, session, plan) {
+        return invoke('lan_sync_push_plan', { ip, port, session, plan });
       },
-      pushBundle(ip, port, session, bundle, deviceLabel, profileName) {
-        return invoke('lan_sync_push_bundle', { ip, port, session, bundle, deviceLabel, profileName });
+      // 第二阶段：携带计划令牌传输数据档案。
+      pushData(ip, port, session, token, bundle) {
+        return invoke('lan_sync_push_data', { ip, port, session, token, bundle });
       },
-      // 服务运行时直接复用 Rust 内存中的快照发送，避免完整档案再过一次 IPC。
-      pushSnapshot(ip, port, session, deviceLabel, profileName) {
-        return invoke('lan_sync_push_snapshot', { ip, port, session, deviceLabel, profileName });
+      // 读取对方的一份行记数据档案（需对方开启「信任此局域网」）。
+      fetchProfileBundle(ip, port, session, profileId) {
+        return invoke('lan_sync_fetch_profile_bundle', { ip, port, session, profileId });
+      },
+      decideIncoming(accept) {
+        return invoke('lan_sync_decide_incoming', { accept });
+      },
+      provideBundle(requestId, result) {
+        return invoke('lan_sync_provide_bundle', { requestId, ok: Boolean(result?.ok), bundle: result?.bundle ?? null, error: result?.error ?? null });
       },
       acceptIncoming() {
         return invoke('lan_sync_accept_incoming');
@@ -90,6 +101,14 @@
       // 事件 API 缺失（如测试环境的简化 mock）时返回哑句柄，不阻断启动。
       if (!tauri.event?.listen) return Promise.resolve(() => {});
       return tauri.event.listen('lan-sync://incoming', handler);
+    },
+    onLanData(handler) {
+      if (!tauri.event?.listen) return Promise.resolve(() => {});
+      return tauri.event.listen('lan-sync://data', handler);
+    },
+    onLanFetch(handler) {
+      if (!tauri.event?.listen) return Promise.resolve(() => {});
+      return tauri.event.listen('lan-sync://fetch', handler);
     },
     onLanProgress(handler) {
       if (!tauri.event?.listen) return Promise.resolve(() => {});

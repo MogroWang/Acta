@@ -385,6 +385,7 @@
                 </div>
                 <label class="settings-row"><span><b>传输的行记数据</b><small>发送到其他设备时使用的本机档案；导入到本机的数据不受此选择影响</small></span><select id="lanProfileSelect"></select></label>
                 <label class="settings-row"><span><b>允许被其他设备发现</b><small>开启后这台设备会出现在附近设备的列表中；关闭或退出 Acta 时立即停止</small></span><input id="lanDiscoverableSetting" type="checkbox"/></label>
+                <label class="settings-row"><span><b>信任此局域网（自动确认）</b><small>开启后其他设备可以不经确认直接读取本机任一行记数据，或直接向本机写入数据；覆盖前仍会自动备份。请仅在可信网络中开启</small></span><input id="lanTrustSetting" type="checkbox"/></label>
                 <div class="settings-row">
                   <span><b>附近的设备</b><small id="lanPeersHint"></small></span>
                   <button class="settings-button secondary" id="lanScanButton" type="button"><svg><use href="#i-refresh"/></svg><span>搜索设备</span></button>
@@ -452,11 +453,25 @@
           <span class="lan-sync-flow-arrow" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           <div class="lan-sync-side" id="lanSyncTargetSide"></div>
         </div>
-        <div class="lan-sync-mode" id="lanSyncModeGroup" hidden>
-          <b class="lan-mode-heading" id="lanSyncModeHeading"></b>
-          <button type="button" class="lan-mode-choice" data-lan-mode="replace" aria-pressed="true"><span class="lan-mode-copy"><b id="lanModeReplaceTitle"></b><small id="lanModeReplaceHint"></small></span></button>
-          <button type="button" class="lan-mode-choice" data-lan-mode="copy" aria-pressed="false"><span class="lan-mode-copy"><b id="lanModeCopyTitle"></b><small id="lanModeCopyHint"></small></span></button>
+        <div class="lan-sync-fields" id="lanSyncPushFields" hidden>
+          <label class="settings-row"><span><b id="lanSyncSendProfileLabel"></b><small id="lanSyncSendProfileHint"></small></span><select id="lanSyncSendProfile"></select></label>
+          <div class="lan-sync-mode" id="lanSyncSendModeGroup">
+            <b class="lan-mode-heading" id="lanSyncSendModeHeading"></b>
+            <button type="button" class="lan-mode-choice" data-lan-send-mode="replace" aria-pressed="true"><span class="lan-mode-copy"><b id="lanSendModeReplaceTitle"></b><small id="lanSendModeReplaceHint"></small></span></button>
+            <button type="button" class="lan-mode-choice" data-lan-send-mode="copy" aria-pressed="false"><span class="lan-mode-copy"><b id="lanSendModeCopyTitle"></b><small id="lanSendModeCopyHint"></small></span></button>
+          </div>
+          <label class="settings-row" id="lanSyncTargetProfileRow"><span><b id="lanSyncTargetProfileLabel"></b><small id="lanSyncTargetProfileHint"></small></span><select id="lanSyncTargetProfile"></select></label>
         </div>
+        <div class="lan-sync-fields" id="lanSyncPullFields" hidden>
+          <label class="settings-row"><span><b id="lanSyncPeerProfileLabel"></b><small id="lanSyncPeerProfileHint"></small></span><select id="lanSyncPeerProfile"></select></label>
+          <div class="lan-sync-mode" id="lanSyncModeGroup" hidden>
+            <b class="lan-mode-heading" id="lanSyncModeHeading"></b>
+            <button type="button" class="lan-mode-choice" data-lan-mode="replace" aria-pressed="true"><span class="lan-mode-copy"><b id="lanModeReplaceTitle"></b><small id="lanModeReplaceHint"></small></span></button>
+            <button type="button" class="lan-mode-choice" data-lan-mode="copy" aria-pressed="false"><span class="lan-mode-copy"><b id="lanModeCopyTitle"></b><small id="lanModeCopyHint"></small></span></button>
+          </div>
+          <label class="settings-row" id="lanSyncLocalTargetRow" hidden><span><b id="lanSyncLocalTargetLabel"></b><small id="lanSyncLocalTargetHint"></small></span><select id="lanSyncLocalTarget"></select></label>
+        </div>
+        <p class="lan-sync-mode-line" id="lanSyncModeLine" hidden></p>
         <div class="lan-sync-files">
           <b id="lanSyncFilesHeading"></b>
           <ul id="lanSyncFileList"></ul>
@@ -466,6 +481,12 @@
         <p class="settings-status" id="lanSyncError" role="alert" hidden></p>
       </div>
       <footer class="settings-actions delete-confirm-actions"><button class="settings-button secondary" id="cancelLanSync" type="button"></button><button class="settings-button danger" id="confirmLanSync" type="button"><svg><use href="#i-check"/></svg><span id="confirmLanSyncLabel"></span></button></footer>
+    </dialog>
+
+    <dialog class="relation-dialog lan-notice-dialog" id="lanNoticeDialog" aria-labelledby="lanNoticeTitle">
+      <header class="relation-dialog-head"><span><svg><use href="#i-cloud"/></svg></span><div><h3 id="lanNoticeTitle"></h3><small id="lanNoticeFrom"></small></div></header>
+      <div class="relation-dialog-body"><p class="lan-notice-text" id="lanNoticeText"></p></div>
+      <footer class="settings-actions delete-confirm-actions"><button class="settings-button secondary" id="lanNoticeReject" type="button"></button><button class="settings-button" id="lanNoticeDetail" type="button"><svg><use href="#i-chevron"/></svg><span id="lanNoticeDetailLabel"></span></button></footer>
     </dialog>
 
     <dialog class="relation-dialog quick-capture-dialog" id="quickCaptureDialog" aria-labelledby="quickCaptureTitle">

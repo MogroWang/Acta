@@ -2260,6 +2260,11 @@ body.trash-view .list-footer { background: color-mix(in srgb, var(--note-soft) 1
 .lan-mode-copy b { font-size: calc(10px * var(--acta-font-scale)); }
 .lan-mode-copy small { color: var(--muted); font-size: calc(8.5px * var(--acta-font-scale)); line-height: 1.5; }
 /* 传输步骤：进行中带呼吸点，完成打勾，失败标红；等待中的步骤减淡。 */
+.lan-sync-fields { display: grid; gap: 8px; }
+.lan-sync-fields .settings-row { padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--white) 45%, transparent); }
+.lan-sync-mode-line { margin: 0; color: var(--muted); font-size: calc(9px * var(--acta-font-scale)); line-height: 1.6; }
+.lan-notice-dialog { width: min(400px, calc(100vw - 28px)); }
+.lan-notice-text { margin: 0; color: var(--ink); font-size: calc(10px * var(--acta-font-scale)); line-height: 1.7; }
 .lan-sync-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .lan-sync-steps li { display: flex; align-items: flex-start; gap: 9px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--white) 45%, transparent); }
 .lan-sync-steps li[data-state="pending"] { opacity: .55; }

@@ -43,16 +43,25 @@ async fn prepare_update_restart(payload: String, version: String) -> Result<bool
 
 // 局域网同步命令的薄包装：与 updater 命令同理，#[tauri::command] 的隐藏宏
 // 留在 lib.rs 作用域，避免 generate_handler! 跨模块引用私有宏。
-// 全部命令均为 async：服务启动需要序列化完整档案，搜索与传输需要等待
-// 网络，让这些开销离开主线程；stop/status 等轻量操作也保持 async 统一。
+// 协议 v2 之后服务启动不再携带数据档案，生命周期命令为同步轻量操作；
+// 搜索与传输命令保持 async，让网络等待离开主线程。
 #[tauri::command]
-async fn lan_sync_start_service(
+fn lan_sync_start_service(
     app: AppHandle,
     state: tauri::State<'_, lan_sync::LanState>,
-    bundle: Value,
-    profile_name: String,
+    profiles: Vec<lan_sync::LanProfileMeta>,
+    trusted: bool,
 ) -> Result<lan_sync::LanServiceStatus, String> {
-    lan_sync::lan_sync_start_service(app, &state, bundle, profile_name).await
+    lan_sync::lan_sync_start_service(app, &state, profiles, trusted)
+}
+
+#[tauri::command]
+fn lan_sync_update_meta(
+    state: tauri::State<'_, lan_sync::LanState>,
+    profiles: Vec<lan_sync::LanProfileMeta>,
+    trusted: bool,
+) -> Result<(), String> {
+    lan_sync::lan_sync_update_meta(&state, profiles, trusted)
 }
 
 #[tauri::command]
@@ -79,32 +88,53 @@ async fn lan_sync_fetch_info(ip: String, port: u16, session: String) -> Result<V
 }
 
 #[tauri::command]
-async fn lan_sync_fetch_bundle(app: AppHandle, ip: String, port: u16, session: String) -> Result<Value, String> {
-    lan_sync::lan_sync_fetch_bundle(app, ip, port, session).await
-}
-
-#[tauri::command]
-async fn lan_sync_push_bundle(
+async fn lan_sync_push_plan(
     ip: String,
     port: u16,
     session: String,
+    plan: Value,
+) -> Result<String, String> {
+    lan_sync::lan_sync_push_plan(ip, port, session, plan).await
+}
+
+#[tauri::command]
+async fn lan_sync_push_data(
+    ip: String,
+    port: u16,
+    session: String,
+    token: String,
     bundle: Value,
-    device_label: String,
-    profile_name: String,
 ) -> Result<bool, String> {
-    lan_sync::lan_sync_push_bundle(ip, port, session, bundle, device_label, profile_name).await
+    lan_sync::lan_sync_push_data(ip, port, session, token, bundle).await
 }
 
 #[tauri::command]
-async fn lan_sync_push_snapshot(
-    state: tauri::State<'_, lan_sync::LanState>,
+async fn lan_sync_fetch_profile_bundle(
     ip: String,
     port: u16,
     session: String,
-    device_label: String,
-    profile_name: String,
-) -> Result<bool, String> {
-    lan_sync::lan_sync_push_snapshot(&state, ip, port, session, device_label, profile_name).await
+    profile_id: String,
+) -> Result<Value, String> {
+    lan_sync::lan_sync_fetch_profile_bundle(ip, port, session, profile_id).await
+}
+
+#[tauri::command]
+fn lan_sync_decide_incoming(
+    state: tauri::State<'_, lan_sync::LanState>,
+    accept: bool,
+) -> Result<(), String> {
+    lan_sync::lan_sync_decide_incoming(&state, accept)
+}
+
+#[tauri::command]
+fn lan_sync_provide_bundle(
+    state: tauri::State<'_, lan_sync::LanState>,
+    request_id: String,
+    ok: bool,
+    bundle: Option<Value>,
+    error: Option<String>,
+) -> Result<(), String> {
+    lan_sync::lan_sync_provide_bundle(&state, request_id, ok, bundle, error)
 }
 
 #[tauri::command]
@@ -1851,13 +1881,16 @@ pub fn run() {
             inspect_folder,
             web_dav_request,
             lan_sync_start_service,
+            lan_sync_update_meta,
             lan_sync_stop_service,
             lan_sync_service_status,
             lan_sync_discover,
             lan_sync_fetch_info,
-            lan_sync_fetch_bundle,
-            lan_sync_push_bundle,
-            lan_sync_push_snapshot,
+            lan_sync_push_plan,
+            lan_sync_push_data,
+            lan_sync_fetch_profile_bundle,
+            lan_sync_decide_incoming,
+            lan_sync_provide_bundle,
             lan_sync_accept_incoming,
             lan_sync_confirm_incoming,
             lan_sync_reject_incoming,
