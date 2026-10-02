@@ -3469,5 +3469,234 @@ function getSyncBridge() {
   };
 })();
 
+// Android 应用内更新：检查 GitHub Release 的安卓安装包 → 询问 → 下载（进度）→
+// 下载完成后自动拉起系统安装器（未授「安装未知应用」时先跳转授权页，授权后
+// 重试）。桌面端更新走 updater.js（Tauri 机制），本模块只在安卓原生容器内启用。
+(function initAndroidUpdaterBridge() {
+  const native = window.Capacitor?.Plugins?.ActaUpdater;
+  if (!native) return;
+  const language = () => (window.settings?.language === 'en' ? 'en' : window.settings?.language === 'zh-Hant' ? 'zh-Hant' : 'zh');
+  const copy = {
+    zh: {
+      title: '发现新版本',
+      ask: '发现新版本，是否下载并安装？下载完成后会自动打开系统安装程序。',
+      installing: '下载完成，正在打开安装程序…',
+      permission: '需要允许 Acta 安装未知应用。已为你打开系统设置，授权后点击下方按钮继续。',
+      retry: '已授权，继续安装',
+      failed: '更新失败：{detail}',
+      notesEmpty: '（暂无更新说明）',
+      later: '稍后',
+      update: '下载更新',
+      close: '关闭',
+      size: '{received} / {total} MB（{percent}%）'
+    },
+    en: {
+      title: 'Update available',
+      ask: 'Download and install the update now? The system installer opens automatically once the download finishes.',
+      installing: 'Download complete — opening the installer…',
+      permission: 'Acta needs permission to install unknown apps. System settings is open — tap the button below after granting it.',
+      retry: 'Granted, continue install',
+      failed: 'Update failed: {detail}',
+      notesEmpty: '(no release notes)',
+      later: 'Later',
+      update: 'Download update',
+      close: 'Close',
+      size: '{received} / {total} MB ({percent}%)'
+    },
+    'zh-Hant': {
+      title: '發現新版本',
+      ask: '發現新版本，是否下載並安裝？下載完成後會自動開啟系統安裝程式。',
+      installing: '下載完成，正在開啟安裝程式…',
+      permission: '需要允許 Acta 安裝未知應用。已為你開啟系統設定，授權後點擊下方按鈕繼續。',
+      retry: '已授權，繼續安裝',
+      failed: '更新失敗：{detail}',
+      notesEmpty: '（暫無更新說明）',
+      later: '稍後',
+      update: '下載更新',
+      close: '關閉',
+      size: '{received} / {total} MB（{percent}%）'
+    }
+  };
+  const text = (key, vars = {}) => {
+    let message = (copy[language()] || copy.zh)[key] || key;
+    for (const [name, value] of Object.entries(vars)) message = message.replace(`{${name}}`, value);
+    return message;
+  };
+
+  let dialog = null;
+  let state = 'idle';
+  let pending = null; // { version, url, size, notes, htmlUrl, filePath? }
+
+  const ensureDialog = () => {
+    if (dialog) return dialog;
+    dialog = document.createElement('dialog');
+    dialog.className = 'acta-updater-dialog';
+    dialog.innerHTML = `
+      <style>
+        .acta-updater-dialog { border: 0; padding: 0; border-radius: 16px; background: #f6f2e9; color: #3a3126;
+          box-shadow: 0 18px 60px rgba(40, 32, 20, .28); width: min(400px, calc(100vw - 48px)); }
+        .acta-updater-dialog::backdrop { background: rgba(30, 24, 15, .42); }
+        .acta-updater-card { padding: 22px 24px 20px; }
+        .acta-updater-card h3 { margin: 0 0 8px; font-size: 17px; }
+        .acta-updater-card .acta-updater-version { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: #8a7d68; }
+        .acta-updater-card .acta-updater-notes { margin: 0 0 14px; font-size: 12.5px; line-height: 1.6; color: #6f6350;
+          max-height: 96px; overflow: auto; white-space: pre-line; }
+        .acta-updater-card .acta-updater-track { height: 6px; border-radius: 3px; background: #ded6c3; overflow: hidden; margin-bottom: 8px; }
+        .acta-updater-card .acta-updater-bar { height: 100%; width: 0; border-radius: 3px; background: #6f6350; transition: width .25s ease; }
+        .acta-updater-card .acta-updater-percent { margin: 0 0 16px; font-size: 12px; color: #8a7d68; min-height: 16px; }
+        .acta-updater-card .acta-updater-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .acta-updater-card button { border: 0; border-radius: 9px; padding: 8px 18px; font-size: 13px; cursor: pointer;
+          background: #4a4036; color: #f6f2e9; }
+        .acta-updater-card button:hover { background: #3a3126; }
+        .acta-updater-card button.secondary { background: transparent; color: #6f6350; }
+        .acta-updater-card button.secondary:hover { background: rgba(74, 64, 54, .08); }
+        .acta-updater-card button:disabled { opacity: .45; cursor: default; }
+      </style>
+      <div class="acta-updater-card">
+        <h3 class="acta-updater-title"></h3>
+        <p class="acta-updater-version"></p>
+        <p class="acta-updater-notes"></p>
+        <div class="acta-updater-track" hidden><div class="acta-updater-bar"></div></div>
+        <p class="acta-updater-percent"></p>
+        <div class="acta-updater-actions">
+          <button type="button" class="secondary"></button>
+          <button type="button" class="primary"></button>
+        </div>
+      </div>`;
+    document.body.appendChild(dialog);
+    dialog.addEventListener('cancel', event => {
+      if (state === 'download' || state === 'installing') event.preventDefault();
+    });
+    dialog.addEventListener('close', () => {
+      if (state !== 'download' && state !== 'installing') state = 'idle';
+    });
+    return dialog;
+  };
+
+  const render = (mode, extra = {}) => {
+    state = mode;
+    const card = ensureDialog();
+    const title = card.querySelector('.acta-updater-title');
+    const version = card.querySelector('.acta-updater-version');
+    const notes = card.querySelector('.acta-updater-notes');
+    const track = card.querySelector('.acta-updater-track');
+    const bar = card.querySelector('.acta-updater-bar');
+    const percent = card.querySelector('.acta-updater-percent');
+    const secondary = card.querySelector('button.secondary');
+    const primary = card.querySelector('button.primary');
+
+    title.textContent = mode === 'error' ? text('failed', { detail: extra.detail || '' }) : text('title');
+    version.textContent = mode === 'error' ? '' : (pending ? `v${pending.version}` : '');
+    notes.textContent = mode === 'ask' ? (pending?.notes || text('notesEmpty')) : (extra.message || text(mode === 'installing' ? 'installing' : 'permission'));
+    notes.hidden = mode === 'download' || mode === 'error';
+    track.hidden = mode !== 'download';
+    if (extra.percent != null) bar.style.width = `${Math.max(0, Math.min(100, extra.percent))}%`;
+    percent.textContent = extra.percentText || '';
+
+    secondary.hidden = false;
+    primary.disabled = false;
+    secondary.textContent = text('later');
+    if (mode === 'ask') {
+      primary.textContent = text('update');
+      primary.onclick = () => startDownload();
+      secondary.onclick = () => dialog.close();
+    } else if (mode === 'download') {
+      primary.textContent = text('update');
+      primary.disabled = true;
+      secondary.hidden = true;
+      primary.onclick = null;
+      secondary.onclick = null;
+    } else if (mode === 'installing') {
+      primary.textContent = text('update');
+      primary.disabled = true;
+      secondary.hidden = true;
+      primary.onclick = null;
+      secondary.onclick = null;
+    } else if (mode === 'permission') {
+      primary.textContent = text('retry');
+      primary.onclick = () => tryInstall();
+      secondary.onclick = () => dialog.close();
+    } else if (mode === 'error') {
+      primary.textContent = text('update');
+      primary.onclick = () => startDownload();
+      secondary.textContent = text('close');
+      secondary.onclick = () => dialog.close();
+    }
+    if (typeof dialog.showModal === 'function' && !dialog.open) dialog.showModal();
+  };
+
+  const formatSize = bytes => (bytes / 1048576).toFixed(1);
+  const renderProgress = payload => {
+    if (state !== 'download') return;
+    const received = payload?.received || 0;
+    const total = payload?.total || 0;
+    const percent = total > 0 ? Math.round(received / total * 100) : 0;
+    render('download', {
+      percent,
+      percentText: total > 0
+        ? text('size', { received: formatSize(received), total: formatSize(total), percent })
+        : formatSize(received) + ' MB'
+    });
+  };
+  if (native.addListener) {
+    native.addListener('updaterProgress', payload => renderProgress(payload?.received != null ? payload : payload?.payload));
+  }
+
+  const tryInstall = async () => {
+    if (!pending?.filePath) return;
+    render('installing');
+    try {
+      const install = await native.installUpdate({ filePath: pending.filePath });
+      if (install?.needsPermission) {
+        render('permission');
+        return;
+      }
+      dialog.close();
+      state = 'idle';
+    } catch (error) {
+      render('error', { detail: error?.message || String(error) });
+    }
+  };
+
+  const startDownload = async () => {
+    if (!pending?.url || state === 'download') return;
+    render('download', { percentText: text('size', { received: '0.0', total: String(formatSize(pending.size || 0)), percent: 0 }) });
+    try {
+      const result = await native.downloadUpdate({ url: pending.url, version: pending.version, size: pending.size || 0 });
+      if (state !== 'download') return;
+      pending.filePath = result?.filePath || '';
+      await tryInstall();
+    } catch (error) {
+      render('error', { detail: error?.message || String(error) });
+    }
+  };
+
+  const open = updateInfo => {
+    if (state === 'download' || state === 'installing') return;
+    pending = updateInfo && updateInfo.version ? { ...pending, ...updateInfo } : pending;
+    if (!pending) return;
+    render('ask');
+  };
+
+  window.actaMobileUpdater = {
+    open,
+    checkUpdate: async currentVersion => {
+      const result = await native.checkUpdate({ currentVersion: currentVersion || '' });
+      return result?.available
+        ? { version: result.version, url: result.url, size: result.size || 0, notes: result.notes || '', htmlUrl: result.htmlUrl || '' }
+        : null;
+    }
+  };
+
+  // 启动后静默检查一次；离线或接口失败都安静跳过，不打扰使用。
+  window.setTimeout(async () => {
+    if (state !== 'idle') return;
+    try {
+      const info = await window.actaMobileUpdater.checkUpdate('');
+      if (info && state === 'idle') open(info);
+    } catch { /* 离线等情况忽略 */ }
+  }, 6000);
+})();
+
 watchEditorPaneWidth();
 bindShell();

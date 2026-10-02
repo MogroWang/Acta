@@ -3128,6 +3128,17 @@
         }
         return;
       }
+      // Android 原生更新：直接检查 Release 的安装包资产，确认后下载并拉起安装器。
+      if (window.actaMobileUpdater) {
+        const mobileInfo = await window.actaMobileUpdater.checkUpdate(currentActaVersion());
+        if (!mobileInfo) {
+          setUpdateStatus('latest', { version: currentActaVersion() });
+        } else {
+          setUpdateStatus('available', { remote: mobileInfo.version, url: mobileInfo.htmlUrl || ACTA_RELEASES_URL });
+          window.actaMobileUpdater.open(mobileInfo);
+        }
+        return;
+      }
       const response = await fetch(ACTA_LATEST_RELEASE_API, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
       if (response.status === 404) {
         const tagsResponse = await fetch(ACTA_TAGS_API, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
