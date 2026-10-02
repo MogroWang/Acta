@@ -189,11 +189,13 @@ pub async fn lan_sync_start_service(
     if !bundle_shape_valid(&bundle) {
         return Err("这不是有效的 Acta 完整数据档案".into());
     }
-    // 序列化只在计算档案体积时需要；移入阻塞线程池，避免大档案卡住主线程。
-    let bytes = tauri::async_runtime::spawn_blocking(move || serde_json::to_vec(&bundle).map(|data| data.len()))
-        .await
-        .map_err(|error| error.to_string())?
-        .map_err(|error| error.to_string())?;
+    // 序列化只在计算档案体积时需要；移入阻塞线程池，避免大档案卡住主线程，
+    // 闭包结束时把 bundle 原样交还，不做额外拷贝。
+    let (bytes, bundle) = tauri::async_runtime::spawn_blocking(move || {
+        serde_json::to_vec(&bundle).map(|data| (data.len(), bundle)).map_err(|error| error.to_string())
+    })
+    .await
+    .map_err(|error| error.to_string())??;
     if bytes > LAN_BODY_LIMIT {
         return Err("数据文件夹超出局域网同步的大小限制（256 MB）".into());
     }
@@ -484,7 +486,7 @@ pub async fn lan_sync_fetch_bundle(app: AppHandle, ip: String, port: u16, sessio
         .map_err(|error| format!("无法连接该设备：{error}"))?;
     let status = response.status().as_u16();
     if status != 200 {
-        let body = response.text().await.unwrap_or_default();
+        let _ = response.text().await;
         return Err(lan_http_error(status));
     }
     let total = response.content_length();
@@ -575,7 +577,8 @@ pub async fn lan_sync_push_snapshot(
     let bundle = {
         let guard = state.service.lock().map_err(|error| error.to_string())?;
         let service = guard.as_ref().ok_or_else(|| "局域网同步服务未运行".to_string())?;
-        service.snapshot.lock().map_err(|error| error.to_string())?.bundle.clone()
+        let bundle = service.snapshot.lock().map_err(|error| error.to_string())?.bundle.clone();
+        bundle
     };
     push_bundle_inner(ip, port, session, bundle, device_label, profile_name).await
 }
@@ -714,6 +717,12 @@ fn handle_incoming_push(stream: &mut TcpStream, service: &Arc<LanService>, lengt
     }
 
     let (responder, receiver) = mpsc::sync_channel::<bool>(1);
+    // 档案统计要在 bundle 移入 incoming 之前算好，避免移动后再借用。
+    let info = bundle_info(
+        &bundle,
+        payload.get("profile").and_then(Value::as_str).unwrap_or(""),
+        body.len() as u64,
+    );
     {
         let mut incoming = match service.incoming.lock() {
             Ok(guard) => guard,
@@ -730,11 +739,6 @@ fn handle_incoming_push(stream: &mut TcpStream, service: &Arc<LanService>, lengt
     }
 
     // 事件里带上对方档案的完整统计（含归类数），供确认对话框展示。
-    let info = bundle_info(
-        &bundle,
-        payload.get("profile").and_then(Value::as_str).unwrap_or(""),
-        body.len() as u64,
-    );
     let event = json!({
         "from": {
             "name": payload.get("device").and_then(Value::as_str).unwrap_or("Acta"),
