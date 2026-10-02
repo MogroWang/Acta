@@ -3433,7 +3433,9 @@ function getSyncBridge() {
     rejectIncoming: () => native.rejectIncoming(),
     backupLocal: (bundle, profileName) => native.backupLocal({ bundle, profileName })
   };
-  const listen = (event, handler) => (native.addListener ? native.addListener(event, handler) : Promise.resolve(() => {}));
+  const listen = (event, handler) => (native.addListener
+    ? native.addListener(event, payload => handler({ payload }))
+    : Promise.resolve(() => {}));
   window.actaMobileLan = {
     lanSync,
     onLanIncoming: handler => listen('lanIncoming', handler),

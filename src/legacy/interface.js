@@ -4784,7 +4784,7 @@
       backupNoteIncoming:'确认后会先备份这台设备上的「{0}」，再执行覆盖。',
       backupNote:'覆盖前会先备份「{0}」的当前内容到软件数据文件夹的 backups/lan-sync/。',
       backupDoneAt:'备份位置：{0}',
-      confirmOverwrite:'备份并覆盖', confirmSend:'发送数据', confirmCopy:'复制为新档案', confirmReceive:'接收数据', cancel:'取消',
+      confirmOverwrite:'备份并覆盖', confirmSend:'发送数据', confirmCopy:'复制为新档案', confirmReceive:'接收数据', confirm:'确认', cancel:'取消',
       stepPrepare:'准备本机数据', stepRequest:'发送请求并等待对方确认', stepTransfer:'传输数据',
       stepBackup:'备份本机数据', stepFetch:'从对方获取数据', stepWrite:'写入本机档案',
       stepReceive:'接收数据', stepSaveProfile:'保存为新档案',
@@ -4845,7 +4845,7 @@
       backupNoteIncoming:'After you confirm, “{0}” on this device is backed up first, then overwritten.',
       backupNote:'“{0}” is backed up into backups/lan-sync/ inside the software data folder before anything is overwritten.',
       backupDoneAt:'Backup location: {0}',
-      confirmOverwrite:'Back up and overwrite', confirmSend:'Send data', confirmCopy:'Copy as a new profile', confirmReceive:'Receive data', cancel:'Cancel',
+      confirmOverwrite:'Back up and overwrite', confirmSend:'Send data', confirmCopy:'Copy as a new profile', confirmReceive:'Receive data', confirm:'Confirm', cancel:'Cancel',
       stepPrepare:'Prepare local data', stepRequest:'Send request and wait for confirmation', stepTransfer:'Transfer data',
       stepBackup:'Back up local data', stepFetch:'Fetch from the other device', stepWrite:'Write into the local profile',
       stepReceive:'Receive data', stepSaveProfile:'Save as a new profile',
@@ -4906,7 +4906,7 @@
       backupNoteIncoming:'確認後會先備份這台裝置上的「{0}」，再執行覆寫。',
       backupNote:'覆寫前會先備份「{0}」的目前內容到軟體資料資料夾的 backups/lan-sync/。',
       backupDoneAt:'備份位置：{0}',
-      confirmOverwrite:'備份並覆寫', confirmSend:'傳送資料', confirmCopy:'複製為新檔案', confirmReceive:'接收資料', cancel:'取消',
+      confirmOverwrite:'備份並覆寫', confirmSend:'傳送資料', confirmCopy:'複製為新檔案', confirmReceive:'接收資料', confirm:'確認', cancel:'取消',
       stepPrepare:'準備本機資料', stepRequest:'傳送請求並等待對方確認', stepTransfer:'傳輸資料',
       stepBackup:'備份本機資料', stepFetch:'從對方取得資料', stepWrite:'寫入本機檔案',
       stepReceive:'接收資料', stepSaveProfile:'保存為新檔案',
@@ -5062,18 +5062,43 @@
     updateLanStateUI();
   }
 
-  // 传输前的对端预检：先用已知地址与令牌验证并刷新信任/档案元数据；若
-  // 对方重启过服务，地址与会话令牌已失效，此时自动重新搜索一次并按设备
-  // 名与平台匹配刷新坐标，避免把旧地址发出去后双方都毫无反馈。
+  // 瞬时失败重试：设备休眠、ARP 未就绪等导致的首次连接失败重试一次即可
+  // 恢复；仅用于无副作用的读取类请求。
+  const lanRetry = async (work, times = 2) => {
+    let lastError;
+    for (let attempt = 0; attempt < times; attempt += 1) {
+      if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 600));
+      try {
+        return await work();
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError;
+  };
+
+  // 传输前的对端预检：先用已知地址与令牌验证（首次连接可能因设备休眠或
+  // ARP 未就绪而短暂失败，自动重试一次）；若对方重启过服务导致地址与会话
+  // 令牌失效，则自动重新搜索一次并按设备名与平台匹配刷新坐标，避免把旧
+  // 地址发出去后双方都毫无反馈。
   async function lanResolvePeer(peer) {
-    try {
-      const info = await lanBridge.fetchInfo(peer.ip, peer.port, peer.session);
-      const fresh = { ...peer, trusted: Boolean(info.trusted), profiles: Array.isArray(info.profiles) ? info.profiles : peer.profiles };
+    const verify = async candidate => {
+      try {
+        const info = await lanBridge.fetchInfo(candidate.ip, candidate.port, candidate.session);
+        return { ...candidate, trusted: Boolean(info.trusted), profiles: Array.isArray(info.profiles) ? info.profiles : candidate.profiles };
+      } catch { return null; }
+    };
+    let resolved = await verify(peer);
+    if (!resolved) {
+      await new Promise(resolve => setTimeout(resolve, 600));
+      resolved = await verify(peer);
+    }
+    if (resolved) {
       const index = lanPeers.indexOf(peer);
-      if (index >= 0) lanPeers[index] = fresh;
+      if (index >= 0) lanPeers[index] = resolved;
       renderLanPeers();
-      return fresh;
-    } catch { /* 地址或令牌已过期，尝试重新发现 */ }
+      return resolved;
+    }
     setLanStatus(lanText('peerRefresh', peer.name || lanText('unknownDevice')), 'info');
     try {
       const peers = await lanBridge.discover(1800);
@@ -5081,10 +5106,13 @@
       const fresh = candidates.find(candidate => candidate.name === peer.name && candidate.platform === peer.platform)
         || candidates.find(candidate => candidate.ip === peer.ip);
       if (fresh) {
-        const index = lanPeers.indexOf(peer);
-        if (index >= 0) lanPeers[index] = fresh;
-        renderLanPeers();
-        return fresh;
+        resolved = await verify(fresh);
+        if (resolved) {
+          const index = lanPeers.indexOf(peer);
+          if (index >= 0) lanPeers[index] = resolved;
+          renderLanPeers();
+          return resolved;
+        }
       }
     } catch { /* 重新搜索失败，按不可达处理 */ }
     return null;
@@ -5197,6 +5225,8 @@
       byId('lanSyncBackupNote').textContent = replace
         ? lanText('backupNote', targetStats.profile)
         : lanText('copyNote');
+      byId('confirmLanSyncLabel').textContent = lanText('confirm');
+      byId('confirmLanSync').className = `settings-button${replace ? ' danger' : ''}`;
     }
   }
 
@@ -5468,7 +5498,8 @@
       const steps = lanBeginSteps(plan.mode === 'copy' ? ['stepFetch', 'stepSaveProfile'] : ['stepFetch', 'stepBackup', 'stepWrite']);
       try {
         await steps.active(0);
-        const bundle = await lanBridge.fetchProfileBundle(resolved.ip, resolved.port, resolved.session, plan.peerProfileId);
+        // 获取对方档案：首次连接可能因设备休眠短暂失败，自动重试一次。
+        const bundle = await lanRetry(() => lanBridge.fetchProfileBundle(resolved.ip, resolved.port, resolved.session, plan.peerProfileId));
         steps.done(0);
         if (plan.mode === 'copy') {
           await steps.active(1);

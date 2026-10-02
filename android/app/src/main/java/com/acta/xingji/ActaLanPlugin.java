@@ -62,6 +62,8 @@ public class ActaLanPlugin extends Plugin {
     private static final int LAN_DISCOVERY_PORT = 44117;
     private static final String LAN_DISCOVERY_MAGIC = "ACTA-LAN-V2 DISCOVER";
     private static final int LAN_HEADER_LIMIT = 16 * 1024;
+    // 设备 Wi-Fi 休眠唤醒可能使首次 TCP 连接耗时明显变长，预留足够余量。
+    private static final int LAN_CONNECT_TIMEOUT_MS = 10000;
     private static final int LAN_BODY_LIMIT = 256 * 1024 * 1024;
     private static final long LAN_DECIDE_WAIT_MS = 150000L;
     private static final long LAN_APPLY_WAIT_MS = 240000L;
@@ -443,7 +445,7 @@ public class ActaLanPlugin extends Plugin {
         Thread worker = new Thread(() -> {
             try {
                 HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-                connection.setConnectTimeout(5000);
+                connection.setConnectTimeout(LAN_CONNECT_TIMEOUT_MS);
                 connection.setReadTimeout((int) timeoutMs);
                 connection.setRequestMethod("GET");
                 int status = connection.getResponseCode();
@@ -492,7 +494,7 @@ public class ActaLanPlugin extends Plugin {
         Thread worker = new Thread(() -> {
             try {
                 HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-                connection.setConnectTimeout(5000);
+                connection.setConnectTimeout(LAN_CONNECT_TIMEOUT_MS);
                 connection.setReadTimeout((int) (LAN_FETCH_WAIT_MS + 30000L));
                 connection.setRequestMethod("GET");
                 int status = connection.getResponseCode();
@@ -531,7 +533,7 @@ public class ActaLanPlugin extends Plugin {
         Thread worker = new Thread(() -> {
             try {
                 HttpURLConnection connection = (HttpURLConnection) new URL(peerUrl(ip, port, "plan", session)).openConnection();
-                connection.setConnectTimeout(5000);
+                connection.setConnectTimeout(LAN_CONNECT_TIMEOUT_MS);
                 connection.setReadTimeout((int) (LAN_DECIDE_WAIT_MS + 30000L));
                 connection.setRequestMethod("PUT");
                 connection.setDoOutput(true);
@@ -580,7 +582,7 @@ public class ActaLanPlugin extends Plugin {
         Thread worker = new Thread(() -> {
             try {
                 HttpURLConnection connection = (HttpURLConnection) new URL(peerUrl(ip, port, "data", session) + "&plan=" + token).openConnection();
-                connection.setConnectTimeout(5000);
+                connection.setConnectTimeout(LAN_CONNECT_TIMEOUT_MS);
                 connection.setReadTimeout((int) (LAN_APPLY_WAIT_MS + 30000L));
                 connection.setRequestMethod("PUT");
                 connection.setDoOutput(true);
