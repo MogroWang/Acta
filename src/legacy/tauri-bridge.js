@@ -69,6 +69,10 @@
       pushBundle(ip, port, session, bundle, deviceLabel, profileName) {
         return invoke('lan_sync_push_bundle', { ip, port, session, bundle, deviceLabel, profileName });
       },
+      // 服务运行时直接复用 Rust 内存中的快照发送，避免完整档案再过一次 IPC。
+      pushSnapshot(ip, port, session, deviceLabel, profileName) {
+        return invoke('lan_sync_push_snapshot', { ip, port, session, deviceLabel, profileName });
+      },
       acceptIncoming() {
         return invoke('lan_sync_accept_incoming');
       },
@@ -86,6 +90,10 @@
       // 事件 API 缺失（如测试环境的简化 mock）时返回哑句柄，不阻断启动。
       if (!tauri.event?.listen) return Promise.resolve(() => {});
       return tauri.event.listen('lan-sync://incoming', handler);
+    },
+    onLanProgress(handler) {
+      if (!tauri.event?.listen) return Promise.resolve(() => {});
+      return tauri.event.listen('lan-sync://progress', handler);
     },
     async importNote() {
       const path = firstPath(await dialog.open({

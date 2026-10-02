@@ -33,7 +33,7 @@ Acta is a local-first notes and tasks app that brings writing, action, and organ
 - A desktop context menu on an opaque panel, with cut, copy, paste, and select all for text, plus copy for any selected text
 - Simplified Chinese, Traditional Chinese, and English interfaces with theme and font settings
 - All dropdown menus, scrollbars, sliders, date-time pickers, and settings toggles are custom-drawn controls; hover feedback uses scale instead of shifting, keeping motion restrained and smooth
-- Local data folders, WebDAV, and Acta LAN sync: desktop clients can automatically discover other Acta devices on the same network and exchange complete data folders directly, with a detailed list of files to be written and explicit consent before overwriting, plus an automatically created, restorable backup
+- Local data folders, WebDAV, and Acta LAN sync (BETA): desktop clients can automatically discover other Acta devices on the same network and exchange complete data folders directly. You can pick which local data profile to send, and the receiving side chooses between replacing the current profile or copying the data in as a new profile; the files to be written are listed in detail with explicit consent before overwriting, transfers show per-step progress (backup, transfer, write, bytes received), and a restorable backup is created automatically before anything is overwritten
 - Android local notifications, system file pickers, and Storage Access Framework integration
 - Installable PWA support with offline caching
 

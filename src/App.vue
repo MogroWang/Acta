@@ -380,9 +380,10 @@
               <header><h3>数据同步</h3><p>通过 WebDAV 服务器或局域网中的其他 Acta 设备同步完整数据文件夹。</p></header>
               <div class="settings-group lan-sync-group" id="lanSyncGroup" hidden>
                 <div class="settings-row lan-sync-head-row">
-                  <span><b>Acta 局域网同步</b><small>与同一网络中的其他 Acta 设备直接互相同步行记数据，数据不经过任何服务器。</small></span>
+                  <span><b>Acta 局域网同步 <span class="beta-badge">BETA</span></b><small>与同一网络中的其他 Acta 设备直接互相同步行记数据，数据不经过任何服务器。实验性功能，传输完成后请核对数据是否完整。</small></span>
                   <span class="lan-sync-state" id="lanSyncState" data-state="off"></span>
                 </div>
+                <label class="settings-row"><span><b>传输的行记数据</b><small>发送到其他设备时使用的本机档案；导入到本机的数据不受此选择影响</small></span><select id="lanProfileSelect"></select></label>
                 <label class="settings-row"><span><b>允许被其他设备发现</b><small>开启后这台设备会出现在附近设备的列表中；关闭或退出 Acta 时立即停止</small></span><input id="lanDiscoverableSetting" type="checkbox"/></label>
                 <div class="settings-row">
                   <span><b>附近的设备</b><small id="lanPeersHint"></small></span>
@@ -451,11 +452,17 @@
           <span class="lan-sync-flow-arrow" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           <div class="lan-sync-side" id="lanSyncTargetSide"></div>
         </div>
+        <div class="lan-sync-mode" id="lanSyncModeGroup" hidden>
+          <b class="lan-mode-heading" id="lanSyncModeHeading"></b>
+          <button type="button" class="lan-mode-choice" data-lan-mode="replace" aria-pressed="true"><span class="lan-mode-copy"><b id="lanModeReplaceTitle"></b><small id="lanModeReplaceHint"></small></span></button>
+          <button type="button" class="lan-mode-choice" data-lan-mode="copy" aria-pressed="false"><span class="lan-mode-copy"><b id="lanModeCopyTitle"></b><small id="lanModeCopyHint"></small></span></button>
+        </div>
         <div class="lan-sync-files">
           <b id="lanSyncFilesHeading"></b>
           <ul id="lanSyncFileList"></ul>
         </div>
         <p class="lan-sync-backup-note" id="lanSyncBackupNote"></p>
+        <ol class="lan-sync-steps" id="lanSyncSteps" hidden></ol>
         <p class="settings-status" id="lanSyncError" role="alert" hidden></p>
       </div>
       <footer class="settings-actions delete-confirm-actions"><button class="settings-button secondary" id="cancelLanSync" type="button"></button><button class="settings-button danger" id="confirmLanSync" type="button"><svg><use href="#i-check"/></svg><span id="confirmLanSyncLabel"></span></button></footer>

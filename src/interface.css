@@ -2247,6 +2247,34 @@ body.trash-view .list-footer { background: color-mix(in srgb, var(--note-soft) 1
 .lan-sync-files ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
 .lan-sync-files li { padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; background: color-mix(in srgb, var(--white) 45%, transparent); color: var(--muted); font-size: calc(8.5px * var(--acta-font-scale)); }
 .lan-sync-backup-note { margin: 0; color: var(--muted); font-size: calc(8.5px * var(--acta-font-scale)); line-height: 1.6; }
+/* BETA 标记：实验性功能的轻量提示，只用边框与文字，不加色彩装饰。 */
+.beta-badge { display: inline-block; margin-left: 7px; padding: 1px 7px 2px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: calc(8px * var(--acta-font-scale)); font-weight: 700; letter-spacing: .09em; line-height: 1.5; vertical-align: 1.5px; }
+/* 接收方式：与数据流向卡片同一套边框卡片语言，选中态用主题色描边。 */
+.lan-sync-mode { display: grid; gap: 7px; }
+.lan-mode-heading { font-size: calc(9px * var(--acta-font-scale)); }
+.lan-mode-choice { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--white) 45%, transparent); color: inherit; font: inherit; text-align: left; cursor: pointer; transition: border-color .18s var(--ease-out), background .18s var(--ease-out); }
+.lan-mode-choice:hover { border-color: color-mix(in srgb, var(--sage) 45%, var(--line)); }
+.lan-mode-choice[aria-pressed="true"] { border-color: var(--sage); background: color-mix(in srgb, var(--sage-2) 40%, transparent); }
+.lan-mode-choice:disabled { opacity: .55; cursor: default; }
+.lan-mode-copy { display: grid; gap: 2px; min-width: 0; }
+.lan-mode-copy b { font-size: calc(10px * var(--acta-font-scale)); }
+.lan-mode-copy small { color: var(--muted); font-size: calc(8.5px * var(--acta-font-scale)); line-height: 1.5; }
+/* 传输步骤：进行中带呼吸点，完成打勾，失败标红；等待中的步骤减淡。 */
+.lan-sync-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.lan-sync-steps li { display: flex; align-items: flex-start; gap: 9px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--white) 45%, transparent); }
+.lan-sync-steps li[data-state="pending"] { opacity: .55; }
+.lan-sync-steps li[data-state="error"] { border-color: color-mix(in srgb, var(--danger-accent) 45%, var(--line)); }
+.lan-step-dot { flex: 0 0 auto; width: 14px; height: 14px; margin-top: 1px; border-radius: 50%; border: 1.5px solid var(--line); position: relative; }
+.lan-sync-steps li[data-state="active"] .lan-step-dot { border-color: var(--sage); animation: lanStepPulse 1.4s var(--ease-out) infinite; }
+.lan-sync-steps li[data-state="done"] .lan-step-dot, .lan-sync-steps li[data-state="error"] .lan-step-dot { border-color: transparent; }
+.lan-sync-steps li[data-state="done"] .lan-step-dot { background: var(--sage); }
+.lan-sync-steps li[data-state="error"] .lan-step-dot { background: var(--danger-accent); }
+.lan-sync-steps li[data-state="done"] .lan-step-dot::after { content: ''; position: absolute; left: 3.5px; top: 3px; width: 5px; height: 7px; border-right: 2px solid var(--white); border-bottom: 2px solid var(--white); transform: rotate(45deg); }
+.lan-step-copy { min-width: 0; display: grid; gap: 1px; }
+.lan-step-copy b { font-size: calc(9.5px * var(--acta-font-scale)); }
+.lan-step-copy small { color: var(--muted); font-size: calc(8px * var(--acta-font-scale)); line-height: 1.5; overflow-wrap: anywhere; }
+@keyframes lanStepPulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .lan-sync-steps li[data-state="active"] .lan-step-dot { animation: none; } }
 
 @media (max-width: 800px) {
   .lan-peer-card { grid-template-columns: 32px minmax(0, 1fr); }

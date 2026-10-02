@@ -11,7 +11,7 @@
     noteHeadingH1Size: 32, noteHeadingH2Size: 24, noteHeadingH3Size: 19, noteBaseSize: 17, noteHeadingFont: 'serif', noteHeadingCustomFont: '', noteLineHeight: 1.6, noteParagraphGap: 1,
     noteToolbarPosition: 'bottom', noteToolbarShowLabels: false,
     oneDriveFolder: '', oneDriveLabel: '', workspaceLabel: '',
-    dataProfiles: [], activeDataProfileId: '', webDavServer: '', webDavUsername: '', autoSync: false, autoSyncInterval: 5, lanDiscoverable: false, listPaneWidth: 330, sidebarCollapsed: false, language: ['zh', 'zh-Hant', 'en'].includes(settings.language) ? settings.language : 'zh'
+    dataProfiles: [], activeDataProfileId: '', lanSendProfileId: '', webDavServer: '', webDavUsername: '', autoSync: false, autoSyncInterval: 5, lanDiscoverable: false, listPaneWidth: 330, sidebarCollapsed: false, language: ['zh', 'zh-Hant', 'en'].includes(settings.language) ? settings.language : 'zh'
   };
   let uiSettings = { ...defaultUISettings };
   try { uiSettings = { ...uiSettings, ...(JSON.parse(localStorage.getItem(uiStorageKey)) || {}) }; } catch { /* Use safe defaults. */ }
@@ -200,7 +200,8 @@
     '初始设置向导':'Setup guide', '重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画':'Walk through the first-run guide again to revisit data location, theme, and launch animation', '重新运行引导':'Run the guide again',
     '基准字号':'Base font size', '拖动滑块，正文与各级标题会一起缩放':'Drag the slider; body text and headings scale together',
     '通过 WebDAV 服务器或局域网中的其他 Acta 设备同步完整数据文件夹。':'Sync the complete data folder through a WebDAV server or other Acta devices on your LAN.',
-    'Acta 局域网同步':'Acta LAN sync', '与同一网络中的其他 Acta 设备直接互相同步行记数据，数据不经过任何服务器。':'Sync your data directly with other Acta devices on the same network. Nothing passes through a server.',
+    'Acta 局域网同步':'Acta LAN sync', '与同一网络中的其他 Acta 设备直接互相同步行记数据，数据不经过任何服务器。实验性功能，传输完成后请核对数据是否完整。':'Sync your data directly with other Acta devices on the same network. Nothing passes through a server. This is an experimental feature; verify the data after a transfer.',
+    '传输的行记数据':'Acta data to share', '发送到其他设备时使用的本机档案；导入到本机的数据不受此选择影响':'The local profile sent to other devices; imports to this device are not affected by this choice.',
     '允许被其他设备发现':'Be discoverable', '开启后这台设备会出现在附近设备的列表中；关闭或退出 Acta 时立即停止':'This device then appears in nearby device lists; it stops the moment you turn this off or quit Acta',
     '附近的设备':'Nearby devices', '搜索设备':'Scan for devices'
   });
@@ -240,7 +241,8 @@
     '初始设置向导':'初始設定精靈', '重新体验首次启动的 OOBE 引导，逐步确认数据位置、主题与启动动画':'重新體驗首次啟動的引導，逐步確認資料位置、主題與啟動動畫', '重新运行引导':'重新執行引導',
     '基准字号':'基準字級', '拖动滑块，正文与各级标题会一起缩放':'拖動滑桿，正文與各級標題會一起縮放',
     '通过 WebDAV 服务器或局域网中的其他 Acta 设备同步完整数据文件夹。':'透過 WebDAV 伺服器或區域網路中的其他 Acta 裝置同步完整資料資料夾。',
-    'Acta 局域网同步':'Acta 區域網路同步', '与同一网络中的其他 Acta 设备直接互相同步行记数据，数据不经过任何服务器。':'與同一網路中的其他 Acta 裝置直接互相同步行記資料，資料不經過任何伺服器。',
+    'Acta 局域网同步':'Acta 區域網路同步', '与同一网络中的其他 Acta 设备直接互相同步行记数据，数据不经过任何服务器。实验性功能，传输完成后请核对数据是否完整。':'與同一網路中的其他 Acta 裝置直接互相同步行記資料，資料不經過任何伺服器。實驗性功能，傳輸完成後請核對資料是否完整。',
+    '传输的行记数据':'傳輸的行記資料', '发送到其他设备时使用的本机档案；导入到本机的数据不受此选择影响':'傳送到其他裝置時使用的本機檔案；匯入到本機的資料不受此選擇影響',
     '允许被其他设备发现':'允許被其他裝置發現', '开启后这台设备会出现在附近设备的列表中；关闭或退出 Acta 时立即停止':'開啟後這台裝置會出現在附近裝置的清單中；關閉或退出 Acta 時立即停止',
     '附近的设备':'附近的裝置', '搜索设备':'搜尋裝置'
   });
@@ -278,6 +280,9 @@
   const savedNativeWorkspace = settings.syncFolder || '';
   let workspaceAdapter = null;
   let dataProfiles = [];
+  // 数据档案列表变化时由 renderDataProfiles 调用（后定义于局域网同步段），
+  // 让「传输的行记数据」选择器保持同步；提前声明避免初始化时的 TDZ 问题。
+  let lanProfilesChangedHook = null;
   let editingDataProfileId = '';
   let oneDriveAdapter = null;
   let webDavAdapter = null;
@@ -2676,6 +2681,7 @@
       </article>`;
     }).join('');
     if (editingDataProfileId) requestAnimationFrame(() => list.querySelector(`[data-profile-id="${CSS.escape(editingDataProfileId)}"] [data-profile-name-input]`)?.focus());
+    lanProfilesChangedHook?.();
   }
 
   function updateWorkspaceUI() {
@@ -4712,17 +4718,28 @@
       serviceOff:'已停止局域网同步，其他设备不再看到这台设备。', working:'正在同步数据…',
       pullAction:'导入到本机', pushAction:'发送到对方',
       pullTitle:'导入到本机', pushTitle:'发送到对方', incomingTitle:'收到同步请求',
-      pullSubtitle:'用 {0} 上的数据替换本机当前档案', pushSubtitle:'把本机当前档案发送给 {0}，由对方确认后写入',
-      incomingSubtitle:'{0} 希望用它的数据替换本机当前档案',
+      pullSubtitle:'把 {0} 上的数据导入本机，可以选择覆盖当前档案或另存为新档案', pushSubtitle:'把本机选择的行记数据发送给 {0}，由对方确认后写入',
+      incomingSubtitle:'{0} 希望把它的行记数据发送到本机',
       thisDevice:'本机', unknownDevice:'未知设备', platformMacos:'macOS', platformWindows:'Windows', platformOther:'此设备',
       statsLine:'笔记 {0} · 待办 {1} · 归类 {2}', bytesInfo:'约 {0}',
       filesHeading:'将写入以下文件',
       fileManifest:'acta-manifest.json — 数据清单', fileClassifications:'classifications.json — {0} 个归类',
       fileNotes:'notes/ — {0} 个笔记文件', fileTodos:'todos/ — {0} 个待办文件',
+      modeHeading:'接收方式',
+      modeReplaceTitle:'替换当前档案', modeReplaceHint:'用收到的数据覆盖本机当前的行记数据，覆盖前自动备份',
+      modeCopyTitle:'复制为新档案', modeCopyHint:'保留本机现有数据，收到的数据保存为新的行记数据并切换过去',
+      copyNote:'选择“复制为新档案”不会覆盖任何现有数据，也不会创建备份。',
       backupNote:'确认后 Acta 会先把“{0}”的当前内容备份到软件数据文件夹的 backups/lan-sync/，再执行覆盖。',
       backupNotePush:'对方确认后，会先备份对方设备的当前内容，再执行覆盖。',
       backupDoneAt:'备份位置：{0}',
-      confirmOverwrite:'备份并覆盖', confirmSend:'发送数据', cancel:'取消',
+      confirmOverwrite:'备份并覆盖', confirmSend:'发送数据', confirmCopy:'复制为新档案', cancel:'取消',
+      stepBackup:'备份本机数据', stepTransfer:'传输数据', stepWrite:'写入本机档案',
+      stepReceive:'接收数据', stepSaveProfile:'保存为新档案', stepSend:'发送数据',
+      stepSendNote:'对方确认并写入完成后才会返回结果',
+      progressLine:'已接收 {0}', progressLineTotal:'已接收 {0} / {1}',
+      snapshotWorking:'正在准备本机数据…', snapshotReady:'已准备好“{0}”，可以开始同步。', snapshotFail:'准备数据失败：',
+      copyDone:'已将收到的数据保存为新档案“{0}”。',
+      busyRefused:'正在处理其他同步，已自动拒绝来自 {0} 的请求。',
       backupFail:'备份失败：',
       pullDone:'已从 {0} 导入完整数据文件夹。', pullFail:'导入失败：',
       pushDone:'{0} 已确认接收，数据同步完成。', pushRefused:'{0} 拒绝了这次同步。',
@@ -4738,17 +4755,28 @@
       serviceOff:'LAN sync stopped; other devices no longer see this device.', working:'Syncing data…',
       pullAction:'Import here', pushAction:'Send over',
       pullTitle:'Import to this device', pushTitle:'Send to the other device', incomingTitle:'Sync request received',
-      pullSubtitle:'Replace the current profile on this device with data from {0}', pushSubtitle:'Send the current profile to {0}; the other side confirms before writing',
-      incomingSubtitle:'{0} wants to replace the current profile on this device with its data',
+      pullSubtitle:'Import the data from {0}; choose to replace the current profile or save it as a new one', pushSubtitle:'Send the selected Acta data to {0}; the other side confirms before writing',
+      incomingSubtitle:'{0} wants to send its Acta data to this device',
       thisDevice:'This device', unknownDevice:'Unknown device', platformMacos:'macOS', platformWindows:'Windows', platformOther:'This device',
       statsLine:'{0} notes · {1} tasks · {2} classifications', bytesInfo:'~{0}',
       filesHeading:'Files that will be written',
       fileManifest:'acta-manifest.json — data manifest', fileClassifications:'classifications.json — {0} classifications',
       fileNotes:'notes/ — {0} note files', fileTodos:'todos/ — {0} task files',
+      modeHeading:'How to receive',
+      modeReplaceTitle:'Replace the current profile', modeReplaceHint:'Overwrite the current Acta data on this device with the incoming data; a backup is created first',
+      modeCopyTitle:'Copy as a new profile', modeCopyHint:'Keep the current data; the incoming data is saved as a new Acta data profile and opened',
+      copyNote:'Choosing “Copy as a new profile” overwrites nothing and creates no backup.',
       backupNote:'After you confirm, Acta first backs up the current content of “{0}” into backups/lan-sync/ inside the software data folder, then overwrites.',
       backupNotePush:'After the other side confirms, their current content is backed up before anything is overwritten.',
       backupDoneAt:'Backup location: {0}',
-      confirmOverwrite:'Back up and overwrite', confirmSend:'Send data', cancel:'Cancel',
+      confirmOverwrite:'Back up and overwrite', confirmSend:'Send data', confirmCopy:'Copy as a new profile', cancel:'Cancel',
+      stepBackup:'Back up local data', stepTransfer:'Transfer data', stepWrite:'Write into the local profile',
+      stepReceive:'Receive data', stepSaveProfile:'Save as a new profile', stepSend:'Send data',
+      stepSendNote:'The result returns only after the other side confirms and finishes writing',
+      progressLine:'Received {0}', progressLineTotal:'Received {0} / {1}',
+      snapshotWorking:'Preparing local data…', snapshotReady:'“{0}” is ready to sync.', snapshotFail:'Failed to prepare data: ',
+      copyDone:'Saved the incoming data as the new profile “{0}”.',
+      busyRefused:'Another sync is in progress; the request from {0} was declined automatically.',
       backupFail:'Backup failed: ',
       pullDone:'Imported the complete data folder from {0}.', pullFail:'Import failed: ',
       pushDone:'{0} accepted the data; sync is complete.', pushRefused:'{0} declined this sync.',
@@ -4764,17 +4792,28 @@
       serviceOff:'已停止區域網路同步，其他裝置不再看到這台裝置。', working:'正在同步資料…',
       pullAction:'匯入到本機', pushAction:'傳送到對方',
       pullTitle:'匯入到本機', pushTitle:'傳送到對方', incomingTitle:'收到同步請求',
-      pullSubtitle:'用 {0} 上的資料取代本機目前檔案', pushSubtitle:'把本機目前檔案傳送給 {0}，由對方確認後寫入',
-      incomingSubtitle:'{0} 希望用它的資料取代本機目前檔案',
+      pullSubtitle:'把 {0} 上的資料匯入本機，可以選擇覆寫目前檔案或另存為新檔案', pushSubtitle:'把本機選擇的行記資料傳送給 {0}，由對方確認後寫入',
+      incomingSubtitle:'{0} 希望把它的行記資料傳送到本機',
       thisDevice:'本機', unknownDevice:'未知裝置', platformMacos:'macOS', platformWindows:'Windows', platformOther:'此裝置',
       statsLine:'筆記 {0} · 待辦 {1} · 歸類 {2}', bytesInfo:'約 {0}',
       filesHeading:'將寫入以下檔案',
       fileManifest:'acta-manifest.json — 資料清單', fileClassifications:'classifications.json — {0} 個歸類',
       fileNotes:'notes/ — {0} 個筆記檔案', fileTodos:'todos/ — {0} 個待辦檔案',
+      modeHeading:'接收方式',
+      modeReplaceTitle:'取代目前檔案', modeReplaceHint:'用收到的資料覆寫本機目前的行記資料，覆寫前自動備份',
+      modeCopyTitle:'複製為新檔案', modeCopyHint:'保留本機現有資料，收到的資料保存為新的行記資料並切換過去',
+      copyNote:'選擇「複製為新檔案」不會覆寫任何現有資料，也不會建立備份。',
       backupNote:'確認後 Acta 會先把「{0}」的目前內容備份到軟體資料資料夾的 backups/lan-sync/，再執行覆寫。',
       backupNotePush:'對方確認後，會先備份對方裝置的目前內容，再執行覆寫。',
       backupDoneAt:'備份位置：{0}',
-      confirmOverwrite:'備份並覆寫', confirmSend:'傳送資料', cancel:'取消',
+      confirmOverwrite:'備份並覆寫', confirmSend:'傳送資料', confirmCopy:'複製為新檔案', cancel:'取消',
+      stepBackup:'備份本機資料', stepTransfer:'傳輸資料', stepWrite:'寫入本機檔案',
+      stepReceive:'接收資料', stepSaveProfile:'儲存為新檔案', stepSend:'傳送資料',
+      stepSendNote:'對方確認並寫入完成後才會返回結果',
+      progressLine:'已接收 {0}', progressLineTotal:'已接收 {0} / {1}',
+      snapshotWorking:'正在準備本機資料…', snapshotReady:'已準備好「{0}」，可以開始同步。', snapshotFail:'準備資料失敗：',
+      copyDone:'已將收到的資料保存為新檔案「{0}」。',
+      busyRefused:'正在處理其他同步，已自動拒絕來自 {0} 的請求。',
       backupFail:'備份失敗：',
       pullDone:'已從 {0} 匯入完整資料資料夾。', pullFail:'匯入失敗：',
       pushDone:'{0} 已確認接收，資料同步完成。', pushRefused:'{0} 拒絕了這次同步。',
@@ -4793,15 +4832,27 @@
   let lanIncomingActive = false;
   let lanConfirmPlan = null;
   let lanConfirmResolve = null;
+  // 接收方式：replace = 覆盖当前档案（默认），copy = 另存为新档案。
+  let lanConfirmMode = 'replace';
+  // 传输进行中时锁定对话框，防止中途关闭造成半写入状态。
+  let lanTransferActive = false;
+  // 发送档选择：默认跟随当前档案；切换到其他档案后快照只在选择时构建一次。
+  let lanSendProfileId = '';
+  let lanSendBundle = null;
+  let lanSendInfo = null;
+  let lanSnapshotRefreshJob = Promise.resolve();
+  let lanSteps = null;
 
   const lanPlatformLabel = platform => platform === 'macos' ? lanText('platformMacos') : platform === 'windows' ? lanText('platformWindows') : platform || lanText('platformOther');
-  const lanFormatBytes = bytes => {
+  const lanRawBytes = bytes => {
     const value = Number(bytes) || 0;
-    if (value >= 1024 * 1024) return lanText('bytesInfo', `${(value / (1024 * 1024)).toFixed(1)} MB`);
-    if (value >= 1024) return lanText('bytesInfo', `${Math.round(value / 1024)} KB`);
-    return lanText('bytesInfo', `${value} B`);
+    if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+    if (value >= 1024) return `${Math.round(value / 1024)} KB`;
+    return `${value} B`;
   };
+  const lanFormatBytes = bytes => lanText('bytesInfo', lanRawBytes(bytes));
   const lanProfileLabel = () => activeDataProfile()?.name || uiText('actaData');
+  const lanSendProfile = () => dataProfileById(lanSendProfileId) || activeDataProfile();
   const lanCurrentBundle = () => createPortableDataFolderBundle(JSON.parse(JSON.stringify(library)));
   const lanLocalStats = () => ({
     profile: lanProfileLabel(),
@@ -4810,8 +4861,44 @@
     classifications: (library.folders || []).length,
     bytes: 0
   });
+  // 推送方向对话框里「本机」一侧展示的是被发送档案的统计（来自服务快照）。
+  const lanSendStats = () => {
+    const profile = lanSendProfile();
+    if (lanSendInfo && profile) return { profile: lanSendInfo.profile || profile.name, notes: lanSendInfo.notes, todos: lanSendInfo.todos, classifications: lanSendInfo.classifications, bytes: lanSendInfo.bytes };
+    const stats = lanLocalStats();
+    return { ...stats, profile: profile?.name || stats.profile };
+  };
   const lanStatsLine = info => `${lanText('statsLine', info.notes || 0, info.todos || 0, info.classifications || 0)}${info.bytes ? ` · ${lanFormatBytes(info.bytes)}` : ''}`;
   const setLanStatus = (message, state = '') => setStatus(byId('lanSyncStatus'), message, state);
+
+  // 构建指定档案的完整数据包：当前档案直接来自内存；其他档案从它的
+  // 存储位置读取一次后缓存——非活动档案不会在后台变化。
+  async function lanBuildSendBundle(profile) {
+    const target = profile || activeDataProfile();
+    if (!target) throw new Error(profileText('unavailable'));
+    if (target.id === activeDataProfile()?.id) return lanCurrentBundle();
+    if (!lanSendBundle) {
+      const snapshot = await loadDataProfileSnapshot(target, true);
+      lanSendBundle = createPortableDataFolderBundle(clearLegacyTags(JSON.parse(JSON.stringify(snapshot))));
+    }
+    return lanSendBundle;
+  }
+
+  // 把发送快照刷新到局域网服务；服务未运行时不动。quiet = 静默刷新
+  // （随保存自动触发），否则在状态栏展示准备进度。
+  async function lanRefreshSendSnapshot({ quiet = false } = {}) {
+    if (!lanBridge || !lanServiceRunning) return;
+    const profile = lanSendProfile();
+    if (!profile) return;
+    if (!quiet) setLanStatus(lanText('snapshotWorking'), 'info');
+    const bundle = await lanBuildSendBundle(profile);
+    const status = await lanBridge.startService(bundle, profile.name);
+    lanServiceRunning = Boolean(status.running);
+    lanDiscoverable = Boolean(status.discoverable);
+    lanSendInfo = status.snapshot || null;
+    updateLanStateUI();
+    if (!quiet) setLanStatus(lanText('snapshotReady', profile.name), 'success');
+  }
 
   function updateLanStateUI() {
     byId('lanScanButton').disabled = lanScanning;
@@ -4825,18 +4912,22 @@
     }
   }
 
-  // 服务在运行时随每次保存刷新快照，让“发送到对方”始终拿到最新内容。
+  // 服务在运行时随每次保存刷新快照，让“发送到对方”始终拿到最新内容；
+  // 只刷新当前档案——其他被选中的档案不在后台变化，无需重复构建。
   function lanSyncRefreshSnapshot() {
     if (!lanBridge || !lanServiceRunning) return;
-    lanBridge.startService(lanCurrentBundle(), lanProfileLabel()).catch(() => {});
+    const profile = lanSendProfile();
+    if (!profile || profile.id !== activeDataProfile()?.id) return;
+    lanSnapshotRefreshJob = lanSnapshotRefreshJob.catch(() => {}).then(() => lanRefreshSendSnapshot({ quiet:true }));
   }
 
   async function lanStartService() {
     if (!lanBridge) return;
     try {
-      const status = await lanBridge.startService(lanCurrentBundle(), lanProfileLabel());
+      const status = await lanBridge.startService(await lanBuildSendBundle(lanSendProfile()), lanSendProfile()?.name || lanProfileLabel());
       lanServiceRunning = Boolean(status.running);
       lanDiscoverable = Boolean(status.discoverable);
+      lanSendInfo = status.snapshot || null;
     } catch (error) {
       lanServiceRunning = false;
       lanDiscoverable = false;
@@ -4850,6 +4941,8 @@
     try { await lanBridge.stopService(); } catch { /* 服务可能已经停止 */ }
     lanServiceRunning = false;
     lanDiscoverable = false;
+    lanSendBundle = null;
+    lanSendInfo = null;
     updateLanStateUI();
   }
 
@@ -4911,8 +5004,20 @@
       .map(item => `<li>${escapeHTML(item)}</li>`).join('');
   }
 
+  function syncLanModeUI(plan = lanConfirmPlan) {
+    if (!plan || byId('lanSyncModeGroup').hidden) return;
+    byId('lanSyncModeGroup').querySelectorAll('[data-lan-mode]').forEach(choice => {
+      choice.setAttribute('aria-pressed', String(choice.dataset.lanMode === lanConfirmMode));
+    });
+    const copy = lanConfirmMode === 'copy';
+    byId('confirmLanSyncLabel').textContent = lanText(copy ? 'confirmCopy' : 'confirmOverwrite');
+    byId('confirmLanSync').className = `settings-button${copy ? '' : ' danger'}`;
+    byId('lanSyncBackupNote').textContent = copy ? lanText('copyNote') : lanText('backupNote', lanLocalStats().profile);
+  }
+
   function fillLanDialog(plan) {
-    const local = lanLocalStats();
+    const isPush = plan.direction === 'push';
+    const local = isPush ? lanSendStats() : lanLocalStats();
     const remote = plan.remote;
     const peerName = plan.peer?.name || plan.from?.name || lanText('unknownDevice');
     const titles = {
@@ -4924,14 +5029,26 @@
     byId('lanSyncTitle').textContent = title;
     byId('lanSyncSubtitle').textContent = subtitle;
     // 数据从左侧流向右侧：拉取与接收时源是对方、目标是本机；推送时相反。
-    const [source, target] = plan.direction === 'push' ? [local, remote] : [remote, local];
+    const [source, target] = isPush ? [local, remote] : [remote, local];
     byId('lanSyncSourceSide').innerHTML = lanSideCardHTML(source, peerName);
     byId('lanSyncTargetSide').innerHTML = lanSideCardHTML(target, lanText('thisDevice'));
     byId('lanSyncFilesHeading').textContent = lanText('filesHeading');
-    byId('lanSyncFileList').innerHTML = lanFileListHTML(plan.direction === 'push' ? local : remote);
-    byId('lanSyncBackupNote').textContent = plan.direction === 'push' ? lanText('backupNotePush') : lanText('backupNote', local.profile);
+    byId('lanSyncFileList').innerHTML = lanFileListHTML(isPush ? local : remote);
+    // 接收方式只在数据写向本机时可选；推送方向由对方决定。
+    byId('lanSyncModeGroup').hidden = isPush;
+    byId('lanSyncModeHeading').textContent = lanText('modeHeading');
+    byId('lanModeReplaceTitle').textContent = lanText('modeReplaceTitle');
+    byId('lanModeReplaceHint').textContent = lanText('modeReplaceHint');
+    byId('lanModeCopyTitle').textContent = lanText('modeCopyTitle');
+    byId('lanModeCopyHint').textContent = lanText('modeCopyHint');
+    if (isPush) {
+      byId('confirmLanSyncLabel').textContent = lanText('confirmSend');
+      byId('confirmLanSync').className = 'settings-button danger';
+      byId('lanSyncBackupNote').textContent = lanText('backupNotePush');
+    } else {
+      syncLanModeUI(plan);
+    }
     byId('cancelLanSync').textContent = lanText('cancel');
-    byId('confirmLanSyncLabel').textContent = plan.direction === 'push' ? lanText('confirmSend') : lanText('confirmOverwrite');
     const error = byId('lanSyncError');
     error.hidden = true;
     error.textContent = '';
@@ -4941,6 +5058,7 @@
     return new Promise(resolve => {
       lanConfirmPlan = plan;
       lanConfirmResolve = resolve;
+      lanConfirmMode = 'replace';
       fillLanDialog(plan);
       openAnimatedDialog(lanDialog);
     });
@@ -4949,46 +5067,151 @@
   function settleLanConfirm(result) {
     if (!lanConfirmResolve) return;
     const resolve = lanConfirmResolve;
+    const plan = lanConfirmPlan;
     lanConfirmResolve = null;
     lanConfirmPlan = null;
-    closeAnimatedDialog(lanDialog);
-    resolve(result);
+    if (result) {
+      // 记录所选接收方式并保持对话框打开：传输步骤会显示在这里。
+      if (plan) plan.mode = lanConfirmMode;
+      setLanTransferLocked(true);
+      resolve(true);
+    } else {
+      closeAnimatedDialog(lanDialog);
+      resolve(false);
+    }
   }
 
-  async function applyLanBundle(bundle) {
+  function setLanTransferLocked(locked) {
+    lanTransferActive = locked;
+    byId('cancelLanSync').disabled = locked;
+    byId('confirmLanSync').disabled = locked;
+    byId('closeLanSync').disabled = locked;
+    byId('lanSyncModeGroup').querySelectorAll('[data-lan-mode]').forEach(choice => { choice.disabled = locked; });
+  }
+
+  function lanCloseTransferDialog() {
+    lanEndSteps();
+    setLanTransferLocked(false);
+    closeAnimatedDialog(lanDialog);
+  }
+
+  async function lanFinishTransfer() {
+    // 让用户看得到“全部完成”的状态再收起对话框。
+    await new Promise(resolve => setTimeout(resolve, 650));
+    lanCloseTransferDialog();
+  }
+
+  // 传输步骤：按传入的键渲染列表，active/done/fail 推进状态，
+  // note() 更新当前进行中步骤的说明（供进度事件调用）。
+  function lanBeginSteps(keys) {
+    const list = byId('lanSyncSteps');
+    list.hidden = false;
+    list.innerHTML = keys.map(key => `<li data-state="pending"><span class="lan-step-dot" aria-hidden="true"></span><span class="lan-step-copy"><b>${escapeHTML(lanText(key))}</b><small></small></span></li>`).join('');
+    const items = [...list.children];
+    let current = 0;
+    const setItem = (index, state, note = '') => {
+      const item = items[index];
+      if (!item) return;
+      item.dataset.state = state;
+      item.querySelector('small').textContent = note;
+    };
+    const paint = () => new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 30)));
+    lanSteps = {
+      async active(index, note = '') {
+        current = Math.max(current, index);
+        for (let before = 0; before < index; before += 1) if (items[before]?.dataset.state === 'pending') setItem(before, 'done');
+        setItem(index, 'active', note);
+        // 先让界面绘制当前步骤，再进入下一批重量级工作。
+        await paint();
+      },
+      note(text) { const item = items[current]; if (item) item.querySelector('small').textContent = text; },
+      done(index, note = '') { setItem(index, 'done', note); },
+      fail(note = '') { setItem(current, 'error', note); }
+    };
+    return lanSteps;
+  }
+
+  function lanEndSteps() {
+    const list = byId('lanSyncSteps');
+    list.hidden = true;
+    list.innerHTML = '';
+    lanSteps = null;
+  }
+
+  const lanProgressNote = payload => {
+    const received = lanRawBytes(payload.received || 0);
+    return payload.total ? lanText('progressLineTotal', received, lanRawBytes(payload.total)) : lanText('progressLine', received);
+  };
+
+  function applyLanBundle(bundle) {
     const remoteLibrary = parsePortableDataFolderBundle(bundle);
     replaceLibrary(remoteLibrary);
-    if (workspaceAdapter) await queueWorkspaceSave(remoteLibrary);
+    if (workspaceAdapter) return queueWorkspaceSave(remoteLibrary);
+    return Promise.resolve();
+  }
+
+  // 把收到的数据保存为一个全新的本地行记数据档案并切换过去；
+  // 不触碰任何现有档案，因此无需备份。
+  async function lanCopyBundleAsProfile(bundle, baseName) {
+    const snapshot = parsePortableDataFolderBundle(bundle);
+    const profile = { id:uid(), name:uniqueProfileName(baseName || profileText('newName')), storage:'local', label:localProfileLocation(), noteCount:0, todoCount:0, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
+    profileStats(profile, snapshot);
+    dataProfiles.push(profile);
+    saveDataProfileRegistry();
+    await createLocalProfileAdapter(profile).save(snapshot);
+    await activateDataProfile(profile.id, { notify:false });
+    return profile;
   }
 
   async function pullFromPeer(peer) {
     if (!lanBridge || lanBusy) return;
     lanBusy = true;
+    let backup = null;
     try {
       const info = await lanBridge.fetchInfo(peer.ip, peer.port, peer.session);
       const remote = info.info || {};
-      const confirmed = await openLanConfirm({
+      const plan = {
         direction:'pull', peer,
         remote: { profile: remote.profile || peer.profile, platform: peer.platform, notes: remote.notes ?? peer.notes, todos: remote.todos ?? peer.todos, classifications: remote.classifications ?? peer.classifications, bytes: remote.bytes ?? peer.bytes }
-      });
-      if (!confirmed) return;
-      setLanStatus(lanText('working'), 'info');
-      showSyncNotice(lanText('working'), 'working', true);
-      // 先备份：备份失败就不下载，本机数据保持原样。
-      let backup = null;
+      };
+      if (!(await openLanConfirm(plan))) return;
+      const copyMode = plan.mode === 'copy';
+      const steps = lanBeginSteps(copyMode ? ['stepTransfer','stepSaveProfile'] : ['stepBackup','stepTransfer','stepWrite']);
       try {
-        backup = await lanBridge.backupLocal(lanCurrentBundle(), lanProfileLabel());
-      } catch (error) {
-        setLanStatus(`${lanText('backupFail')}${error.message}`, 'error');
-        return;
-      }
-      try {
+        if (!copyMode) {
+          // 先备份：备份失败就不下载，本机数据保持原样。
+          await steps.active(0);
+          try { backup = await lanBridge.backupLocal(lanCurrentBundle(), lanProfileLabel()); }
+          catch (error) {
+            steps.fail(error.message);
+            setLanStatus(`${lanText('backupFail')}${error.message}`, 'error');
+            await lanFinishTransfer();
+            return;
+          }
+          steps.done(0, lanText('backupDoneAt', backup.path));
+        }
+        await steps.active(copyMode ? 0 : 1);
         const bundle = await lanBridge.fetchBundle(peer.ip, peer.port, peer.session);
-        await applyLanBundle(bundle);
-        setLanStatus(`${lanText('pullDone', peer.name || lanText('unknownDevice'))} ${lanText('backupDoneAt', backup.path)}`, 'success');
-        showSyncNotice(lanText('pullDone', peer.name || lanText('unknownDevice')));
+        steps.done(copyMode ? 0 : 1);
+        if (copyMode) {
+          await steps.active(1);
+          const profile = await lanCopyBundleAsProfile(bundle, remote.profile || peer.profile);
+          steps.done(1, profile.name);
+          void lanRefreshSendSnapshot({ quiet:true });
+          setLanStatus(lanText('copyDone', profile.name), 'success');
+          showSyncNotice(lanText('copyDone', profile.name));
+        } else {
+          await steps.active(2);
+          await applyLanBundle(bundle);
+          steps.done(2);
+          setLanStatus(`${lanText('pullDone', peer.name || lanText('unknownDevice'))} ${lanText('backupDoneAt', backup.path)}`, 'success');
+          showSyncNotice(lanText('pullDone', peer.name || lanText('unknownDevice')));
+        }
+        await lanFinishTransfer();
       } catch (error) {
-        setLanStatus(`${lanText('pullFail')}${error.message} ${lanText('backupDoneAt', backup.path)}`, 'error');
+        lanSteps?.fail(error.message);
+        setLanStatus(`${lanText('pullFail')}${error.message}${backup ? ` ${lanText('backupDoneAt', backup.path)}` : ''}`, 'error');
+        await lanFinishTransfer();
       }
     } catch (error) {
       setLanStatus(`${lanText('pullFail')}${error.message}`, 'error');
@@ -5001,23 +5224,43 @@
     if (!lanBridge || lanBusy) return;
     lanBusy = true;
     try {
+      const sendProfile = lanSendProfile();
+      const sendName = sendProfile?.name || lanProfileLabel();
       const confirmed = await openLanConfirm({ direction:'push', peer, remote: { profile: peer.profile, platform: peer.platform, notes: peer.notes, todos: peer.todos, classifications: peer.classifications, bytes: peer.bytes } });
       if (!confirmed) return;
-      setLanStatus(lanText('waitingPeer'), 'info');
-      showSyncNotice(lanText('waitingPeer'), 'working', true);
-      await flushCurrentDataProfile();
-      const status = await lanBridge.serviceStatus().catch(() => null);
-      const accepted = await lanBridge.pushBundle(peer.ip, peer.port, peer.session, lanCurrentBundle(), status?.device || 'Acta', lanProfileLabel());
-      if (accepted) {
-        setLanStatus(lanText('pushDone', peer.name || lanText('unknownDevice')), 'success');
-        showSyncNotice(lanText('pushDone', peer.name || lanText('unknownDevice')));
-      } else {
-        setLanStatus(lanText('pushRefused', peer.name || lanText('unknownDevice')), 'error');
-        showSyncNotice(lanText('pushRefused', peer.name || lanText('unknownDevice')), 'error');
+      const steps = lanBeginSteps(['stepSend']);
+      try {
+        await steps.active(0, lanText('stepSendNote'));
+        // 服务运行时直接复用 Rust 内存中的最新快照发送，避免完整档案
+        // 再在 IPC 上序列化一遍（这是之前大档案卡死的主要原因之一）。
+        await flushCurrentDataProfile();
+        let refreshFailed = false;
+        await lanRefreshSendSnapshot({ quiet:true }).catch(() => { refreshFailed = true; });
+        const status = await lanBridge.serviceStatus().catch(() => null);
+        let accepted = null;
+        if (status?.running && !refreshFailed) {
+          accepted = await lanBridge.pushSnapshot(peer.ip, peer.port, peer.session, status.device || 'Acta', sendName).catch(() => null);
+        }
+        if (accepted === null) {
+          // 服务不可用或快照刷新失败：退回直接携带最新数据的发送方式。
+          const bundle = await lanBuildSendBundle(sendProfile);
+          accepted = await lanBridge.pushBundle(peer.ip, peer.port, peer.session, bundle, status?.device || 'Acta', sendName);
+        }
+        if (accepted) {
+          steps.done(0, lanText('pushDone', peer.name || lanText('unknownDevice')));
+          setLanStatus(lanText('pushDone', peer.name || lanText('unknownDevice')), 'success');
+          showSyncNotice(lanText('pushDone', peer.name || lanText('unknownDevice')));
+        } else {
+          steps.fail(lanText('pushRefused', peer.name || lanText('unknownDevice')));
+          setLanStatus(lanText('pushRefused', peer.name || lanText('unknownDevice')), 'error');
+          showSyncNotice(lanText('pushRefused', peer.name || lanText('unknownDevice')), 'error');
+        }
+      } catch (error) {
+        lanSteps?.fail(error.message);
+        setLanStatus(`${lanText('pushFail')}${error.message}`, 'error');
+        showSyncNotice(`${lanText('pushFail')}${error.message}`, 'error');
       }
-    } catch (error) {
-      setLanStatus(`${lanText('pushFail')}${error.message}`, 'error');
-      showSyncNotice(`${lanText('pushFail')}${error.message}`, 'error');
+      await lanFinishTransfer();
     } finally {
       lanBusy = false;
     }
@@ -5028,6 +5271,41 @@
     const lanDiscoverableSetting = byId('lanDiscoverableSetting');
     lanDiscoverableSetting.checked = Boolean(uiSettings.lanDiscoverable);
     byId('lanPeersHint').textContent = lanText('peersHint');
+    // 「传输的行记数据」选择器：跟随档案列表变化，在 renderDataProfiles
+    // 里通过 lanProfilesChangedHook 保持同步。
+    lanSendProfileId = dataProfileById(uiSettings.lanSendProfileId)?.id || activeDataProfile()?.id || '';
+    const lanRenderProfileSelect = () => {
+      const select = byId('lanProfileSelect');
+      if (!lanSendProfileId || !dataProfileById(lanSendProfileId)) lanSendProfileId = activeDataProfile()?.id || '';
+      if (!lanSendProfileId) { select.innerHTML = ''; select.disabled = true; return; }
+      select.disabled = false;
+      select.innerHTML = dataProfiles.map(profile => {
+        const stats = profileStats(profile);
+        return `<option value="${escapeHTML(profile.id)}">${escapeHTML(profile.name)} · ${escapeHTML(profileText('stats', stats.notes, stats.todos))}</option>`;
+      }).join('');
+      select.value = lanSendProfileId;
+      uiSettings.lanSendProfileId = lanSendProfileId;
+    };
+    lanProfilesChangedHook = lanRenderProfileSelect;
+    lanRenderProfileSelect();
+    byId('lanProfileSelect').addEventListener('change', async () => {
+      const id = byId('lanProfileSelect').value;
+      if (!dataProfileById(id) || id === lanSendProfileId) return;
+      lanSendProfileId = id;
+      lanSendBundle = null;
+      lanSendInfo = null;
+      uiSettings.lanSendProfileId = id;
+      saveUISettings();
+      byId('lanProfileSelect').disabled = true;
+      try {
+        if (lanServiceRunning) await lanRefreshSendSnapshot();
+        else setLanStatus(lanText('snapshotReady', dataProfileById(id)?.name || ''), '');
+      } catch (error) {
+        setLanStatus(`${lanText('snapshotFail')}${error.message}`, 'error');
+      } finally {
+        byId('lanProfileSelect').disabled = false;
+      }
+    });
     updateLanStateUI();
     setLanStatus(lanText('serviceOff'), '');
     if (lanDiscoverableSetting.checked) {
@@ -5056,47 +5334,92 @@
       else void pushToPeer(peer);
     });
 
-    byId('confirmLanSync').addEventListener('click', () => settleLanConfirm(true));
-    byId('cancelLanSync').addEventListener('click', () => settleLanConfirm(false));
-    byId('closeLanSync').addEventListener('click', () => settleLanConfirm(false));
-    lanDialog.addEventListener('cancel', event => { event.preventDefault(); settleLanConfirm(false); });
-    lanDialog.addEventListener('click', event => { if (event.target === lanDialog) settleLanConfirm(false); });
+    byId('lanSyncModeGroup').addEventListener('click', event => {
+      const choice = event.target.closest('[data-lan-mode]');
+      if (!choice || lanTransferActive || choice.dataset.lanMode === lanConfirmMode) return;
+      lanConfirmMode = choice.dataset.lanMode;
+      syncLanModeUI();
+    });
+    byId('confirmLanSync').addEventListener('click', () => { if (!lanTransferActive) settleLanConfirm(true); });
+    byId('cancelLanSync').addEventListener('click', () => { if (!lanTransferActive) settleLanConfirm(false); });
+    byId('closeLanSync').addEventListener('click', () => { if (!lanTransferActive) settleLanConfirm(false); });
+    // 传输进行中不允许关闭对话框：半途关闭会让接收流程停在半写入状态。
+    lanDialog.addEventListener('cancel', event => { event.preventDefault(); if (!lanTransferActive) settleLanConfirm(false); });
+    lanDialog.addEventListener('click', event => { if (event.target === lanDialog && !lanTransferActive) settleLanConfirm(false); });
 
-    // 其他设备推送数据进来时弹出确认对话框；同意后先备份再覆盖，
-    // 全部成功才通知对方完成。
+    // 传输进度：Rust 在分块收发数据时发出进度事件，这里更新当前步骤说明。
+    window.actaDesktop.onLanProgress?.(event => {
+      const payload = event.payload || {};
+      if (lanSteps) lanSteps.note(lanProgressNote(payload));
+    });
+
+    // 其他设备推送数据进来时弹出确认对话框；用户选择「替换当前档案」或
+    // 「复制为新档案」，同意后先备份（仅替换）再写入，全部成功才通知对方。
     window.actaDesktop.onLanIncoming(async event => {
       const payload = event.payload || {};
-      // 正在同步或正在确认另一个请求时，直接拒绝新请求，避免互相覆盖。
+      // 正在同步或正在确认另一个请求时，直接拒绝新请求，避免互相覆盖；
+      // 同时在状态栏说明原因，而不是静默拒绝。
       if (lanBusy || lanIncomingActive) {
         await lanBridge.rejectIncoming().catch(() => {});
+        setLanStatus(lanText('busyRefused', payload.from?.name || lanText('unknownDevice')), 'error');
         return;
       }
       lanIncomingActive = true;
       try {
         const from = payload.from || {};
-        const confirmed = await openLanConfirm({
+        const plan = {
           direction:'incoming',
           from,
           remote: { profile: payload.profile, platform: from.platform, notes: payload.notes, todos: payload.todos, classifications: payload.classifications, bytes: payload.bytes }
-        });
+        };
+        const confirmed = await openLanConfirm(plan);
         if (!confirmed) {
           await lanBridge.rejectIncoming();
           return;
         }
-        setLanStatus(lanText('working'), 'info');
+        const copyMode = plan.mode === 'copy';
+        const steps = lanBeginSteps(copyMode ? ['stepReceive','stepSaveProfile'] : ['stepBackup','stepReceive','stepWrite']);
         let backup = null;
         try {
-          backup = await lanBridge.backupLocal(lanCurrentBundle(), lanProfileLabel());
+          if (!copyMode) {
+            // 先备份：备份失败就拒绝对方，本机数据保持原样。
+            await steps.active(0);
+            try { backup = await lanBridge.backupLocal(lanCurrentBundle(), lanProfileLabel()); }
+            catch (error) {
+              await lanBridge.rejectIncoming();
+              steps.fail(error.message);
+              setLanStatus(`${lanText('backupFail')}${error.message}`, 'error');
+              await lanFinishTransfer();
+              return;
+            }
+            steps.done(0, lanText('backupDoneAt', backup.path));
+          }
+          await steps.active(copyMode ? 0 : 1);
+          const bundle = await lanBridge.acceptIncoming();
+          steps.done(copyMode ? 0 : 1);
+          if (copyMode) {
+            await steps.active(1);
+            const profile = await lanCopyBundleAsProfile(bundle, payload.profile);
+            steps.done(1, profile.name);
+            await lanBridge.confirmIncoming();
+            void lanRefreshSendSnapshot({ quiet:true });
+            setLanStatus(lanText('copyDone', profile.name), 'success');
+            showSyncNotice(lanText('copyDone', profile.name));
+          } else {
+            await steps.active(2);
+            await applyLanBundle(bundle);
+            steps.done(2);
+            await lanBridge.confirmIncoming();
+            setLanStatus(`${lanText('incomingDone', from.name || lanText('unknownDevice'))} ${lanText('backupDoneAt', backup.path)}`, 'success');
+            showSyncNotice(lanText('incomingDone', from.name || lanText('unknownDevice')));
+          }
+          await lanFinishTransfer();
         } catch (error) {
-          await lanBridge.rejectIncoming();
-          setLanStatus(`${lanText('backupFail')}${error.message}`, 'error');
-          return;
+          await lanBridge.rejectIncoming().catch(() => {});
+          lanSteps?.fail(error.message);
+          setLanStatus(`${lanText('incomingFail')}${error.message}`, 'error');
+          await lanFinishTransfer();
         }
-        const bundle = await lanBridge.acceptIncoming();
-        await applyLanBundle(bundle);
-        await lanBridge.confirmIncoming();
-        setLanStatus(`${lanText('incomingDone', from.name || lanText('unknownDevice'))} ${lanText('backupDoneAt', backup.path)}`, 'success');
-        showSyncNotice(lanText('incomingDone', from.name || lanText('unknownDevice')));
       } catch (error) {
         await lanBridge.rejectIncoming().catch(() => {});
         setLanStatus(`${lanText('incomingFail')}${error.message}`, 'error');

@@ -43,16 +43,16 @@ async fn prepare_update_restart(payload: String, version: String) -> Result<bool
 
 // 局域网同步命令的薄包装：与 updater 命令同理，#[tauri::command] 的隐藏宏
 // 留在 lib.rs 作用域，避免 generate_handler! 跨模块引用私有宏。
-// 服务生命周期命令是同步函数（内部只有短锁与线程启动），搜索与传输
-// 命令保持 async，让网络等待离开主线程。
+// 全部命令均为 async：服务启动需要序列化完整档案，搜索与传输需要等待
+// 网络，让这些开销离开主线程；stop/status 等轻量操作也保持 async 统一。
 #[tauri::command]
-fn lan_sync_start_service(
+async fn lan_sync_start_service(
     app: AppHandle,
     state: tauri::State<'_, lan_sync::LanState>,
     bundle: Value,
     profile_name: String,
 ) -> Result<lan_sync::LanServiceStatus, String> {
-    lan_sync::lan_sync_start_service(app, &state, bundle, profile_name)
+    lan_sync::lan_sync_start_service(app, &state, bundle, profile_name).await
 }
 
 #[tauri::command]
@@ -79,8 +79,8 @@ async fn lan_sync_fetch_info(ip: String, port: u16, session: String) -> Result<V
 }
 
 #[tauri::command]
-async fn lan_sync_fetch_bundle(ip: String, port: u16, session: String) -> Result<Value, String> {
-    lan_sync::lan_sync_fetch_bundle(ip, port, session).await
+async fn lan_sync_fetch_bundle(app: AppHandle, ip: String, port: u16, session: String) -> Result<Value, String> {
+    lan_sync::lan_sync_fetch_bundle(app, ip, port, session).await
 }
 
 #[tauri::command]
@@ -93,6 +93,18 @@ async fn lan_sync_push_bundle(
     profile_name: String,
 ) -> Result<bool, String> {
     lan_sync::lan_sync_push_bundle(ip, port, session, bundle, device_label, profile_name).await
+}
+
+#[tauri::command]
+async fn lan_sync_push_snapshot(
+    state: tauri::State<'_, lan_sync::LanState>,
+    ip: String,
+    port: u16,
+    session: String,
+    device_label: String,
+    profile_name: String,
+) -> Result<bool, String> {
+    lan_sync::lan_sync_push_snapshot(&state, ip, port, session, device_label, profile_name).await
 }
 
 #[tauri::command]
@@ -1845,6 +1857,7 @@ pub fn run() {
             lan_sync_fetch_info,
             lan_sync_fetch_bundle,
             lan_sync_push_bundle,
+            lan_sync_push_snapshot,
             lan_sync_accept_incoming,
             lan_sync_confirm_incoming,
             lan_sync_reject_incoming,
